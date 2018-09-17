@@ -1,1 +1,1 @@
-# empiricalquantilefun
+# EmpiricalQuantileFun
