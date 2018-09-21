@@ -1,6 +1,6 @@
 TARGET = main
 CPP = g++
-CPPFLAGS = -c -std=c++11 -Wall -Wextra -O3 -MD
+CPPFLAGS = -c -std=c++17 -Wall -Wextra -O3 -MD
 
 SRCPATH = ./src
 OBJDIR_RELEASE = obj/Release
