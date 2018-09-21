@@ -1,109 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <fstream>
 #include <string>
 #include <random>
 #include <algorithm>
-#include <chrono>
-#include <ctime>
 
-class Timer
-{
-public:
-    Timer() :
-        beg_(clock_::now())
-    {
-    }
-    void reset();
-    float elapsed_nanoseconds() const;
-    float elapsed_microseconds() const;
-    float elapsed_milliseconds() const;
-    float elapsed_seconds() const;
-    float elapsed_minutes() const;
-    float elapsed_hours() const;
-private:
-    typedef std::chrono::high_resolution_clock clock_;
-    typedef std::chrono::duration<float, std::nano> nanoseconds_;
-    typedef std::chrono::duration<float, std::micro> microseconds_;
-    typedef std::chrono::duration<float, std::milli> milliseconds_;
-    typedef std::chrono::duration<float, std::ratio<1> > seconds_;
-    typedef std::chrono::duration<float, std::ratio<60> > minutes_;
-    typedef std::chrono::duration<float, std::ratio<3600> > hours_;
-    std::chrono::time_point<clock_> beg_;
-};
-
-void Timer::reset()
-{
-    beg_ = clock_::now();
-}
-float Timer::elapsed_nanoseconds() const
-{
-    return std::chrono::duration_cast<nanoseconds_>(clock_::now() - beg_).count();
-}
-float Timer::elapsed_microseconds() const
-{
-    return std::chrono::duration_cast<microseconds_>(clock_::now() - beg_).count();
-}
-float Timer::elapsed_milliseconds() const
-{
-    return std::chrono::duration_cast<milliseconds_>(clock_::now() - beg_).count();
-}
-float Timer::elapsed_seconds() const
-{
-    return std::chrono::duration_cast<seconds_>(clock_::now() - beg_).count();
-}
-float Timer::elapsed_minutes() const
-{
-    return std::chrono::duration_cast<minutes_>(clock_::now() - beg_).count();
-}
-float Timer::elapsed_hours() const
-{
-    return std::chrono::duration_cast<hours_>(clock_::now() - beg_).count();
-}
-
-
-template<typename T, typename A>
-void print2file(std::string fname, std::vector<T, A> u, int step)
-{
-    std::ofstream fOut;
-    fOut.open(fname.c_str());
-    if(!fOut.is_open())
-    {
-        std::cout << "Error opening file." << std::endl;
-        return;
-    }
-    fOut.precision(10);
-    for(size_t i = 0; i < u.size(); i += step)
-    {
-        fOut << std::scientific << i << '\t' << u[i] << std::endl;
-    }
-    fOut.close();
-    std::cout << fname << std::endl;
-}
-
-template<typename T, typename A>
-void simple_print2file(std::string fname, std::vector<std::vector<T, A> >& u)
-{
-    std::ofstream fOut;
-    fOut.open(fname.c_str());
-    if(!fOut.is_open())
-    {
-        std::cout << "Error opening file." << std::endl;
-        return;
-    }
-    fOut.precision(10);
-    for(size_t i = 0; i < u.size(); i++)
-    {
-        for(size_t j = 0; j < u[i].size(); j++)
-        {
-            fOut << std::scientific << u[i][j] << '\t';
-        }
-        fOut << std::endl;
-    }
-    fOut.close();
-    std::cout << fname << std::endl;
-}
+#include "print2file.h"
+#include "timer.h"
 
 double empirical_qantile_1d_sorted(std::vector<double> &sorted_sample, double val)
 {
@@ -242,7 +145,7 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
     
-    Timer time_cpp11;
+    timer::Timer time_cpp11;
     time_cpp11.reset();
     std::vector<std::vector<float> > sampled;
     long long nrolls = 2e+3;  // number of experiments
@@ -264,8 +167,8 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    simple_print2file("maps/sampled_explicit.dat",sampled);
-    simple_print2file("maps/z.dat",u01zvectors);
+    print2file2d("maps/sampled_explicit.dat",sampled);
+    print2file2d("maps/z.dat",u01zvectors);
 }
 
 void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::vector<float> > &grids)
@@ -367,13 +270,6 @@ int main()
 
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    /// 0 - explicit (CPU), 1 - implicit (CPU)
-    size_t algo = 0;
-    switch(algo)
-    {
-        case 0:
-            explicit_quantile(sample_explicit, grids);
-        case 1:
-            implicit_quantile(sample_implicit, grids);
-    }
+    explicit_quantile(sample_explicit, grids);
+    implicit_quantile(sample_implicit, grids);
 }
