@@ -163,7 +163,7 @@ std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<i
     return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
 }
 
-void ecdfNd_one_MultipleGrids_fromgrid_Trie(trie_based::TrieBased &sample,
+void ecdfNd_one_MultipleGrids_fromgrid_Trie(trie_based::TrieBased<trie_based::NodeCount<int>,int> &sample,
         const std::vector<std::vector<float> > &grids,
         const std::vector<float> &val01,
         std::vector<float> &rez)
@@ -194,7 +194,7 @@ void ecdfNd_one_MultipleGrids_fromgrid_Trie(trie_based::TrieBased &sample,
 
 void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::vector<float> > &grids)
 {
-    trie_based::TrieBased sample_trie(grids.size());
+    trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_trie(grids.size());
     for(auto i : sample)
         sample_trie.insert(i);
     sample_trie.fill_tree_count();
@@ -225,7 +225,7 @@ void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
     print2file2d("maps/sampled_implicit.dat",sampled);
 
-    sample_trie.remove_tree();
+    //sample_trie.remove_tree();
 }
 
 int main()
