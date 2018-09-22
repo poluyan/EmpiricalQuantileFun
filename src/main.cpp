@@ -16,11 +16,6 @@ double empirical_qantile_1d_sorted(std::vector<double> &sorted_sample, double va
 
 std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
 {
-    //std::vector<float> sorted_sample = sample;
-    //std::sort(sorted_sample.begin(), sorted_sample.end());
-
-    //print2file("maps/sample1d.dat",sorted_sample,1);
-
     size_t l = 0;
     size_t r = grid.size() - 1;
 
@@ -30,13 +25,6 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
     while(l <= r)
     {
         m = l + (r - l) / 2;
-
-        //auto pos1 = std::lower_bound(sorted_sample.begin(), sorted_sample.end(), grid[m]);
-        //auto pos2 = std::lower_bound(sorted_sample.begin(), sorted_sample.end(), grid[m + 1]);
-        //index1 = std::distance(sorted_sample.begin(), pos1);
-        //index2 = std::distance(sorted_sample.begin(), pos2);
-        //cdf1 = index1/float(sorted_sample.size());
-        //cdf2 = index2/float(sorted_sample.size());
 
         index1 = 0;
         index2 = 0;
@@ -54,8 +42,6 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
         cdf1 = index1/float(sample.size());
         cdf2 = index2/float(sample.size());
 
-        //std::cout << grid[m] << '\t' << grid[m + 1] << '\t' << cdf1 << '\t' << cdf2 << std::endl;
-
         if((val01 < cdf2) && (val01 > cdf1))
             break;
 
@@ -66,12 +52,6 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
     }
 
     float x0 = grid[m], y0 = cdf1, x1 = grid[m + 1], y1 = cdf2;
-
-    //if(index1 == index2 || m == grid.size() - 1 || m == grid.size() || m < 0)
-    //{
-    //    std::cout << "index1 == index2\t" << index1 << '\t' << index2 << std::endl;
-    //    std::cin.get();
-    //}
     return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
 }
 
@@ -81,9 +61,6 @@ void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
                               std::vector<float> &rez)
 {
     std::vector<size_t> m;
-    //float delta = std::abs(grid[1] - grid[0])/2.0;
-    //if((sample[j][k] > rez[i - 1] - delta)  && sample[j][k] < (rez[i - 1] + delta))
-
     for(size_t i = 0, g = val01.size(); i != g; i++)
     {
         std::vector<float> row(sample.size());
@@ -93,16 +70,7 @@ void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
             bool flag = true;
             for(size_t k = 0, t = m.size(); k != t; k++)
             {
-                //if((sample[j][k] > grid[m[k]] - i*delta) && (sample[j][k] < grid[m[k] + 1] + i*delta))
-
-                //std::cout << sample[j][k] << '\t' << grids[k][m[k]] << '\t' << sample[j][k] << '\t' << grids[k][m[k] + 1] << std::endl;
-                //std::cout << k + m[k] << '\t' << k + m[k] + 1 << std::endl;
-                //std::cin.get();
-                if(sample[j][k] > grids[k][m[k]] && sample[j][k] < grids[k][m[k] + 1])
-                {
-                    flag = true;
-                }
-                else
+                if(!(sample[j][k] > grids[k][m[k]] && sample[j][k] < grids[k][m[k] + 1]))
                 {
                     flag = false;
                     break;
@@ -112,31 +80,13 @@ void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
             {
                 row[index] = sample[j][i];
                 ++index;
-                //row.push_back(sample[j][i]);
             }
         }
         row.resize(index);
-        //std::cout << row.size() << std::endl;
-        //std::cin.get();
-        //if(row.empty())
-        //{
-        //    std::cout << "row empty!" << row.size() << std::endl;
-
-        //row.push_back(grid.front());
-        //row.push_back(grid.back());
-        //}
-
-        //for(auto u : row)
-        //    std::cout << u << std::endl;
-
-        //std::cin.get();
-
-        //std::cout << "here  v " << row.size() << '\t' << grids[i].size() << '\t' << val01[i] << std::endl;
-        auto rez2 = ecdf1d_pair(row,grids[i],val01[i]);//ecdf1d_pair(row,grids[i],val01[i]);
+        auto rez2 = ecdf1d_pair(row,grids[i],val01[i]);
         rez[i] = rez2.second;
         m.push_back(rez2.first);
     }
-    //return rez;
 }
 
 void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std::vector<float> > &grids)
