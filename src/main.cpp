@@ -7,6 +7,7 @@
 
 #include "print2file.h"
 #include "timer.h"
+#include "trie_based.h"
 
 double empirical_qantile_1d_sorted(std::vector<double> &sorted_sample, double val)
 {
@@ -94,11 +95,11 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     std::mt19937_64 generator;
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
-    
+
     timer::Timer time_cpp11;
     time_cpp11.reset();
     std::vector<std::vector<float> > sampled;
-    long long nrolls = 2e+3;  // number of experiments
+    long long nrolls = 1e+2;  // number of experiments
 
     std::vector<std::vector<float>> u01zvectors;
 
@@ -121,9 +122,110 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     print2file2d("maps/z.dat",u01zvectors);
 }
 
+
+std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
+{   
+    size_t l = 0, r = grid.size() - 1;
+
+    size_t m = 0, index1 = 0, index2 = 0;
+    float cdf1, cdf2;
+    
+    while(l <= r)
+    {
+        m = l + (r - l) / 2;
+
+        index1 = 0;
+        index2 = 0;
+        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        {
+            if(sample[i].first < m)
+            {
+                index1 += sample[i].second;
+            }
+            if(sample[i].first < m + 1)
+            {
+                index2 += sample[i].second;
+            }
+        }
+        cdf1 = index1/float(sample_size);
+        cdf2 = index2/float(sample_size);
+
+        if((val01 > cdf1) && (val01 < cdf2))
+            break;
+
+        if(val01 > cdf1)
+            l = m + 1;
+        else
+            r = m - 1;
+    }
+
+    float x0 = grid[m], y0 = cdf1, x1 = grid[m + 1], y1 = cdf2;
+    return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
+}
+
+void ecdfNd_one_MultipleGrids_fromgrid_Trie(trie_based::TrieBased &sample,
+        const std::vector<std::vector<float> > &grids,
+        const std::vector<float> &val01,
+        std::vector<float> &rez)
+{
+    auto p = sample.root.get();
+    for(size_t i = 0; i != val01.size(); i++)
+    {
+        std::vector<std::pair<int,int>> row;
+        int cc = 0;
+        for(size_t j = 0; j != p->children.size(); j++)
+        {
+            row.push_back(std::make_pair(p->children[j]->index,p->children[j]->count));
+            cc += p->children[j]->count;
+        }
+        
+        auto rez2 = ecdf1d_pair_fromgrid_trie(row,cc,grids[i],val01[i]);
+        rez[i] = rez2.second;
+        
+        int index = 0;
+        for(size_t j = 1; j < p->children.size(); j++)
+        {
+            if(p->children[j]->index == rez2.first)
+                index = j;
+        }
+        p = p->children[index].get();
+    }
+}
+
 void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::vector<float> > &grids)
 {
-    
+    trie_based::TrieBased sample_trie(grids.size());
+    for(auto i : sample)
+        sample_trie.insert(i);
+    sample_trie.fill_tree_count();
+
+    std::cout << "total samples " << sample_trie.get_total_count() << std::endl;
+
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
+    std::vector<std::vector<float> > sampled;
+    long long nrolls = 1e+2;  // number of experiments
+
+    std::vector<float> temp1(grids.size());
+    std::vector<float> temp2(temp1.size());
+    for(long long i = 0; i != nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        ecdfNd_one_MultipleGrids_fromgrid_Trie(sample_trie,grids,temp1,temp2);
+        sampled.push_back(temp2);
+    }
+    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
+    print2file2d("maps/sampled_implicit.dat",sampled);
+
+    sample_trie.remove_tree();
 }
 
 int main()
