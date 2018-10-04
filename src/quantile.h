@@ -4,19 +4,19 @@
 #include "trie_based.h"
 #include "print2file.h"
 
-template <typename T>
+template <typename T, typename U>
 class Quantile
 {
 private:
     typedef trie_based::TrieBased<trie_based::NodeCount<T>,T> sample_type;
     sample_type sample;
-    std::vector<float> lb;
-    std::vector<float> ub;
-    std::vector<std::vector<float>> grids;
+    std::vector<U> lb;
+    std::vector<U> ub;
+    std::vector<std::vector<U>> grids;
     std::vector<size_t> grid_number;
 public:
-    Quantile(std::vector<float> in_lb,
-             std::vector<float> in_ub,
+    Quantile(std::vector<U> in_lb,
+             std::vector<U> in_ub,
              std::vector<size_t> in_gridn,
              std::vector<std::vector<int>> in_sample)
     {
@@ -27,13 +27,13 @@ public:
         grids.resize(grid_number.size());
         for(size_t i = 0; i != grids.size(); i++)
         {
-            std::vector<float> grid(grid_number[i] + 1);
-            float startp = lb[i];
-            float endp = ub[i];
-            float es = endp - startp;
+            std::vector<U> grid(grid_number[i] + 1);
+            U startp = lb[i];
+            U endp = ub[i];
+            U es = endp - startp;
             for(size_t j = 0; j != grid.size(); j++)
             {
-                grid[j] = startp + j*es/float(grid_number[i]);
+                grid[j] = startp + j*es/U(grid_number[i]);
             }
             grids[i] = grid;
             //dx[i] = es/(float(grid_number[i])*2);
@@ -44,7 +44,7 @@ public:
             sample.insert(i);
         sample.fill_tree_count();
     }
-    void tranform(const std::vector<float>& in01, std::vector<float>& out)
+    void tranform(const std::vector<U>& in01, std::vector<U>& out)
     {
         auto p = sample.root.get();
         for(size_t i = 0; i != in01.size(); i++)
@@ -69,12 +69,13 @@ public:
             p = p->children[index].get();
         }
     }
-    std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &row, size_t sample_size, size_t ind, float val01) const
+private:
+    std::pair<size_t, U> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &row, size_t sample_size, size_t ind, float val01) const
     {
         size_t l = 0, r = grids[ind].size() - 1;
 
         size_t m = 0, index1 = 0, index2 = 0;
-        float cdf1, cdf2;
+        U cdf1, cdf2;
 
         while(l <= r)
         {
@@ -93,8 +94,8 @@ public:
                     index2 += row[i].second;
                 }
             }
-            cdf1 = index1/float(sample_size);
-            cdf2 = index2/float(sample_size);
+            cdf1 = index1/U(sample_size);
+            cdf2 = index2/U(sample_size);
 
             if((val01 > cdf1) && (val01 < cdf2))
                 break;
@@ -105,7 +106,7 @@ public:
                 r = m - 1;
         }
 
-        float x0 = grids[ind][m], y0 = cdf1, x1 = grids[ind][m + 1], y1 = cdf2;
+        U x0 = grids[ind][m], y0 = cdf1, x1 = grids[ind][m + 1], y1 = cdf2;
         return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
     }
 };

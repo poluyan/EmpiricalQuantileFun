@@ -243,7 +243,7 @@ void implicit_quantile_class(float lb,
     std::vector<std::vector<float> > sampled;
     long long nrolls = 1e+2;  // number of experiments
 
-    Quantile<int> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
+    Quantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
 
     std::vector<float> temp1(gridn.size());
     std::vector<float> temp2(temp1.size());
@@ -292,7 +292,8 @@ int main()
 
     //
 
-    std::vector<size_t> grid_number = {9, 10};
+    //std::vector<size_t> grid_number = {9, 10};
+    std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
 
     std::vector<std::vector<float>> grids(grid_number.size());
     std::vector<float> dx(grid_number.size());
@@ -312,26 +313,34 @@ int main()
     }
 
     std::vector<std::vector<int>> sample_implicit;
-    sample_implicit.push_back(std::vector{2,6});
+//    sample_implicit.push_back(std::vector{2,6});
+//
+//    sample_implicit.push_back(std::vector{3,2});
+//    sample_implicit.push_back(std::vector{3,3});
+//    sample_implicit.push_back(std::vector{3,5});
+//    sample_implicit.push_back(std::vector{3,6});
+//    sample_implicit.push_back(std::vector{3,7});
+//
+//    sample_implicit.push_back(std::vector{4,5});
+//    sample_implicit.push_back(std::vector{4,6});
+//    sample_implicit.push_back(std::vector{4,7});
+//
+//    sample_implicit.push_back(std::vector{5,3});
+//    sample_implicit.push_back(std::vector{5,4});
+//    sample_implicit.push_back(std::vector{5,5});
+//    sample_implicit.push_back(std::vector{5,6});
+//    sample_implicit.push_back(std::vector{5,7});
+//
+//    sample_implicit.push_back(std::vector{6,3});
+//    sample_implicit.push_back(std::vector{6,4});
 
-    sample_implicit.push_back(std::vector{3,2});
-    sample_implicit.push_back(std::vector{3,3});
-    sample_implicit.push_back(std::vector{3,5});
-    sample_implicit.push_back(std::vector{3,6});
-    sample_implicit.push_back(std::vector{3,7});
-
-    sample_implicit.push_back(std::vector{4,5});
-    sample_implicit.push_back(std::vector{4,6});
-    sample_implicit.push_back(std::vector{4,7});
-
-    sample_implicit.push_back(std::vector{5,3});
-    sample_implicit.push_back(std::vector{5,4});
-    sample_implicit.push_back(std::vector{5,5});
-    sample_implicit.push_back(std::vector{5,6});
-    sample_implicit.push_back(std::vector{5,7});
-
-    sample_implicit.push_back(std::vector{6,3});
-    sample_implicit.push_back(std::vector{6,4});
+    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
+    sample_implicit.push_back(std::vector{4, 2, 6, 3, 2, 3, 2, 1, 2, 4});
+    sample_implicit.push_back(std::vector{4, 3, 4, 3, 2, 3, 2, 1, 2, 5});
+    sample_implicit.push_back(std::vector{4, 4, 1, 3, 2, 3, 2, 1, 2, 1});
+    sample_implicit.push_back(std::vector{4, 5, 6, 3, 2, 3, 2, 1, 2, 2});
+    sample_implicit.push_back(std::vector{4, 5, 0, 3, 2, 3, 2, 1, 2, 3});
+    sample_implicit.push_back(std::vector{1, 2, 3, 4, 5, 6, 2, 0, 0, 2});
 
     std::vector<std::vector<float>> sample_explicit;
     for(size_t i = 0; i != sample_implicit.size(); ++i)
