@@ -39,11 +39,19 @@ namespace trie_based
         std::vector<std::shared_ptr<T>> last_layer;
     public:
         std::shared_ptr<T> root;
+        TrieBased()
+        {
+            root = std::make_shared<T>();
+        }
         TrieBased(size_t dim) : dimension(dim)
         {
             root = std::make_shared<T>();
         };
         ~TrieBased() {};
+        void set_dimension(size_t dim)
+        {
+            dimension = dim;            
+        }
         void insert(const std::vector<I> &key);
         bool search(const std::vector<I> &key) const;
         void fill_tree_count();
@@ -194,7 +202,7 @@ namespace trie_based
         if(p->children.empty())
             return;
 
-        for(size_t i = 0; i != dim; ++i)
+        for(int i = 0; i != dim; ++i)
         {
             p = p->children.back().get();
         }

@@ -9,6 +9,8 @@
 #include "timer.h"
 #include "trie_based.h"
 
+#include "quantile.h"
+
 double empirical_qantile_1d_sorted(std::vector<double> &sorted_sample, double val)
 {
     auto pos = std::lower_bound(sorted_sample.begin(), sorted_sample.end(), val);
@@ -122,14 +124,13 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     print2file2d("maps/z.dat",u01zvectors);
 }
 
-
 std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
-{   
+{
     size_t l = 0, r = grid.size() - 1;
 
     size_t m = 0, index1 = 0, index2 = 0;
     float cdf1, cdf2;
-    
+
     while(l <= r)
     {
         m = l + (r - l) / 2;
@@ -178,10 +179,10 @@ void ecdfNd_one_MultipleGrids_fromgrid_Trie(trie_based::TrieBased<trie_based::No
             row.push_back(std::make_pair(p->children[j]->index,p->children[j]->count));
             cc += p->children[j]->count;
         }
-        
+
         auto rez2 = ecdf1d_pair_fromgrid_trie(row,cc,grids[i],val01[i]);
         rez[i] = rez2.second;
-        
+
         int index = 0;
         for(size_t j = 1; j < p->children.size(); j++)
         {
@@ -225,16 +226,48 @@ void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
     print2file2d("maps/sampled_implicit.dat",sampled);
 
-    //sample_trie.remove_tree();
+    sample_trie.remove_tree();
+}
+
+void implicit_quantile_class(float lb,
+                             float ub,
+                             std::vector<size_t> gridn,
+                             std::vector<std::vector<int> > &sample)
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
+    std::vector<std::vector<float> > sampled;
+    long long nrolls = 1e+2;  // number of experiments
+
+    Quantile<int> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
+
+    std::vector<float> temp1(gridn.size());
+    std::vector<float> temp2(temp1.size());
+    for(long long i = 0; i != nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        quant.tranform(temp1,temp2);
+        sampled.push_back(temp2);
+    }
+    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
+    print2file2d("maps/sampled_implicit_class.dat",sampled);
 }
 
 int main()
 {
-//    std::mt19937_64 generator;
-//    generator.seed(1);
-//    std::normal_distribution<double> norm(0.0,1.0);
-//
-//    std::vector<double> sample(10);
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::normal_distribution<double> norm(0.0,1.0);
+
+//    std::vector<double> sample(50);
 //    for(size_t i = 0; i != sample.size(); i++)
 //    {
 //        sample[i] = norm(generator);
@@ -324,4 +357,6 @@ int main()
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(sample_explicit, grids);
     implicit_quantile(sample_implicit, grids);
+
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit);
 }
