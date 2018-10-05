@@ -139,11 +139,11 @@ std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<i
         index2 = 0;
         for(size_t i = 0, n = sample.size(); i != n; ++i)
         {
-            if(sample[i].first < m)
+            if(static_cast<size_t>(sample[i].first) < m)
             {
                 index1 += sample[i].second;
             }
-            if(sample[i].first < m + 1)
+            if(static_cast<size_t>(sample[i].first) < m + 1)
             {
                 index2 += sample[i].second;
             }
@@ -186,7 +186,7 @@ void ecdfNd_one_MultipleGrids_fromgrid_Trie(trie_based::TrieBased<trie_based::No
         int index = 0;
         for(size_t j = 1; j < p->children.size(); j++)
         {
-            if(p->children[j]->index == rez2.first)
+            if(static_cast<size_t>(p->children[j]->index) == rez2.first)
                 index = j;
         }
         p = p->children[index].get();
@@ -253,7 +253,7 @@ void implicit_quantile_class(float lb,
         {
             temp1[j] = ureal01(generator);
         }
-        quant.tranform(temp1,temp2);
+        quant.transform(temp1,temp2);
         sampled.push_back(temp2);
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
