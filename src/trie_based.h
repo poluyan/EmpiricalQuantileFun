@@ -30,7 +30,7 @@ namespace trie_based
         NodeCount() : TrieNode<NodeCount, I>(), count(0) {}
         NodeCount(I ind) : TrieNode<NodeCount, I>(ind), count(0) {}
     };
-    
+
     template <typename T, typename I>
     class TrieBased
     {
@@ -39,19 +39,10 @@ namespace trie_based
         std::vector<std::shared_ptr<T>> last_layer;
     public:
         std::shared_ptr<T> root;
-        TrieBased()
-        {
-            root = std::make_shared<T>();
-        }
-        TrieBased(size_t dim) : dimension(dim)
-        {
-            root = std::make_shared<T>();
-        };
-        ~TrieBased() {};
-        void set_dimension(size_t dim)
-        {
-            dimension = dim;            
-        }
+        TrieBased();
+        TrieBased(size_t dim);
+        ~TrieBased();
+        void set_dimension(size_t dim);
         void insert(const std::vector<I> &key);
         bool search(const std::vector<I> &key) const;
         void fill_tree_count();
@@ -64,6 +55,24 @@ namespace trie_based
         void delete_last(int dim);
         std::vector<I> get_and_remove_last();
     };
+    template <typename T, typename I>
+    TrieBased<T,I>::TrieBased()
+    {
+        root = std::make_shared<T>();
+    }
+    template <typename T, typename I>
+    TrieBased<T,I>::TrieBased(size_t dim) : dimension(dim)
+    {
+        root = std::make_shared<T>();
+    }
+    template <typename T, typename I>
+    TrieBased<T,I>::~TrieBased() {};
+    template <typename T, typename I>
+    void TrieBased<T,I>::set_dimension(size_t dim)
+    {
+        dimension = dim;
+    }
+
     template <typename T, typename I>
     bool TrieBased<T,I>::empty() const
     {

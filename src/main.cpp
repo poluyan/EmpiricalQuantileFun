@@ -243,7 +243,7 @@ void implicit_quantile_class(float lb,
     std::vector<std::vector<float> > sampled;
     long long nrolls = 1e+2;  // number of experiments
 
-    Quantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
+    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
 
     std::vector<float> temp1(gridn.size());
     std::vector<float> temp2(temp1.size());
