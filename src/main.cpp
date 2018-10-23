@@ -443,12 +443,13 @@ int main()
 
     std::cout.precision(15);
     std::cout << std::fixed << getval(sample,grid,0.350898) << std::endl;
+    std::cout << '\n' << std::endl;
     std::cout << std::fixed << getval2(sample,grid,0.350898) << std::endl;
     
-    print2file("maps/1d1.dat",sampled1,1); 
-    print2file("maps/1d2.dat",sampled2,1);
-    print2file("maps/1d3.dat",sampled3,1);
-    print2file("maps/1d4.dat",sampled4,1);    
+//    print2file("maps/1d1.dat",sampled1,1); 
+//    print2file("maps/1d2.dat",sampled2,1);
+//    print2file("maps/1d3.dat",sampled3,1);
+//    print2file("maps/1d4.dat",sampled4,1);    
     return 0;
 
 //    std::vector<double> sample(50);
