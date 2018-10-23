@@ -279,11 +279,114 @@ void implicit_quantile_class(float lb,
     print2file2d("maps/sampled_implicit_class.dat",sampled);
 }
 
+float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
+{
+    size_t l = 0, r = grid.size() - 1, m = 0, c1 = 0, c2 = 0;
+    float f1, f2, n = sample.size();
+    while(l <= r)
+    {
+        m = l + (r - l) / 2;
+//        std::cout << l << '\t' << r << '\t' << m << std::endl;
+        c1 = 0;
+        c2 = 0;
+        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        {
+            if(sample[i] < grid[m])
+                ++c1;
+            if(sample[i] < grid[m + 1])
+                ++c2;
+        }
+        f1 = c1/n;
+        f2 = c2/n;
+        if((val01 < f2) && (val01 > f1))
+            break;
+        if(val01 > f1)
+        {
+            l = m + 1;
+        }
+        else
+        {
+            r = m - 1;
+        }
+    }
+//    std::cout << "here " << m << std::endl;
+//    std::cout << "here " << f1 << std::endl;
+//    std::cout << "here " << f2 << std::endl;
+    float x0 = grid[m], y0 = f1, x1 = grid[m + 1], y1 = f2;
+    return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
+}
+
+float getval2(std::vector<float> &sample, std::vector<float> &grid, float val01)
+{
+    size_t l = 0, r = grid.size() - 1, m = 0, c1 = 0, c2 = 0;
+    float f1, f2, n = sample.size();
+    int count = n, step;
+    //while(l <= r)
+    while(count > 0)
+    {
+        m = l + (r - l) / 2;
+        step = count/2;
+        //m = l + step;
+//        std::cout << l << '\t' << r << '\t' << m << '\t' << l + step << std::endl;
+        c1 = 0;
+        c2 = 0;
+        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        {
+            if(sample[i] < grid[m])
+                ++c1;
+            if(sample[i] < grid[m + 1])
+                ++c2;
+        }
+        f1 = c1/n;
+        f2 = c2/n;
+        if((val01 < f2) && (val01 > f1))
+            break;
+        if(val01 > f1)
+        {
+            l = m + 1;
+            count -= step + 1;
+        }
+        else
+        {
+            r = m - 1;
+            count = step;
+        }
+    }
+//    std::cout << "here " << m << std::endl;
+//    std::cout << "here " << f1 << std::endl;
+//    std::cout << "here " << f2 << std::endl;
+    float x0 = grid[m], y0 = f1, x1 = grid[m + 1], y1 = f2;
+    return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
+}
+
 int main()
 {
     std::mt19937_64 generator;
     generator.seed(1);
-    std::normal_distribution<double> norm(0.0,1.0);
+    std::normal_distribution<float> norm(0.0,1.0);
+    std::uniform_real_distribution<float> ureal(0.0,1.0);
+
+    std::vector<float> grid = {-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0};
+    std::vector<float> sample = {-1.5, 1.5, 2.5};
+    //std::vector<float> sample = {-2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5};
+    std::vector<float> sampled;
+    for(size_t i = 0; i != 100000; i++)
+    {
+        sampled.push_back(getval(sample, grid, ureal(generator)));
+        //sampled.push_back(ecdf1d_pair(sample, grid, ureal(generator)).second);
+    }
+    //std::cout << getval(sample, grid, 0.999999) << std::endl;
+    //std::cout << getval(sample, grid, 1.0) << std::endl;
+//    std::cout << getval2(sample, grid, 0.0) << std::endl;
+//    std::cout << getval2(sample, grid, 0.001) << std::endl;
+//    std::cout << getval(sample, grid, 0.00001) << std::endl;
+
+//    std::cout.precision(15);
+//    std::cout << std::fixed << getval(sample,grid,0.350898) << std::endl;
+//    std::cout << std::fixed << getval2(sample,grid,0.350898) << std::endl;
+    
+    print2file("maps/1d.dat",sampled,1);    
+    return 0;
 
 //    std::vector<double> sample(50);
 //    for(size_t i = 0; i != sample.size(); i++)
