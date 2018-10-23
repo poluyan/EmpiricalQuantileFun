@@ -286,10 +286,10 @@ float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
     while(l <= r)
     {
         m = l + (r - l) / 2;
-//        std::cout << l << '\t' << r << '\t' << m << std::endl;
+        std::cout << l << '\t' << r << '\t' << m << std::endl;
         c1 = 0;
         c2 = 0;
-        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        for(size_t i = 0, k = sample.size(); i != k; ++i)
         {
             if(sample[i] < grid[m])
                 ++c1;
@@ -309,9 +309,9 @@ float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
             r = m - 1;
         }
     }
-//    std::cout << "here " << m << std::endl;
-//    std::cout << "here " << f1 << std::endl;
-//    std::cout << "here " << f2 << std::endl;
+    std::cout << "here " << m << std::endl;
+    std::cout << "here " << f1 << std::endl;
+    std::cout << "here " << f2 << std::endl;
     float x0 = grid[m], y0 = f1, x1 = grid[m + 1], y1 = f2;
     return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
 }
@@ -327,10 +327,10 @@ float getval2(std::vector<float> &sample, std::vector<float> &grid, float val01)
         m = l + (r - l) / 2;
         step = count/2;
         //m = l + step;
-//        std::cout << l << '\t' << r << '\t' << m << '\t' << l + step << std::endl;
+        std::cout << l << '\t' << r << '\t' << m << '\t' << step << '\t' << l + step << std::endl;
         c1 = 0;
         c2 = 0;
-        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        for(size_t i = 0, k = sample.size(); i != k; ++i)
         {
             if(sample[i] < grid[m])
                 ++c1;
@@ -352,12 +352,63 @@ float getval2(std::vector<float> &sample, std::vector<float> &grid, float val01)
             count = step;
         }
     }
-//    std::cout << "here " << m << std::endl;
-//    std::cout << "here " << f1 << std::endl;
-//    std::cout << "here " << f2 << std::endl;
+    std::cout << "here " << m << std::endl;
+    std::cout << "here " << f1 << std::endl;
+    std::cout << "here " << f2 << std::endl;
     float x0 = grid[m], y0 = f1, x1 = grid[m + 1], y1 = f2;
     return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
 }
+
+std::pair<size_t, float> ecdf1d_pair_fromgrid_trie2(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
+{
+    size_t l = 0, r = grid.size() - 1;
+
+    size_t m = 0, index1 = 0, index2 = 0;
+    float cdf1, cdf2;
+    
+    int count = sample_size, step;
+
+    //while(l <= r)
+    while(count > 0)
+    {
+        m = l + (r - l) / 2;
+        step = count/2;
+
+        index1 = 0;
+        index2 = 0;
+        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        {
+            if(static_cast<size_t>(sample[i].first) < m)
+            {
+                index1 += sample[i].second;
+            }
+            if(static_cast<size_t>(sample[i].first) < m + 1)
+            {
+                index2 += sample[i].second;
+            }
+        }
+        cdf1 = index1/float(sample_size);
+        cdf2 = index2/float(sample_size);
+
+        if((val01 > cdf1) && (val01 < cdf2))
+            break;
+
+        if(val01 > cdf1)
+        {
+            l = m + 1;
+            count -= step + 1;
+        }
+        else
+        {
+            r = m - 1;
+            count = step;
+        }
+    }
+
+    float x0 = grid[m], y0 = cdf1, x1 = grid[m + 1], y1 = cdf2;
+    return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
+}
+
 
 int main()
 {
@@ -368,24 +419,36 @@ int main()
 
     std::vector<float> grid = {-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0};
     std::vector<float> sample = {-1.5, 1.5, 2.5};
+    std::vector<std::pair<int,int>> ssample = {std::pair<int,int>{1,1}, std::pair<int,int>{4,1},std::pair<int,int>{5,1}};
     //std::vector<float> sample = {-2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5};
-    std::vector<float> sampled;
-    for(size_t i = 0; i != 100000; i++)
-    {
-        sampled.push_back(getval(sample, grid, ureal(generator)));
-        //sampled.push_back(ecdf1d_pair(sample, grid, ureal(generator)).second);
-    }
+    std::vector<float> sampled1,sampled2,sampled3,sampled4;
+//    for(size_t i = 0; i != 10; i++)
+//    {
+//        float u = ureal(generator);
+//        sampled1.push_back(getval(sample, grid, u));
+//        sampled2.push_back(getval2(sample, grid, u));
+//        sampled3.push_back(ecdf1d_pair_fromgrid_trie(ssample, ssample.size(), grid, u).second);
+//        sampled4.push_back(ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, u).second);
+//    }
     //std::cout << getval(sample, grid, 0.999999) << std::endl;
     //std::cout << getval(sample, grid, 1.0) << std::endl;
-//    std::cout << getval2(sample, grid, 0.0) << std::endl;
-//    std::cout << getval2(sample, grid, 0.001) << std::endl;
-//    std::cout << getval(sample, grid, 0.00001) << std::endl;
+    /*std::cout << getval2(sample, grid, 0.0) << std::endl;
+    std::cout << getval2(sample, grid, 0.001) << std::endl;
+    std::cout << getval(sample, grid, 0.0) << std::endl;
+    std::cout << std::endl;
+    std::cout << getval2(sample, grid, 0.9999) << std::endl;
+    //const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
+    std::cout << ecdf1d_pair_fromgrid_trie(ssample, ssample.size(), grid, 0.9999).second << std::endl;
+    std::cout << getval(sample, grid, 0.9999) << std::endl;*/
 
-//    std::cout.precision(15);
-//    std::cout << std::fixed << getval(sample,grid,0.350898) << std::endl;
-//    std::cout << std::fixed << getval2(sample,grid,0.350898) << std::endl;
+    std::cout.precision(15);
+    std::cout << std::fixed << getval(sample,grid,0.350898) << std::endl;
+    std::cout << std::fixed << getval2(sample,grid,0.350898) << std::endl;
     
-    print2file("maps/1d.dat",sampled,1);    
+    print2file("maps/1d1.dat",sampled1,1); 
+    print2file("maps/1d2.dat",sampled2,1);
+    print2file("maps/1d3.dat",sampled3,1);
+    print2file("maps/1d4.dat",sampled4,1);    
     return 0;
 
 //    std::vector<double> sample(50);

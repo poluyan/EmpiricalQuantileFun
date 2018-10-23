@@ -16,8 +16,8 @@
 
 **************************************************************************/
 
-#ifndef TRIE_H
-#define TRIE_H
+#ifndef TRIE_BASED_H
+#define TRIE_BASED_H
 
 #include <vector>
 #include <algorithm>
