@@ -388,17 +388,9 @@ float getval3(std::vector<float> &sample, std::vector<float> &grid, float val01)
         it = first;
         step = count / 2;
         std::advance(it, step);
-        c1 = 0;
-        c2 = 0;
-        for(const auto & i : sample)
-        {
-            if(i < *it)
-                ++c1;
-            if(i < *(it + 1))
-                ++c2;
-        }
-        f1 = c1/n;
-        f2 = c2/n;
+        c1 = std::count_if(sample.begin(), sample.end(), [&it](const float &i){ return i < *it;});
+        c2 = std::count_if(sample.begin(), sample.end(), [&it](const float &i){ return i < *(it + 1);});
+        f1 = c1/n; f2 = c2/n;
         if(val01 > f1 && val01 < f2)
             break;
         if(f1 < val01)
@@ -411,8 +403,9 @@ float getval3(std::vector<float> &sample, std::vector<float> &grid, float val01)
     }
     if(c1 == c2)
         return it == grid.begin() ? grid.front() : grid.back();
-    float x0 = *it, y0 = f1, x1 = *(it + 1), y1 = f2;
-    return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
+    //float x0 = *it, y0 = f1, x1 = *(it + 1), y1 = f2;
+    //return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
+    return *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1);
 }
 
 std::pair<size_t, float> ecdf1d_pair_fromgrid_trie2(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
@@ -462,10 +455,7 @@ std::pair<size_t, float> ecdf1d_pair_fromgrid_trie2(const std::vector<std::pair<
 }
 
 
-
-
-
-int main()
+void one_dim_check()
 {
     std::mt19937_64 generator;
     generator.seed(1);
@@ -475,7 +465,9 @@ int main()
     std::vector<float> grid = {-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0};
     std::vector<float> sample = {-1.5, 1.5, 2.5};
     std::vector<std::pair<int,int>> ssample = {std::pair<int,int>{1,1}, std::pair<int,int>{4,1},std::pair<int,int>{5,1}};
+    
 //    std::vector<float> sample = {-2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5};
+
     std::vector<float> sampled1,sampled2,sampled3,sampled4;
     for(size_t i = 0; i != 1000; i++)
     {
@@ -483,7 +475,7 @@ int main()
         sampled1.push_back(getval(sample, grid, u));
         sampled2.push_back(getval3(sample, grid, u));
 //        sampled3.push_back(ecdf1d_pair_fromgrid_trie(ssample, ssample.size(), grid, u).second);
-        sampled4.push_back(ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, u).second);
+        //sampled4.push_back(ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, u).second);
     }
     //std::cout << getval(sample, grid, 0.999999) << std::endl;
     //std::cout << getval(sample, grid, 1.0) << std::endl;
@@ -496,10 +488,10 @@ int main()
     std::cout << ecdf1d_pair_fromgrid_trie(ssample, ssample.size(), grid, 0.9999).second << std::endl;
     std::cout << getval(sample, grid, 0.9999) << std::endl;*/
 
-    std::cout.precision(15);
+//    std::cout.precision(15);
     //std::cout << std::fixed << getval(sample,grid, 0.999) << std::endl;
-    std::cout << '\n' << std::endl;
-    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.999) << std::endl;
+//    std::cout << '\n' << std::endl;
+    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.9999) << std::endl;
     std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 0.9999).second << std::endl;
     std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.0) << std::endl;
     std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 0.0).second << std::endl;
@@ -509,12 +501,19 @@ int main()
     /*std::cout << std::fixed << getval2(sample,grid,0.0) << std::endl;
     std::cout << std::fixed << getval(sample,grid,0.0) << std::endl;*/
 
-    print2file("maps/1d1.dat",sampled1,1);
-    print2file("maps/1d2.dat",sampled2,1);
+//    print2file("maps/1d1.dat",sampled1,1);
+//    print2file("maps/1d2.dat",sampled2,1);
 //    print2file("maps/1d3.dat",sampled3,1);
-    print2file("maps/1d4.dat",sampled4,1);
-    return 0;
+//    print2file("maps/1d4.dat",sampled4,1);
+   
+}
 
+
+int main()
+{
+//    std::mt19937_64 generator;
+//    generator.seed(1);
+//    std::normal_distribution<float> norm(0.0,1.0);
 //    std::vector<double> sample(50);
 //    for(size_t i = 0; i != sample.size(); i++)
 //    {
