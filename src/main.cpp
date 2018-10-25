@@ -281,105 +281,6 @@ void implicit_quantile_class(float lb,
 
 float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
 {
-    size_t l = 0, r = grid.size() - 1, m = 0, c1 = 0, c2 = 0;
-    float f1, f2, n = sample.size();
-    while(l <= r)
-    {
-        m = l + (r - l) / 2;
-        c1 = 0;
-        c2 = 0;
-        for(size_t i = 0, k = sample.size(); i != k; ++i)
-        {
-            if(sample[i] < grid[m])
-                ++c1;
-            if(sample[i] < grid[m + 1])
-                ++c2;
-        }
-        f1 = c1/n;
-        f2 = c2/n;
-        if((val01 < f2) && (val01 > f1))
-        {
-            break;
-        }
-        if(val01 > f1)
-        {
-            l = m + 1;
-        }
-        else
-        {
-            r = m - 1;
-        }
-    }
-//    std::cout << "here " << m << std::endl;
-//    std::cout << "here " << f1 << std::endl;
-//    std::cout << "here " << f2 << std::endl;
-    float x0 = grid[m], y0 = f1, x1 = grid[m + 1], y1 = f2;
-    return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
-}
-
-float getval2(std::vector<float> &sample, std::vector<float> &grid, float val01)
-{
-    size_t l = 0, r = grid.size() - 1, m = 0, c1 = 0, c2 = 0;
-    float f1, f2, n = sample.size();
-    int count = n, step;
-    //while(l <= r)
-    while(count > 0)
-    {
-        m = l + (r - l) / 2;
-        step = count/2;
-        //m = l + step;
-        std::cout << l << '\t' << r << '\t' << m << '\t' << step << '\t' << l + step << std::endl;
-        c1 = 0;
-        c2 = 0;
-        for(size_t i = 0, k = sample.size(); i != k; ++i)
-        {
-            if(sample[i] < grid[m])
-                ++c1;
-            if(sample[i] < grid[m + 1])
-                ++c2;
-        }
-        std::cout << c1 << '\t' << c2 << '\t' << sample.size() << std::endl;
-        f1 = c1/n;
-        f2 = c2/n;
-        if((val01 < f2) && (val01 > f1))
-            break;
-        if(f1 < val01)
-        {
-            l = m + 1;
-            count -= step + 1;
-            //count = step;
-        }
-        else
-        {
-            r = m - 1;
-            count = step;
-            //count -= step + 1;
-
-        }
-    }
-
-    /*auto it = std::lower_bound(grid.begin(), grid.end(), val01,
-        [&sample](float lhs, float rhs) -> bool
-        {
-            size_t c1 = 0;
-            for(size_t i = 0, k = sample.size(); i != k; ++i)
-            {
-                if(sample[i] < lhs)
-                    ++c1;
-            }
-            return c1/float(sample.size()) < rhs;
-        });
-    std::cout << std::distance(grid.begin(), it) << std::endl;*/
-
-    std::cout << "here " << m << std::endl;
-    std::cout << "here " << f1 << std::endl;
-    std::cout << "here " << f2 << std::endl;
-    float x0 = grid[m], y0 = f1, x1 = grid[m + 1], y1 = f2;
-    return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
-}
-
-float getval3(std::vector<float> &sample, std::vector<float> &grid, float val01)
-{
     size_t count = grid.size() - 1, step, c1 = 0, c2 = 0;
     float f1, f2, n = sample.size();
     std::vector<float>::iterator first = grid.begin(), it;
@@ -403,8 +304,6 @@ float getval3(std::vector<float> &sample, std::vector<float> &grid, float val01)
     }
     if(c1 == c2)
         return it == grid.begin() ? grid.front() : grid.back();
-    //float x0 = *it, y0 = f1, x1 = *(it + 1), y1 = f2;
-    //return x0 + (val01 - y0) * (x1 - x0) / (y1 - y0);
     return *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1);
 }
 
@@ -461,7 +360,7 @@ void one_dim_check()
     generator.seed(1);
     std::normal_distribution<float> norm(0.0,1.0);
     std::uniform_real_distribution<float> ureal(0.0,1.0);
-
+    
     std::vector<float> grid = {-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0};
     std::vector<float> sample = {-1.5, 1.5, 2.5};
     std::vector<std::pair<int,int>> ssample = {std::pair<int,int>{1,1}, std::pair<int,int>{4,1},std::pair<int,int>{5,1}};
@@ -469,11 +368,11 @@ void one_dim_check()
 //    std::vector<float> sample = {-2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5};
 
     std::vector<float> sampled1,sampled2,sampled3,sampled4;
-    for(size_t i = 0; i != 1000; i++)
+    for(size_t i = 0; i != 100; i++)
     {
         float u = ureal(generator);
         sampled1.push_back(getval(sample, grid, u));
-        sampled2.push_back(getval3(sample, grid, u));
+        //sampled2.push_back(getval3(sample, grid, u));
 //        sampled3.push_back(ecdf1d_pair_fromgrid_trie(ssample, ssample.size(), grid, u).second);
         //sampled4.push_back(ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, u).second);
     }
@@ -491,12 +390,12 @@ void one_dim_check()
 //    std::cout.precision(15);
     //std::cout << std::fixed << getval(sample,grid, 0.999) << std::endl;
 //    std::cout << '\n' << std::endl;
-    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.9999) << std::endl;
-    std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 0.9999).second << std::endl;
-    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.0) << std::endl;
-    std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 0.0).second << std::endl;
-    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/1.0) << std::endl;
-    std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 1.0).second << std::endl;
+//    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.9999) << std::endl;
+//    std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 0.9999).second << std::endl;
+//    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/0.0) << std::endl;
+//    std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 0.0).second << std::endl;
+//    std::cout << std::fixed << getval3(sample,grid, /*0.350898*/1.0) << std::endl;
+//    std::cout << ecdf1d_pair_fromgrid_trie2(ssample, ssample.size(), grid, 1.0).second << std::endl;
     //std::cout << std::fixed << getval2(sample,grid,0.350898) << std::endl;
     /*std::cout << std::fixed << getval2(sample,grid,0.0) << std::endl;
     std::cout << std::fixed << getval(sample,grid,0.0) << std::endl;*/
