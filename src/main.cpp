@@ -37,43 +37,40 @@ double empirical_qantile_1d_sorted(std::vector<double> &sorted_sample, double va
 
 std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
 {
-    size_t l = 0;
-    size_t r = grid.size() - 1;
-
-    size_t m = 0, index1 = 0, index2 = 0;
-    float cdf1, cdf2;
-
-    while(l <= r)
+    size_t count = grid.size() - 1, step, c1 = 0, c2 = 0, m = 0;
+    float f1, f2, n = sample.size();
+    std::vector<float>::const_iterator first = grid.begin(), it;
+    while(count > 0)
     {
-        m = l + (r - l) / 2;
-
-        index1 = 0;
-        index2 = 0;
-        for(size_t i = 0, n = sample.size(); i != n; ++i)
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        m = std::distance(grid.begin(), it);
+        c1 = std::count_if(sample.begin(), sample.end(),
+                           [&it](const float &v)
         {
-            if(sample[i] < grid[m])
-            {
-                ++index1;
-            }
-            if(sample[i] < grid[m + 1])
-            {
-                ++index2;
-            }
-        }
-        cdf1 = index1/float(sample.size());
-        cdf2 = index2/float(sample.size());
-
-        if((val01 < cdf2) && (val01 > cdf1))
+            return v < *it;
+        });
+        c2 = std::count_if(sample.begin(), sample.end(),
+                           [&it](const float &v)
+        {
+            return v < *(it + 1);
+        });
+        f1 = c1/n;
+        f2 = c2/n;
+        if(val01 > f1 && val01 < f2)
             break;
-
-        if(val01 > cdf1)
-            l = m + 1;
+        if(f1 < val01)
+        {
+            first = ++it;
+            count -= step + 1;
+        }
         else
-            r = m - 1;
+            count = step;
     }
-
-    float x0 = grid[m], y0 = cdf1, x1 = grid[m + 1], y1 = cdf2;
-    return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
+    if(c1 == c2)
+        return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1,grid.back());
+    return std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
 }
 
 void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
@@ -289,9 +286,16 @@ float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
         it = first;
         step = count / 2;
         std::advance(it, step);
-        c1 = std::count_if(sample.begin(), sample.end(), [&it](const float &i){ return i < *it;});
-        c2 = std::count_if(sample.begin(), sample.end(), [&it](const float &i){ return i < *(it + 1);});
-        f1 = c1/n; f2 = c2/n;
+        c1 = std::count_if(sample.begin(), sample.end(), [&it](const float &i)
+        {
+            return i < *it;
+        });
+        c2 = std::count_if(sample.begin(), sample.end(), [&it](const float &i)
+        {
+            return i < *(it + 1);
+        });
+        f1 = c1/n;
+        f2 = c2/n;
         if(val01 > f1 && val01 < f2)
             break;
         if(f1 < val01)
@@ -360,11 +364,11 @@ void one_dim_check()
     generator.seed(1);
     std::normal_distribution<float> norm(0.0,1.0);
     std::uniform_real_distribution<float> ureal(0.0,1.0);
-    
+
     std::vector<float> grid = {-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0};
     std::vector<float> sample = {-1.5, 1.5, 2.5};
     std::vector<std::pair<int,int>> ssample = {std::pair<int,int>{1,1}, std::pair<int,int>{4,1},std::pair<int,int>{5,1}};
-    
+
 //    std::vector<float> sample = {-2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5};
 
     std::vector<float> sampled1,sampled2,sampled3,sampled4;
@@ -404,7 +408,7 @@ void one_dim_check()
 //    print2file("maps/1d2.dat",sampled2,1);
 //    print2file("maps/1d3.dat",sampled3,1);
 //    print2file("maps/1d4.dat",sampled4,1);
-   
+
 }
 
 
