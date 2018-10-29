@@ -135,8 +135,8 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    print2file2d("maps/sampled_explicit.dat",sampled);
-    print2file2d("maps/z.dat",u01zvectors);
+    print2file2d("maps/sampled_explicit.dat",sampled, 5);
+    print2file2d("maps/z.dat",u01zvectors, 5);
 }
 
 std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
@@ -239,7 +239,7 @@ void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    print2file2d("maps/sampled_implicit.dat",sampled);
+    print2file2d("maps/sampled_implicit.dat",sampled,5);
 
     sample_trie.remove_tree();
 }
@@ -256,7 +256,7 @@ void implicit_quantile_class(float lb,
     timer::Timer time_cpp11;
     time_cpp11.reset();
     std::vector<std::vector<float> > sampled;
-    long long nrolls = 1e+2;  // number of experiments
+    long long nrolls = 1e+4;  // number of experiments
 
     empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
 
@@ -273,7 +273,7 @@ void implicit_quantile_class(float lb,
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    print2file2d("maps/sampled_implicit_class.dat",sampled);
+    print2file2d("maps/sampled_implicit_class.dat",sampled,3);
 }
 
 float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
@@ -443,7 +443,8 @@ int main()
     //
 
     //std::vector<size_t> grid_number = {9, 10};
-    std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
+    //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
+    std::vector<size_t> grid_number = {5,5,5};
 
     std::vector<std::vector<float>> grids(grid_number.size());
     std::vector<float> dx(grid_number.size());
@@ -451,8 +452,8 @@ int main()
     for(size_t i = 0; i != grids.size(); i++)
     {
         std::vector<float> grid(grid_number[i] + 1);
-        float startp = -3;
-        float endp = 3;
+        float startp = 0;//-3;
+        float endp = 5;//3
         float es = endp - startp;
         for(size_t j = 0; j != grid.size(); j++)
         {
@@ -484,13 +485,35 @@ int main()
 //    sample_implicit.push_back(std::vector{6,3});
 //    sample_implicit.push_back(std::vector{6,4});
 
-    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
-    sample_implicit.push_back(std::vector{4, 2, 6, 3, 2, 3, 2, 1, 2, 4});
-    sample_implicit.push_back(std::vector{4, 3, 4, 3, 2, 3, 2, 1, 2, 5});
-    sample_implicit.push_back(std::vector{4, 4, 1, 3, 2, 3, 2, 1, 2, 1});
-    sample_implicit.push_back(std::vector{4, 5, 6, 3, 2, 3, 2, 1, 2, 2});
-    sample_implicit.push_back(std::vector{4, 5, 0, 3, 2, 3, 2, 1, 2, 3});
-    sample_implicit.push_back(std::vector{1, 2, 3, 4, 5, 6, 2, 0, 0, 2});
+
+//    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
+//    sample_implicit.push_back(std::vector{4, 2, 6, 3, 2, 3, 2, 1, 2, 4});
+//    sample_implicit.push_back(std::vector{4, 3, 4, 3, 2, 3, 2, 1, 2, 5});
+//    sample_implicit.push_back(std::vector{4, 4, 1, 3, 2, 3, 2, 1, 2, 1});
+//    sample_implicit.push_back(std::vector{4, 5, 6, 3, 2, 3, 2, 1, 2, 2});
+//    sample_implicit.push_back(std::vector{4, 5, 0, 3, 2, 3, 2, 1, 2, 3});
+//    sample_implicit.push_back(std::vector{1, 2, 3, 4, 5, 6, 2, 0, 0, 2});
+
+    // 0 a,       1 b,         2 c,           3 d,             4 e
+    sample_implicit.push_back(std::vector{1,0,0}); // baa
+    sample_implicit.push_back(std::vector{2,0,0}); // caa
+    sample_implicit.push_back(std::vector{4,0,0}); // eaa
+    sample_implicit.push_back(std::vector{0,2,0}); // aca
+    sample_implicit.push_back(std::vector{4,4,0}); // eea
+    sample_implicit.push_back(std::vector{4,3,0}); // eda
+    sample_implicit.push_back(std::vector{3,3,0}); // dda
+    
+    sample_implicit.push_back(std::vector{0,0,1}); // aab
+    
+    sample_implicit.push_back(std::vector{3,0,2}); // dac
+    sample_implicit.push_back(std::vector{0,3,2}); // adc
+    
+    sample_implicit.push_back(std::vector{0,3,3}); // add
+    
+    sample_implicit.push_back(std::vector{2,0,4}); // cae
+    sample_implicit.push_back(std::vector{2,1,4}); // cbe
+    sample_implicit.push_back(std::vector{2,2,4}); // cce
+
 
     std::vector<std::vector<float>> sample_explicit;
     for(size_t i = 0; i != sample_implicit.size(); ++i)
@@ -514,8 +537,9 @@ int main()
 
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    explicit_quantile(sample_explicit, grids);
-    implicit_quantile(sample_implicit, grids);
+//    explicit_quantile(sample_explicit, grids);
+//    implicit_quantile(sample_implicit, grids);
 
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit);
+    //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
+    implicit_quantile_class(0, 5, grid_number, sample_implicit);
 }

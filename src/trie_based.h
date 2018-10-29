@@ -84,7 +84,7 @@ namespace trie_based
         root = std::make_shared<T>();
     }
     template <typename T, typename I>
-    TrieBased<T,I>::~TrieBased() {};
+    TrieBased<T,I>::~TrieBased() {}
     template <typename T, typename I>
     void TrieBased<T,I>::set_dimension(size_t dim)
     {

@@ -43,7 +43,7 @@ void print2file(std::string fname, std::vector<T, A> u, int step)
 }
 
 template<typename T, typename A>
-void print2file2d(std::string fname, std::vector<std::vector<T, A> >& u)
+void print2file2d(std::string fname, std::vector<std::vector<T, A> >& u, size_t prec)
 {
     std::ofstream fOut;
     fOut.open(fname.c_str());
@@ -52,7 +52,7 @@ void print2file2d(std::string fname, std::vector<std::vector<T, A> >& u)
         std::cout << "Error opening file." << std::endl;
         return;
     }
-    fOut.precision(10);
+    fOut.precision(prec);
     for(size_t i = 0; i < u.size(); i++)
     {
         for(size_t j = 0; j < u[i].size(); j++)
