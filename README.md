@@ -1,3 +1,3 @@
 # EmpiricalQuantileFun
 
-Multivariate empirical quantile function
+Multivariate empirical grid-based quantile function
