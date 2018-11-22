@@ -29,11 +29,42 @@
 
 #include "quantile.h"
 
-double empirical_qantile_1d_sorted(std::vector<double> &sorted_sample, double val)
+float empirical_cdf(std::vector<float> &sorted_sample, float val)
 {
     auto pos = std::lower_bound(sorted_sample.begin(), sorted_sample.end(), val);
-    return std::distance(sorted_sample.begin(), pos)/double(sorted_sample.size());
+    return std::distance(sorted_sample.begin(), pos)/float(sorted_sample.size());
 }
+
+int empirical_cdf_int(std::vector<float> &sorted_sample, float val)
+{
+    auto pos = std::lower_bound(sorted_sample.begin(), sorted_sample.end(), val);
+    return std::distance(sorted_sample.begin(), pos);
+}
+
+float empirical_qantile_from_real_cdf(std::vector<std::pair<float,float>> &cdf, float val01)
+{
+    auto pos = std::lower_bound(cdf.begin(), cdf.end(), val01, 
+    [](const std::pair<float,float> &l, const float &r){return l.second < r;});
+    
+    size_t stop = std::distance(cdf.begin(), pos);
+    size_t start = stop - 1;
+    /*if(std::distance(cdf.begin(), pos) == 0)
+    {
+        start = 0; 
+        stop = 1;        
+    }*/
+    float x0 = cdf[start].first, x1 = cdf[stop].first, y0 = cdf[start].second, y1 = cdf[stop].second;
+    return x0 + (val01 - y0)*(x1-x0)/(y1-y0);
+}
+
+float empirical_qantile_1d(std::vector<float> &cdf, float val01)
+{
+    auto pos = std::lower_bound(cdf.begin(), cdf.end(), val01);
+    //return cdf[std::distance(cdf.begin(), pos)];
+    
+    return cdf[std::distance(cdf.begin(), pos)];
+}
+
 
 std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
 {
@@ -413,33 +444,6 @@ void one_dim_check()
 
 void example_3d1()
 {
-    //    std::mt19937_64 generator;
-//    generator.seed(1);
-//    std::normal_distribution<float> norm(0.0,1.0);
-//    std::vector<double> sample(50);
-//    for(size_t i = 0; i != sample.size(); i++)
-//    {
-//        sample[i] = norm(generator);
-//    }
-//    std::vector<double> s_x = sample;
-//    std::sort(s_x.begin(), s_x.end());
-//
-//    size_t N = 100;
-//    std::vector<double> cdf(N);
-//
-//    double startp = -5.0;
-//    double endp = 5.0;
-//    double es = endp - startp;
-//
-//    for(size_t i = 0; i != N; i++)
-//    {
-//        cdf[i] = empirical_qantile_1d_sorted(s_x, startp + es * i / N);
-//        //std::cout << cdf[i] << std::endl;
-//    }
-//    print2file("maps/quantile1d.dat", cdf, 1);
-
-
-    //
 
     //std::vector<size_t> grid_number = {9, 10};
     //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
@@ -501,14 +505,14 @@ void example_3d1()
     sample_implicit.push_back(std::vector{4,4,0}); // eea
     sample_implicit.push_back(std::vector{4,3,0}); // eda
     sample_implicit.push_back(std::vector{3,3,0}); // dda
-    
+
     sample_implicit.push_back(std::vector{0,0,1}); // aab
-    
+
     sample_implicit.push_back(std::vector{3,0,2}); // dac
     sample_implicit.push_back(std::vector{0,3,2}); // adc
-    
+
     sample_implicit.push_back(std::vector{0,3,3}); // add
-    
+
     sample_implicit.push_back(std::vector{2,0,4}); // cae
     sample_implicit.push_back(std::vector{2,1,4}); // cbe
     sample_implicit.push_back(std::vector{2,2,4}); // cce
@@ -543,36 +547,8 @@ void example_3d1()
     implicit_quantile_class(0, 5, grid_number, sample_implicit);
 }
 
-
-int main()
+void example_3d2()
 {
-//    std::mt19937_64 generator;
-//    generator.seed(1);
-//    std::normal_distribution<float> norm(0.0,1.0);
-//    std::vector<double> sample(50);
-//    for(size_t i = 0; i != sample.size(); i++)
-//    {
-//        sample[i] = norm(generator);
-//    }
-//    std::vector<double> s_x = sample;
-//    std::sort(s_x.begin(), s_x.end());
-//
-//    size_t N = 100;
-//    std::vector<double> cdf(N);
-//
-//    double startp = -5.0;
-//    double endp = 5.0;
-//    double es = endp - startp;
-//
-//    for(size_t i = 0; i != N; i++)
-//    {
-//        cdf[i] = empirical_qantile_1d_sorted(s_x, startp + es * i / N);
-//        //std::cout << cdf[i] << std::endl;
-//    }
-//    print2file("maps/quantile1d.dat", cdf, 1);
-
-
-    //
 
     //std::vector<size_t> grid_number = {9, 10};
     //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
@@ -630,99 +606,99 @@ int main()
     sample_implicit.push_back(std::vector{0,0,0}); // aaa
     sample_implicit.push_back(std::vector{0,0,0}); // aab
     sample_implicit.push_back(std::vector{0,0,0}); // aac
-    
+
     sample_implicit.push_back(std::vector{0,2,0}); // aba
     sample_implicit.push_back(std::vector{4,4,0}); // abb
     sample_implicit.push_back(std::vector{4,3,0}); // abc
-    
+
     sample_implicit.push_back(std::vector{3,3,0}); // aca
     sample_implicit.push_back(std::vector{3,3,0}); // acb
     sample_implicit.push_back(std::vector{3,3,0}); // acc
-    
+
     sample_implicit.push_back(std::vector{3,3,0}); // baa
     sample_implicit.push_back(std::vector{3,3,0}); // bab
     sample_implicit.push_back(std::vector{3,3,0}); // bac
-    
+
     sample_implicit.push_back(std::vector{3,3,0}); // bba
     sample_implicit.push_back(std::vector{3,3,0}); // bbb
     sample_implicit.push_back(std::vector{3,3,0}); // bbc
-    
+
     sample_implicit.push_back(std::vector{3,3,0}); // bca
     sample_implicit.push_back(std::vector{3,3,0}); // bcb
     sample_implicit.push_back(std::vector{3,3,0}); // bcc
-    
+
     sample_implicit.push_back(std::vector{3,3,0}); // caa
     sample_implicit.push_back(std::vector{3,3,0}); // cab
     sample_implicit.push_back(std::vector{0,0,1}); // cac
-    
+
     sample_implicit.push_back(std::vector{0,0,1}); // cba
     sample_implicit.push_back(std::vector{0,0,1}); // cbb
     sample_implicit.push_back(std::vector{0,0,1}); // cbc
-    
+
     sample_implicit.push_back(std::vector{0,0,1}); // cca
     sample_implicit.push_back(std::vector{0,0,1}); // ccb
     sample_implicit.push_back(std::vector{0,0,1}); // ccc
-    
+
     /*
      digraph G {
-  "root" -> "0"
-  "root" -> "1"
-  "root" -> "2"
+    "root" -> "0"
+    "root" -> "1"
+    "root" -> "2"
 
-  "0" -> "01"
-  "0" -> "02"
-  "0" -> "03"
+    "0" -> "01"
+    "0" -> "02"
+    "0" -> "03"
 
-  "1" -> "11"
-  "1" -> "12"
-  "1" -> "13"
+    "1" -> "11"
+    "1" -> "12"
+    "1" -> "13"
 
-  "2" -> "21"
-  "2" -> "22"
-  "2" -> "23"
+    "2" -> "21"
+    "2" -> "22"
+    "2" -> "23"
 
-  "01" -> "000"
-  "01" -> "111"
-  "01" -> "222"
+    "01" -> "000"
+    "01" -> "111"
+    "01" -> "222"
 
-  "02" -> "000"
-  "02" -> "111"
-  "02" -> "222"
+    "02" -> "000"
+    "02" -> "111"
+    "02" -> "222"
 
-  "03" -> "000"
-  "03" -> "111"
-  "03" -> "222"
+    "03" -> "000"
+    "03" -> "111"
+    "03" -> "222"
 
-  "11" -> "000"
-  "11" -> "111"
-  "11" -> "222"
+    "11" -> "000"
+    "11" -> "111"
+    "11" -> "222"
 
-  "12" -> "000"
-  "12" -> "111"
-  "12" -> "222"
+    "12" -> "000"
+    "12" -> "111"
+    "12" -> "222"
 
-  "13" -> "000"
-  "13" -> "111"
-  "13" -> "222"
+    "13" -> "000"
+    "13" -> "111"
+    "13" -> "222"
 
-  "13" -> "000"
-  "13" -> "111"
-  "13" -> "222"
+    "13" -> "000"
+    "13" -> "111"
+    "13" -> "222"
 
-  "21" -> "000"
-  "21" -> "111"
-  "21" -> "222"
+    "21" -> "000"
+    "21" -> "111"
+    "21" -> "222"
 
-  "22" -> "000"
-  "22" -> "111"
-  "22" -> "222"
+    "22" -> "000"
+    "22" -> "111"
+    "22" -> "222"
 
-  "23" -> "000"
-  "23" -> "111"
-  "23" -> "222"
-}
+    "23" -> "000"
+    "23" -> "111"
+    "23" -> "222"
+    }
 
- * /
+    */
 
     std::vector<std::vector<float>> sample_explicit;
     for(size_t i = 0; i != sample_implicit.size(); ++i)
@@ -750,5 +726,256 @@ int main()
 //    implicit_quantile(sample_implicit, grids);
 
     //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
-    implicit_quantile_class(0, 5, grid_number, sample_implicit);
+    implicit_quantile_class(0, 3, grid_number, sample_implicit);
+}
+
+void simple_empirical_1d()
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::normal_distribution<float> norm(0.0,1.0);
+    std::vector<float> sample(50);
+    for(size_t i = 0; i != sample.size(); i++)
+    {
+        sample[i] = norm(generator);
+    }
+    std::vector<float> s_x = sample;
+    std::sort(s_x.begin(), s_x.end());
+
+    size_t N = 100;
+    std::vector<float> cdf(N);
+
+    float startp = -5.0;
+    float endp = 5.0;
+    float es = endp - startp;
+
+    for(size_t i = 0; i != N; i++)
+    {
+        cdf[i] = empirical_cdf(s_x, startp + es * i / N);
+        //std::cout << cdf[i] << std::endl;
+    }
+    print2file("maps/1d/quantile1d.dat", cdf, 1);
+}
+
+float objective_function(float x)
+{
+    //return -1000.0+std::pow(x, 2.0);
+    float A = 2000.0;
+    return 100000 + std::pow(x-5.0,2.0) + A*(1.0-cos(acos(-1.0)*(x-5.0)/5.0));
+}
+
+void simple1d_example()
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> urand(-50.0,50.0);
+    std::vector<std::vector<float>> sample;
+    for(size_t i = 0; i != 1000; i++)
+    {
+        std::vector<float> temp(2);
+        temp[0] = urand(generator);
+        temp[1] = objective_function(temp[0]);
+        sample.push_back(temp);
+    }
+    print2file2d("maps/1d/pdf.dat", sample, 4);
+    
+    auto max_pdf = *std::max_element(sample.begin(), sample.end(), 
+    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
+    auto min_pdf = *std::min_element(sample.begin(), sample.end(), 
+    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
+    std::cout << max_pdf.back() << '\t' << min_pdf.back() << std::endl;
+    
+    if(max_pdf.back() > 0 && min_pdf.back() < 0)
+    {
+        for(size_t i = 0; i != sample.size(); i++)
+        {
+            sample[i][1] -= max_pdf.back();
+        }
+    }
+    else if(max_pdf.back() > 0 && min_pdf.back() > 0)
+    {
+        for(size_t i = 0; i != sample.size(); i++)
+        {
+            sample[i][1] -= max_pdf.back();
+            //sample[i][1] = sample[i][1] - min_pdf.back();
+            //sample[i][1] = sample[i][1] - max_pdf.back() + min_pdf.back();
+        }
+    }
+    else if(max_pdf.back() < 0 && min_pdf.back() < 0)
+    {
+        for(size_t i = 0; i != sample.size(); i++)
+        {
+            sample[i][1] += std::abs(max_pdf.back());
+        }
+    }
+    
+    for(size_t i = 0; i != sample.size(); i++)
+    {
+        sample[i][1] = -sample[i][1];
+    }
+    
+    auto new_max_pdf = *std::max_element(sample.begin(), sample.end(), 
+    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
+    auto new_min_pdf = *std::min_element(sample.begin(), sample.end(), 
+    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
+    std::cout << new_max_pdf.back() << '\t' << new_min_pdf.back() << std::endl;
+    
+    for(size_t i = 0; i != sample.size(); i++)
+    {
+        sample[i][1] /= new_max_pdf.back();
+    }
+    
+    print2file2d("maps/1d/pdf.dat", sample, 4);
+    
+    std::vector<float> s_x;
+    for(size_t i = 0; i != sample.size(); i++)
+    {
+        size_t n = static_cast<size_t>(sample[i][1]*100);
+        std::cout << n << std::endl;
+        for(size_t j = 0; j != n; j++)
+            s_x.push_back(sample[i][0]);
+    }
+    std::sort(s_x.begin(), s_x.end());
+    
+    print2file("maps/1d/sorted.dat", s_x, 1);
+    
+    size_t N = 10000;
+    std::vector<float> cdf(N);
+    std::vector<std::pair<int,int>> cdf_int;
+    std::vector<std::pair<float,float>> cdf_float;
+
+    float startp = -50.0;
+    float endp = 50.0;
+    float es = endp - startp;
+
+    for(size_t i = 0; i != N; i++)
+    {
+        cdf[i] = empirical_cdf(s_x, startp + es * i / N);        
+        //std::cout << cdf[i] << std::endl;
+    }
+    print2file("maps/1d/cdf.dat", cdf, 1);
+    
+    
+    for(size_t i = 0; i != N; i++)
+    {
+        int t = empirical_cdf_int(s_x, startp + es * i / N);
+        if(std::find_if(cdf_int.begin(),cdf_int.end(),[&t](const std::pair<int,int> &l){return t == l.second;}) == cdf_int.end())
+        {
+            cdf_int.push_back(std::make_pair(i, t)); 
+            cdf_float.push_back(std::make_pair(startp + es * i / N, empirical_cdf(s_x, startp + es * i / N))); 
+        }
+    }
+    std::cout << cdf_int.size() << std::endl;
+    for(const auto & i : cdf_int)
+        std::cout << i.first << '\t' << i.second << std::endl;
+    
+    for(const auto & i : cdf_float)
+        std::cout << i.first << '\t' << i.second << std::endl;
+        
+    
+    std::uniform_real_distribution<float> urand01(0.0,1);
+    std::vector<float> sampled;
+    for(size_t i = 0; i != 1e5; i++)
+    {
+        sampled.push_back(empirical_qantile_from_real_cdf(cdf_float, urand01(generator)));
+    }
+    print2file("maps/1d/sampled.dat", sampled, 1);
+
+    N = 10000;
+    std::vector<float> quant(N);
+
+    startp = 0.0;
+    endp = 1.0;
+    es = endp - startp;
+    for(size_t i = 0; i != N; i++)
+    {
+        quant[i] = empirical_qantile_1d(cdf, startp + es * i / N);
+    }
+    print2file("maps/1d/quant.dat", cdf, 1);
+}
+
+int main()
+{
+    simple_empirical_1d();
+    simple1d_example();
+    
+    return 0;
+
+    std::vector<size_t> grid_number = {9, 10};
+    //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -3;//-3;
+        float endp = 3;//3
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+    std::vector<std::vector<int>> sample_implicit;
+    sample_implicit.push_back(std::vector{2,6});
+
+    sample_implicit.push_back(std::vector{3,2});
+    sample_implicit.push_back(std::vector{3,3});
+    sample_implicit.push_back(std::vector{3,5});
+    sample_implicit.push_back(std::vector{3,6});
+    sample_implicit.push_back(std::vector{3,7});
+
+    sample_implicit.push_back(std::vector{4,5});
+    sample_implicit.push_back(std::vector{4,6});
+    sample_implicit.push_back(std::vector{4,7});
+
+    sample_implicit.push_back(std::vector{5,3});
+    sample_implicit.push_back(std::vector{5,4});
+    sample_implicit.push_back(std::vector{5,5});
+    sample_implicit.push_back(std::vector{5,6});
+    sample_implicit.push_back(std::vector{5,7});
+
+    sample_implicit.push_back(std::vector{6,3});
+    sample_implicit.push_back(std::vector{6,4});
+
+
+//    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
+//    sample_implicit.push_back(std::vector{4, 2, 6, 3, 2, 3, 2, 1, 2, 4});
+//    sample_implicit.push_back(std::vector{4, 3, 4, 3, 2, 3, 2, 1, 2, 5});
+//    sample_implicit.push_back(std::vector{4, 4, 1, 3, 2, 3, 2, 1, 2, 1});
+//    sample_implicit.push_back(std::vector{4, 5, 6, 3, 2, 3, 2, 1, 2, 2});
+//    sample_implicit.push_back(std::vector{4, 5, 0, 3, 2, 3, 2, 1, 2, 3});
+//    sample_implicit.push_back(std::vector{1, 2, 3, 4, 5, 6, 2, 0, 0, 2});
+
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+//    for(size_t i = 0; i != sample_explicit.size(); ++i)
+//    {
+//        for(size_t j = 0; j != sample_explicit[i].size(); ++j)
+//        {
+//            std::cout << sample_explicit[i][j] << '\t';
+//        }
+//        std::cout << std::endl;
+//    }
+
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+//    explicit_quantile(sample_explicit, grids);
+//    implicit_quantile(sample_implicit, grids);
+
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit);
 }
