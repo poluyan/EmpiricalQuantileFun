@@ -19,10 +19,7 @@
 #include "test.h"
 #include <random>
 
-void implicit_quantile_class(float lb,
-                             float ub,
-                             std::vector<size_t> gridn,
-                             std::vector<std::vector<int> > &sample)
+void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample)
 {
     std::mt19937_64 generator;
     generator.seed(1);
@@ -31,7 +28,8 @@ void implicit_quantile_class(float lb,
     timer::Timer time_cpp11;
     time_cpp11.reset();
     std::vector<std::vector<float> > sampled;
-    long long nrolls = 1e+4;  // number of experiments
+    std::vector<std::vector<float> > values01;
+    long long nrolls = 2e+3;  // number of experiments
 
     empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
 
@@ -44,11 +42,13 @@ void implicit_quantile_class(float lb,
             temp1[j] = ureal01(generator);
         }
         quant.transform(temp1,temp2);
+        values01.push_back(temp1);
         sampled.push_back(temp2);
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    write_default2d("maps/sampled_implicit_class.dat", sampled, 3);
+    write_default2d("maps/values01.dat", values01, 4);
+    write_default2d("maps/sampled_implicit_class.dat", sampled, 4);
 }
 
 void example_3d1()
