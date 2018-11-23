@@ -15,3 +15,18 @@
    limitations under the License.
 
 **************************************************************************/
+
+#ifndef TEST_H
+#define TEST_H
+
+#include "print2file.h"
+#include "timer.h"
+#include "trie_based.h"
+#include "quantile.h"
+
+void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample);
+
+void example_3d1();
+void example_3d2();
+
+#endif
