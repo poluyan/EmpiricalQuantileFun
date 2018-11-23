@@ -6,13 +6,15 @@ SRCPATH = ./src
 OBJDIR_RELEASE = obj/Release
 OBJ_RELEASE = \
 	$(OBJDIR_RELEASE)/main.o \
-	$(OBJDIR_RELEASE)/timer.o 
+	$(OBJDIR_RELEASE)/timer.o \
+	$(OBJDIR_RELEASE)/test.o 
 
 HEADERS = \
 	$(SRCPATH)/trie_based.h \
 	$(SRCPATH)/timer.h \
 	$(SRCPATH)/print2file.h \
-	$(SRCPATH)/quantile.h 
+	$(SRCPATH)/quantile.h \
+	$(SRCPATH)/test.h 
 
 all: release
 
@@ -30,6 +32,8 @@ $(OBJDIR_RELEASE)/main.o: $(SRCPATH)/main.cpp
 	$(CPP) $(CPPFLAGS) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
 $(OBJDIR_RELEASE)/timer.o: $(SRCPATH)/timer.cpp
 	$(CPP) $(CPPFLAGS) $(SRCPATH)/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
+$(OBJDIR_RELEASE)/test.o: $(SRCPATH)/test.cpp
+	$(CPP) $(CPPFLAGS) $(SRCPATH)/test.cpp -o $(OBJDIR_RELEASE)/test.o
 
 clean_release:
 	rm $(OBJDIR_RELEASE)/*.o
