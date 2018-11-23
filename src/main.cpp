@@ -166,8 +166,8 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    print2file2d("maps/sampled_explicit.dat",sampled, 5);
-    print2file2d("maps/z.dat",u01zvectors, 5);
+    write_default2d("maps/sampled_explicit.dat", sampled, 5);
+    write_default2d("maps/z.dat", u01zvectors, 5);
 }
 
 std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
@@ -270,7 +270,7 @@ void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    print2file2d("maps/sampled_implicit.dat",sampled,5);
+    write_default2d("maps/sampled_implicit.dat",sampled,5);
 
     sample_trie.remove_tree();
 }
@@ -304,7 +304,7 @@ void implicit_quantile_class(float lb,
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    print2file2d("maps/sampled_implicit_class.dat",sampled,3);
+    write_default2d("maps/sampled_implicit_class.dat", sampled, 3);
 }
 
 float getval(std::vector<float> &sample, std::vector<float> &grid, float val01)
@@ -754,7 +754,7 @@ void simple_empirical_1d()
         cdf[i] = empirical_cdf(s_x, startp + es * i / N);
         //std::cout << cdf[i] << std::endl;
     }
-    print2file("maps/1d/quantile1d.dat", cdf, 1);
+    write_default1d("maps/1d/quantile1d.dat", cdf, 1, 5);
 }
 
 float objective_function(float x)
@@ -777,7 +777,7 @@ void simple1d_example()
         temp[1] = objective_function(temp[0]);
         sample.push_back(temp);
     }
-    print2file2d("maps/1d/pdf.dat", sample, 4);
+    write_default2d("maps/1d/pdf.dat", sample, 4);
     
     auto max_pdf = *std::max_element(sample.begin(), sample.end(), 
     [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
@@ -825,7 +825,7 @@ void simple1d_example()
         sample[i][1] /= new_max_pdf.back();
     }
     
-    print2file2d("maps/1d/pdf.dat", sample, 4);
+    write_default2d("maps/1d/pdf.dat", sample, 4);
     
     std::vector<float> s_x;
     for(size_t i = 0; i != sample.size(); i++)
@@ -837,7 +837,7 @@ void simple1d_example()
     }
     std::sort(s_x.begin(), s_x.end());
     
-    print2file("maps/1d/sorted.dat", s_x, 1);
+    write_default1d("maps/1d/sorted.dat", s_x, 1, 4);
     
     size_t N = 10000;
     std::vector<float> cdf(N);
@@ -853,7 +853,7 @@ void simple1d_example()
         cdf[i] = empirical_cdf(s_x, startp + es * i / N);        
         //std::cout << cdf[i] << std::endl;
     }
-    print2file("maps/1d/cdf.dat", cdf, 1);
+    write_default1d("maps/1d/cdf.dat", cdf, 1, 4);
     
     
     for(size_t i = 0; i != N; i++)
@@ -879,7 +879,7 @@ void simple1d_example()
     {
         sampled.push_back(empirical_qantile_from_real_cdf(cdf_float, urand01(generator)));
     }
-    print2file("maps/1d/sampled.dat", sampled, 1);
+    write_default1d("maps/1d/sampled.dat", sampled, 1, 5);
 
     N = 10000;
     std::vector<float> quant(N);
@@ -891,15 +891,15 @@ void simple1d_example()
     {
         quant[i] = empirical_qantile_1d(cdf, startp + es * i / N);
     }
-    print2file("maps/1d/quant.dat", cdf, 1);
+    write_default1d("maps/1d/quant.dat", cdf, 1, 5);
 }
 
 int main()
 {
-    simple_empirical_1d();
-    simple1d_example();
-    
-    return 0;
+//    simple_empirical_1d();
+//    simple1d_example();
+//    
+//    return 0;
 
     std::vector<size_t> grid_number = {9, 10};
     //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};

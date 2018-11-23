@@ -50,6 +50,6 @@ plot \
 'cont1.dat' u (filter1($1,$2)):2 w filledcurves lc "gray",\
 'cont2.dat' u 1:2 w filledcurves xy=0.6,1 lc "gray",\
 'sample_explicit.dat' with points ls 104,\
-'sampled_explicit.dat' with dots lc rgb 'black'
+'sampled_implicit_class.dat' with dots lc rgb 'black'
 
 

@@ -23,27 +23,8 @@
 #include <vector>
 #include <fstream>
 
-template<typename T, typename A>
-void print2file(std::string fname, std::vector<T, A> u, int step)
-{
-    std::ofstream fOut;
-    fOut.open(fname.c_str());
-    if(!fOut.is_open())
-    {
-        std::cout << "Error opening file." << std::endl;
-        return;
-    }
-    fOut.precision(10);
-    for(size_t i = 0; i < u.size(); i += step)
-    {
-        fOut << std::scientific << i << '\t' << u[i] << std::endl;
-    }
-    fOut.close();
-    std::cout << fname << std::endl;
-}
-
-template<typename T, typename A>
-void print2file2d(std::string fname, std::vector<std::vector<T, A> >& u, size_t prec)
+template<template<typename, typename...> class Container, class T, typename... Params>
+void write_default1d(std::string fname, Container<T, Params...> const& u, size_t step, size_t prec)
 {
     std::ofstream fOut;
     fOut.open(fname.c_str());
@@ -53,11 +34,30 @@ void print2file2d(std::string fname, std::vector<std::vector<T, A> >& u, size_t 
         return;
     }
     fOut.precision(prec);
-    for(size_t i = 0; i < u.size(); i++)
+    for(size_t i = 0; i != u.size(); i += step)
     {
-        for(size_t j = 0; j < u[i].size(); j++)
+        fOut << std::scientific << i << '\t' << u[i] << std::endl;
+    }
+    fOut.close();
+    std::cout << fname << std::endl;
+}
+
+template<template<typename, typename...> class Container, class T, typename... Params>
+void write_default2d(std::string fname, Container<T, Params...> const& u, size_t prec)
+{
+    std::ofstream fOut;
+    fOut.open(fname.c_str());
+    if(!fOut.is_open())
+    {
+        std::cout << "Error opening file." << std::endl;
+        return;
+    }
+    fOut.precision(prec);
+    for(const auto & i : u)
+    {
+        for(const auto & j : i)
         {
-            fOut << std::scientific << u[i][j] << '\t';
+            fOut << std::scientific << j << '\t';
         }
         fOut << std::endl;
     }
