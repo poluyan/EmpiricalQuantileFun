@@ -12,7 +12,7 @@ OBJ_RELEASE = \
 HEADERS = \
 	$(SRCPATH)/trie_based.h \
 	$(SRCPATH)/timer.h \
-	$(SRCPATH)/print2file.h \
+	$(SRCPATH)/data_io.h \
 	$(SRCPATH)/quantile.h \
 	$(SRCPATH)/test.h 
 

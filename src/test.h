@@ -19,7 +19,6 @@
 #ifndef TEST_H
 #define TEST_H
 
-#include "print2file.h"
 #include "timer.h"
 #include "trie_based.h"
 #include "quantile.h"

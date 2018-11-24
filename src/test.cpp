@@ -17,6 +17,7 @@
 **************************************************************************/
 
 #include "test.h"
+#include "data_io.h"
 #include <random>
 
 std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
@@ -117,8 +118,8 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    write_default2d("maps/sampled_explicit.dat", sampled, 5);
-    write_default2d("maps/z.dat", u01zvectors, 5);
+    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
+    data_io::write_default2d("maps/z.dat", u01zvectors, 5);
 }
 
 
@@ -149,8 +150,8 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    write_default2d("maps/values01.dat", values01, 5);
-    write_default2d("maps/sampled_implicit_class.dat", sampled, 5);
+    data_io::write_default2d("maps/values01.dat", values01, 5);
+    data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 5);
 }
 
 void test_1d1()

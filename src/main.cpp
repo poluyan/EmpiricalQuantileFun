@@ -23,7 +23,7 @@
 #include <random>
 #include <algorithm>
 
-#include "print2file.h"
+
 #include "timer.h"
 #include "trie_based.h"
 #include "quantile.h"
@@ -166,7 +166,7 @@ void implicit_quantile(std::vector<std::vector<int> > &sample, std::vector<std::
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    write_default2d("maps/sampled_implicit.dat",sampled,5);
+    data_io::write_default2d("maps/sampled_implicit.dat",sampled,5);
 
     sample_trie.remove_tree();
 }
@@ -332,7 +332,7 @@ void simple_empirical_1d()
         cdf[i] = empirical_cdf(s_x, startp + es * i / N);
         //std::cout << cdf[i] << std::endl;
     }
-    write_default1d("maps/1d/quantile1d.dat", cdf, 1, 5);
+    data_io::write_default1d("maps/1d/quantile1d.dat", cdf, 1, 5);
 }
 
 float objective_function(float x)
@@ -355,7 +355,7 @@ void simple1d_example()
         temp[1] = objective_function(temp[0]);
         sample.push_back(temp);
     }
-    write_default2d("maps/1d/pdf.dat", sample, 4);
+    data_io::write_default2d("maps/1d/pdf.dat", sample, 4);
     
     auto max_pdf = *std::max_element(sample.begin(), sample.end(), 
     [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
@@ -406,7 +406,7 @@ void simple1d_example()
         sample[i][1] /= new_max_pdf.back();
     }
     
-    write_default2d("maps/1d/pdf.dat", sample, 4);
+    data_io::write_default2d("maps/1d/pdf.dat", sample, 4);
     
     std::vector<float> s_x;
     for(size_t i = 0; i != sample.size(); i++)
@@ -418,7 +418,7 @@ void simple1d_example()
     }
     std::sort(s_x.begin(), s_x.end());
     
-    write_default1d("maps/1d/sorted.dat", s_x, 1, 4);
+    data_io::write_default1d("maps/1d/sorted.dat", s_x, 1, 4);
     
     size_t N = 100000;
     std::vector<float> cdf(N);
@@ -434,7 +434,7 @@ void simple1d_example()
         cdf[i] = empirical_cdf(s_x, startp + es * i / N);        
         //std::cout << cdf[i] << std::endl;
     }
-    write_default1d("maps/1d/cdf.dat", cdf, 1, 4);
+    data_io::write_default1d("maps/1d/cdf.dat", cdf, 1, 4);
     
     
     for(size_t i = 0; i != N; i++)
@@ -456,7 +456,7 @@ void simple1d_example()
         std::cout << i.first << '\t' << i.second << std::endl;
         cdf_simple.push_back(std::vector<float>{i.first, i.second});
     }
-    write_default2d("maps/1d/cdf_simple.dat", cdf_simple, 5);
+    data_io::write_default2d("maps/1d/cdf_simple.dat", cdf_simple, 5);
         
     
     std::uniform_real_distribution<float> urand01(0.0,1);
@@ -465,7 +465,7 @@ void simple1d_example()
     {
         sampled.push_back(empirical_qantile_from_real_cdf(cdf_float, urand01(generator)));
     }
-    write_default1d("maps/1d/sampled.dat", sampled, 1, 5);
+    data_io::write_default1d("maps/1d/sampled.dat", sampled, 1, 5);
 
     N = 1000;
     std::vector<float> quant(N);
@@ -477,7 +477,7 @@ void simple1d_example()
     {
         quant[i] = empirical_qantile_1d(cdf, startp + es * i / N);
     }
-    write_default1d("maps/1d/quant.dat", cdf, 1, 4);
+    data_io::write_default1d("maps/1d/quant.dat", cdf, 1, 4);
 }
 
 int main()

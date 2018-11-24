@@ -20,7 +20,7 @@
 #define QUANTILE_H
 
 #include "trie_based.h"
-#include "print2file.h"
+#include "data_io.h"
 
 namespace empirical_quantile
 {
