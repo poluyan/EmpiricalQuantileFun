@@ -66,110 +66,6 @@ float empirical_qantile_1d(std::vector<float> &cdf, float val01)
 }
 
 
-std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
-{
-    size_t count = grid.size() - 1, step, c1 = 0, c2 = 0, m = 0;
-    float f1, f2, n = sample.size();
-    std::vector<float>::const_iterator first = grid.begin(), it;
-    while(count > 0)
-    {
-        it = first;
-        step = count / 2;
-        std::advance(it, step);
-        m = std::distance(grid.begin(), it);
-        c1 = std::count_if(sample.begin(), sample.end(),
-                           [&it](const float &v)
-        {
-            return v < *it;
-        });
-        c2 = std::count_if(sample.begin(), sample.end(),
-                           [&it](const float &v)
-        {
-            return v < *(it + 1);
-        });
-        f1 = c1/n;
-        f2 = c2/n;
-        if(val01 > f1 && val01 < f2)
-            break;
-        if(f1 < val01)
-        {
-            first = ++it;
-            count -= step + 1;
-        }
-        else
-            count = step;
-    }
-    if(c1 == c2)
-        return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1,grid.back());
-    return std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
-}
-
-void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
-                              const std::vector<std::vector<float> > &grids,
-                              const std::vector<float> &val01,
-                              std::vector<float> &rez)
-{
-    std::vector<size_t> m;
-    for(size_t i = 0, g = val01.size(); i != g; i++)
-    {
-        std::vector<float> row(sample.size());
-        size_t index = 0;
-        for(size_t j = 0, n = sample.size(); j != n; j++)
-        {
-            bool flag = true;
-            for(size_t k = 0, t = m.size(); k != t; k++)
-            {
-                if(!(sample[j][k] > grids[k][m[k]] && sample[j][k] < grids[k][m[k] + 1]))
-                {
-                    flag = false;
-                    break;
-                }
-            }
-            if(flag)
-            {
-                row[index] = sample[j][i];
-                ++index;
-            }
-        }
-        row.resize(index);
-        auto rez2 = ecdf1d_pair(row,grids[i],val01[i]);
-        rez[i] = rez2.second;
-        m.push_back(rez2.first);
-    }
-}
-
-void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std::vector<float> > &grids)
-{
-    std::mt19937_64 generator;
-    generator.seed(1);
-    std::uniform_real_distribution<float> ureal01(0.0,1.0);
-
-    timer::Timer time_cpp11;
-    time_cpp11.reset();
-    std::vector<std::vector<float> > sampled;
-    long long nrolls = 1e+2;  // number of experiments
-
-    std::vector<std::vector<float>> u01zvectors;
-
-    std::vector<float> temp1(sample[0].size());
-    std::vector<float> temp2(temp1.size());
-    for(long long i = 0; i != nrolls; ++i)
-    {
-        for(size_t j = 0; j != temp1.size(); j++)
-        {
-            temp1[j] = ureal01(generator);
-        }
-        u01zvectors.push_back(temp1);
-        ecdfNd_one_MultipleGrids(sample,grids,temp1,temp2);
-        sampled.push_back(temp2);
-        //std::cout << std::endl;
-    }
-    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    write_default2d("maps/sampled_explicit.dat", sampled, 5);
-    write_default2d("maps/z.dat", u01zvectors, 5);
-}
-
 std::pair<size_t, float> ecdf1d_pair_fromgrid_trie(const std::vector<std::pair<int,int>> &sample, size_t sample_size, const std::vector<float> &grid, float val01)
 {
     size_t l = 0, r = grid.size() - 1;
@@ -452,7 +348,7 @@ void simple1d_example()
     generator.seed(1);
     std::uniform_real_distribution<float> urand(-50.0,50.0);
     std::vector<std::vector<float>> sample;
-    for(size_t i = 0; i != 1000; i++)
+    for(size_t i = 0; i != 10; i++)
     {
         std::vector<float> temp(2);
         temp[0] = urand(generator);
@@ -496,6 +392,9 @@ void simple1d_example()
         sample[i][1] = -sample[i][1];
     }
     
+    std::sort(sample.begin(), sample.end(), 
+    [](const std::vector<float>& x, const std::vector<float>& y){return x.front() < y.front(); });
+    
     auto new_max_pdf = *std::max_element(sample.begin(), sample.end(), 
     [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
     auto new_min_pdf = *std::min_element(sample.begin(), sample.end(), 
@@ -521,7 +420,7 @@ void simple1d_example()
     
     write_default1d("maps/1d/sorted.dat", s_x, 1, 4);
     
-    size_t N = 10000;
+    size_t N = 100000;
     std::vector<float> cdf(N);
     std::vector<std::pair<int,int>> cdf_int;
     std::vector<std::pair<float,float>> cdf_float;
@@ -551,19 +450,24 @@ void simple1d_example()
     for(const auto & i : cdf_int)
         std::cout << i.first << '\t' << i.second << std::endl;
     
+    std::vector<std::vector<float>> cdf_simple;
     for(const auto & i : cdf_float)
+    {
         std::cout << i.first << '\t' << i.second << std::endl;
+        cdf_simple.push_back(std::vector<float>{i.first, i.second});
+    }
+    write_default2d("maps/1d/cdf_simple.dat", cdf_simple, 5);
         
     
     std::uniform_real_distribution<float> urand01(0.0,1);
     std::vector<float> sampled;
-    for(size_t i = 0; i != 1e5; i++)
+    for(size_t i = 0; i != 1e4; i++)
     {
         sampled.push_back(empirical_qantile_from_real_cdf(cdf_float, urand01(generator)));
     }
     write_default1d("maps/1d/sampled.dat", sampled, 1, 5);
 
-    N = 10000;
+    N = 1000;
     std::vector<float> quant(N);
 
     startp = 0.0;
@@ -573,14 +477,13 @@ void simple1d_example()
     {
         quant[i] = empirical_qantile_1d(cdf, startp + es * i / N);
     }
-    write_default1d("maps/1d/quant.dat", cdf, 1, 5);
+    write_default1d("maps/1d/quant.dat", cdf, 1, 4);
 }
 
 int main()
 {
 //    simple_empirical_1d();
 //    simple1d_example();
-//    
-//    return 0;
-    test_2d1();
+
+    test_1d1();
 }

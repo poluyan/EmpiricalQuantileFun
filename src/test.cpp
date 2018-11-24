@@ -19,6 +19,109 @@
 #include "test.h"
 #include <random>
 
+std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
+{
+    size_t count = grid.size() - 1, step, c1 = 0, c2 = 0, m = 0;
+    float f1, f2, n = sample.size();
+    std::vector<float>::const_iterator first = grid.begin(), it;
+    while(count > 0)
+    {
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        m = std::distance(grid.begin(), it);
+        c1 = std::count_if(sample.begin(), sample.end(),
+                           [&it](const float &v)
+        {
+            return v < *it;
+        });
+        c2 = std::count_if(sample.begin(), sample.end(),
+                           [&it](const float &v)
+        {
+            return v < *(it + 1);
+        });
+        f1 = c1/n;
+        f2 = c2/n;
+        if(val01 > f1 && val01 < f2)
+            break;
+        if(f1 < val01)
+        {
+            first = ++it;
+            count -= step + 1;
+        }
+        else
+            count = step;
+    }
+    if(c1 == c2)
+        return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1,grid.back());
+    return std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
+}
+
+void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
+                              const std::vector<std::vector<float> > &grids,
+                              const std::vector<float> &val01,
+                              std::vector<float> &rez)
+{
+    std::vector<size_t> m;
+    for(size_t i = 0, g = val01.size(); i != g; i++)
+    {
+        std::vector<float> row(sample.size());
+        size_t index = 0;
+        for(size_t j = 0, n = sample.size(); j != n; j++)
+        {
+            bool flag = true;
+            for(size_t k = 0, t = m.size(); k != t; k++)
+            {
+                if(!(sample[j][k] > grids[k][m[k]] && sample[j][k] < grids[k][m[k] + 1]))
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag)
+            {
+                row[index] = sample[j][i];
+                ++index;
+            }
+        }
+        row.resize(index);
+        auto rez2 = ecdf1d_pair(row,grids[i],val01[i]);
+        rez[i] = rez2.second;
+        m.push_back(rez2.first);
+    }
+}
+void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std::vector<float> > &grids, size_t nrolls)
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
+    std::vector<std::vector<float> > sampled;
+
+    std::vector<std::vector<float>> u01zvectors;
+
+    std::vector<float> temp1(sample[0].size());
+    std::vector<float> temp2(temp1.size());
+    for(size_t i = 0; i != nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        u01zvectors.push_back(temp1);
+        ecdfNd_one_MultipleGrids(sample,grids,temp1,temp2);
+        sampled.push_back(temp2);
+        //std::cout << std::endl;
+    }
+    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
+    write_default2d("maps/sampled_explicit.dat", sampled, 5);
+    write_default2d("maps/z.dat", u01zvectors, 5);
+}
+
+
 void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample, size_t nrolls)
 {
     std::mt19937_64 generator;
@@ -46,9 +149,98 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    write_default2d("maps/values01.dat", values01, 4);
-    write_default2d("maps/sampled_implicit_class.dat", sampled, 4);
+    write_default2d("maps/values01.dat", values01, 5);
+    write_default2d("maps/sampled_implicit_class.dat", sampled, 5);
 }
+
+void test_1d1()
+{
+    std::vector<size_t> grid_number = {6};
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -2;
+        float endp = 4;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+    std::vector<std::vector<int>> sample_implicit;
+    sample_implicit.push_back(std::vector{0});
+    sample_implicit.push_back(std::vector{1});
+    sample_implicit.push_back(std::vector{2});
+    sample_implicit.push_back(std::vector{3});
+    sample_implicit.push_back(std::vector{4});
+    sample_implicit.push_back(std::vector{5});
+    
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+    explicit_quantile(sample_explicit, grids, 1e+3);
+    implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1e+3);
+}
+
+void test_1d2()
+{
+    std::vector<size_t> grid_number = {6};
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -2;
+        float endp = 4;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+    std::vector<std::vector<int>> sample_implicit;
+    sample_implicit.push_back(std::vector{1});
+    sample_implicit.push_back(std::vector{3});
+    sample_implicit.push_back(std::vector{4});
+    //sample_implicit.push_back(std::vector{8});
+    
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+    explicit_quantile(sample_explicit, grids, 1e+3);
+    implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1e+3);
+}
+
 
 void test_2d1()
 {
@@ -107,7 +299,7 @@ void test_2d1()
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
 //    explicit_quantile(sample_explicit, grids);
 //    implicit_quantile(sample_implicit, grids);
-
+//
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
 }
 
