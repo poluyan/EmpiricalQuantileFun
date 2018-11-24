@@ -19,7 +19,7 @@
 #include "test.h"
 #include <random>
 
-void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample)
+void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample, size_t nrolls)
 {
     std::mt19937_64 generator;
     generator.seed(1);
@@ -29,13 +29,12 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     time_cpp11.reset();
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
-    long long nrolls = 2e+3;  // number of experiments
 
     empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
 
     std::vector<float> temp1(gridn.size());
     std::vector<float> temp2(temp1.size());
-    for(long long i = 0; i != nrolls; ++i)
+    for(size_t i = 0; i != nrolls; ++i)
     {
         for(size_t j = 0; j != temp1.size(); j++)
         {
@@ -51,12 +50,9 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     write_default2d("maps/sampled_implicit_class.dat", sampled, 4);
 }
 
-void example_3d1()
+void test_2d1()
 {
-
-    //std::vector<size_t> grid_number = {9, 10};
-    //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
-    std::vector<size_t> grid_number = {5,5,5};
+    std::vector<size_t> grid_number = {9, 10};
 
     std::vector<std::vector<float>> grids(grid_number.size());
     std::vector<float> dx(grid_number.size());
@@ -64,8 +60,8 @@ void example_3d1()
     for(size_t i = 0; i != grids.size(); i++)
     {
         std::vector<float> grid(grid_number[i] + 1);
-        float startp = 0;//-3;
-        float endp = 5;//3
+        float startp = -3;
+        float endp = 3;
         float es = endp - startp;
         for(size_t j = 0; j != grid.size(); j++)
         {
@@ -76,26 +72,67 @@ void example_3d1()
     }
 
     std::vector<std::vector<int>> sample_implicit;
-//    sample_implicit.push_back(std::vector{2,6});
-//
-//    sample_implicit.push_back(std::vector{3,2});
-//    sample_implicit.push_back(std::vector{3,3});
-//    sample_implicit.push_back(std::vector{3,5});
-//    sample_implicit.push_back(std::vector{3,6});
-//    sample_implicit.push_back(std::vector{3,7});
-//
-//    sample_implicit.push_back(std::vector{4,5});
-//    sample_implicit.push_back(std::vector{4,6});
-//    sample_implicit.push_back(std::vector{4,7});
-//
-//    sample_implicit.push_back(std::vector{5,3});
-//    sample_implicit.push_back(std::vector{5,4});
-//    sample_implicit.push_back(std::vector{5,5});
-//    sample_implicit.push_back(std::vector{5,6});
-//    sample_implicit.push_back(std::vector{5,7});
-//
-//    sample_implicit.push_back(std::vector{6,3});
-//    sample_implicit.push_back(std::vector{6,4});
+    sample_implicit.push_back(std::vector{2,6});
+
+    sample_implicit.push_back(std::vector{3,2});
+    sample_implicit.push_back(std::vector{3,3});
+    sample_implicit.push_back(std::vector{3,5});
+    sample_implicit.push_back(std::vector{3,6});
+    sample_implicit.push_back(std::vector{3,7});
+
+    sample_implicit.push_back(std::vector{4,5});
+    sample_implicit.push_back(std::vector{4,6});
+    sample_implicit.push_back(std::vector{4,7});
+
+    sample_implicit.push_back(std::vector{5,3});
+    sample_implicit.push_back(std::vector{5,4});
+    sample_implicit.push_back(std::vector{5,5});
+    sample_implicit.push_back(std::vector{5,6});
+    sample_implicit.push_back(std::vector{5,7});
+
+    sample_implicit.push_back(std::vector{6,3});
+    sample_implicit.push_back(std::vector{6,4});
+
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+//    explicit_quantile(sample_explicit, grids);
+//    implicit_quantile(sample_implicit, grids);
+
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
+}
+
+void test_3d1()
+{
+    std::vector<size_t> grid_number = {5,5,5};
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = 0;
+        float endp = 5;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+    std::vector<std::vector<int>> sample_implicit;
 
 
 //    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
@@ -138,29 +175,15 @@ void example_3d1()
         sample_explicit.push_back(temp);
     }
 
-//    for(size_t i = 0; i != sample_explicit.size(); ++i)
-//    {
-//        for(size_t j = 0; j != sample_explicit[i].size(); ++j)
-//        {
-//            std::cout << sample_explicit[i][j] << '\t';
-//        }
-//        std::cout << std::endl;
-//    }
-
-
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
 //    explicit_quantile(sample_explicit, grids);
 //    implicit_quantile(sample_implicit, grids);
 
-    //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
-    implicit_quantile_class(0, 5, grid_number, sample_implicit);
+    implicit_quantile_class(0, 5, grid_number, sample_implicit, 1e+3);
 }
 
-void example_3d2()
+void test_3d2()
 {
-
-    //std::vector<size_t> grid_number = {9, 10};
-    //std::vector<size_t> grid_number = {9, 12, 13, 8, 19, 44, 8, 4, 6, 7};
     std::vector<size_t> grid_number = {3,3,3};
 
     std::vector<std::vector<float>> grids(grid_number.size());
@@ -181,26 +204,6 @@ void example_3d2()
     }
 
     std::vector<std::vector<int>> sample_implicit;
-//    sample_implicit.push_back(std::vector{2,6});
-//
-//    sample_implicit.push_back(std::vector{3,2});
-//    sample_implicit.push_back(std::vector{3,3});
-//    sample_implicit.push_back(std::vector{3,5});
-//    sample_implicit.push_back(std::vector{3,6});
-//    sample_implicit.push_back(std::vector{3,7});
-//
-//    sample_implicit.push_back(std::vector{4,5});
-//    sample_implicit.push_back(std::vector{4,6});
-//    sample_implicit.push_back(std::vector{4,7});
-//
-//    sample_implicit.push_back(std::vector{5,3});
-//    sample_implicit.push_back(std::vector{5,4});
-//    sample_implicit.push_back(std::vector{5,5});
-//    sample_implicit.push_back(std::vector{5,6});
-//    sample_implicit.push_back(std::vector{5,7});
-//
-//    sample_implicit.push_back(std::vector{6,3});
-//    sample_implicit.push_back(std::vector{6,4});
 
 
 //    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
@@ -320,20 +323,10 @@ void example_3d2()
         sample_explicit.push_back(temp);
     }
 
-//    for(size_t i = 0; i != sample_explicit.size(); ++i)
-//    {
-//        for(size_t j = 0; j != sample_explicit[i].size(); ++j)
-//        {
-//            std::cout << sample_explicit[i][j] << '\t';
-//        }
-//        std::cout << std::endl;
-//    }
-
-
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
 //    explicit_quantile(sample_explicit, grids);
 //    implicit_quantile(sample_implicit, grids);
 
     //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
-    implicit_quantile_class(0, 3, grid_number, sample_implicit);
+    implicit_quantile_class(0, 3, grid_number, sample_implicit, 1e+3);
 }

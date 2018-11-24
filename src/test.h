@@ -24,9 +24,12 @@
 #include "trie_based.h"
 #include "quantile.h"
 
-void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample);
+void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
 
-void example_3d1();
-void example_3d2();
+
+void test_2d1();
+
+void test_3d1();
+void test_3d2();
 
 #endif
