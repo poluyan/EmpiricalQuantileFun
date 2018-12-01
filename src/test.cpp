@@ -129,12 +129,13 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    timer::Timer time_cpp11;
-    time_cpp11.reset();
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
     empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
+
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
 
     std::vector<float> temp1(gridn.size());
     std::vector<float> temp2(temp1.size());
@@ -296,6 +297,47 @@ void test_2d1()
         }
         sample_explicit.push_back(temp);
     }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+//    explicit_quantile(sample_explicit, grids);
+//    implicit_quantile(sample_implicit, grids);
+//
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
+}
+
+void test_2d2()
+{
+    std::vector<size_t> grid_number;
+    std::vector<std::vector<int>> sample_implicit;
+    data_io::load_grid_and_sample("input/2d/grid.dat", "input/2d/points.dat", grid_number, sample_implicit);
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -3;
+        float endp = 3;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+//    std::vector<std::vector<float>> sample_explicit;
+//    for(size_t i = 0; i != sample_implicit.size(); ++i)
+//    {
+//        std::vector<float> temp;
+//        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+//        {
+//            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+//        }
+//        sample_explicit.push_back(temp);
+//    }
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
 //    explicit_quantile(sample_explicit, grids);

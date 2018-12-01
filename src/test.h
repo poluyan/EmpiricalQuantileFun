@@ -33,6 +33,7 @@ void test_1d1();
 void test_1d2();
 
 void test_2d1();
+void test_2d2();
 
 void test_3d1();
 void test_3d2();

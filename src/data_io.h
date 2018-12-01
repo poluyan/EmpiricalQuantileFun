@@ -94,14 +94,14 @@ void load_grid_and_sample(std::string fname_grid,
     std::cout << fname_grid << '\t' << grid.size() << std::endl;
 
     std::ifstream sampleIn;
-    sampleIn.open(fname_grid.c_str());
+    sampleIn.open(fname_sample.c_str());
     if(!sampleIn.is_open())
     {
         std::cout << "Error opening file." << std::endl;
         return;
     }
 
-    std::vector<size_t> push2data(grid.size());
+    std::vector<T, A> push2data(grid.size());
     while(!sampleIn.eof())
     {
         size_t item = 0;
