@@ -28,6 +28,7 @@ void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample, co
 void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std::vector<float> > &grids, size_t nrolls);
 
 void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
+void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
 
 void test_1d1();
 void test_1d2();

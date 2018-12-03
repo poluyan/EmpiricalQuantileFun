@@ -155,6 +155,38 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 5);
 }
 
+void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample, size_t nrolls)
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    std::vector<std::vector<float> > sampled;
+    std::vector<std::vector<float> > values01;
+
+    empirical_quantile::ImplicitQuantileSorted<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
+
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
+
+    std::vector<float> temp1(gridn.size());
+    std::vector<float> temp2(temp1.size());
+    for(size_t i = 0; i != nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
+    data_io::write_default2d("maps/values01.dat", values01, 5);
+    data_io::write_default2d("maps/sampled_implicit_class_sorted.dat", sampled, 5);
+}
+
 void test_1d1()
 {
     std::vector<size_t> grid_number = {6};
@@ -183,7 +215,7 @@ void test_1d1()
     sample_implicit.push_back(std::vector{3});
     sample_implicit.push_back(std::vector{4});
     sample_implicit.push_back(std::vector{5});
-    
+
     std::vector<std::vector<float>> sample_explicit;
     for(size_t i = 0; i != sample_implicit.size(); ++i)
     {
@@ -198,6 +230,7 @@ void test_1d1()
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(sample_explicit, grids, 1e+3);
     implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1e+3);
+    implicit_quantile_class_sorted(-2, 4, grid_number, sample_implicit, 1e+3);
 }
 
 void test_1d2()
@@ -222,11 +255,11 @@ void test_1d2()
     }
 
     std::vector<std::vector<int>> sample_implicit;
+    sample_implicit.push_back(std::vector{4});
     sample_implicit.push_back(std::vector{1});
     sample_implicit.push_back(std::vector{3});
-    sample_implicit.push_back(std::vector{4});
     //sample_implicit.push_back(std::vector{8});
-    
+
     std::vector<std::vector<float>> sample_explicit;
     for(size_t i = 0; i != sample_implicit.size(); ++i)
     {
@@ -241,6 +274,7 @@ void test_1d2()
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(sample_explicit, grids, 1e+3);
     implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1e+3);
+    implicit_quantile_class_sorted(-2, 4, grid_number, sample_implicit, 1e+3);
 }
 
 
@@ -303,6 +337,7 @@ void test_2d1()
 //    implicit_quantile(sample_implicit, grids);
 //
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+3);
 }
 
 void test_2d2()
@@ -343,7 +378,8 @@ void test_2d2()
 //    explicit_quantile(sample_explicit, grids);
 //    implicit_quantile(sample_implicit, grids);
 //
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+5);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+5);
 }
 
 void test_3d1()
@@ -415,6 +451,7 @@ void test_3d1()
 //    implicit_quantile(sample_implicit, grids);
 
     implicit_quantile_class(0, 5, grid_number, sample_implicit, 1e+3);
+    implicit_quantile_class_sorted(0, 5, grid_number, sample_implicit, 1e+3);
 }
 
 void test_3d2()
@@ -564,4 +601,5 @@ void test_3d2()
 
     //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
     implicit_quantile_class(0, 3, grid_number, sample_implicit, 1e+3);
+    implicit_quantile_class_sorted(0, 3, grid_number, sample_implicit, 1e+3);
 }
