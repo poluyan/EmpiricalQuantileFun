@@ -37,8 +37,7 @@ protected:
     std::vector<std::vector<U>> grids;
     std::vector<size_t> grid_number;
 
-    std::pair<size_t, U> quantile_transform(const std::vector<std::pair<T, T>> &row,
-                                            size_t sample_size, size_t ind, U val01) const;
+    std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const;
 public:
     ImplicitQuantile(std::vector<U> in_lb,
                      std::vector<U> in_ub,
@@ -84,29 +83,26 @@ void ImplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
     auto p = sample.root.get();
     for(size_t i = 0; i != in01.size(); i++)
     {
-        std::vector<std::pair<T, T>> row;
-        for(size_t j = 0; j != p->children.size(); j++)
-        {
-            row.push_back(std::make_pair(p->children[j]->index, p->children[j]->count));
-        }
-
-        auto rez2 = quantile_transform(row, p->count, i, in01[i]);
+        auto rez2 = quantile_transform(p, i, in01[i]);
         out[i] = rez2.second;
 
         T index = 0;
         for(size_t j = 1; j < p->children.size(); j++)
         {
             if(p->children[j]->index == T(rez2.first))
+            {
                 index = j;
+                break;
+            }
         }
         p = p->children[index].get();
     }
 }
 template <typename T, typename U>
-std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(const std::vector<std::pair<T, T>> &row, size_t sample_size, size_t ind, U val01) const
+std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const
 {
     size_t m = 0, count = grids[ind].size() - 1, step, index1 = 0, index2 = 0;
-    U cdf1, cdf2, sample_size_u = static_cast<U>(sample_size);
+    U cdf1, cdf2, sample_size_u = static_cast<U>(layer->count);
     auto first = grids[ind].begin();
     auto it = grids[ind].begin();
 
@@ -119,16 +115,16 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(const std::vecto
 
         index1 = 0;
         index2 = 0;
-        for(const auto &i : row)
+        for(auto &i : layer->children)
         {
-            size_t t = static_cast<size_t>(i.first);
+            size_t t = static_cast<size_t>(i->index);
             if(t < m)
             {
-                index1 += i.second;
-            } 
+                index1 += i->count;
+            }
             if(t < m + 1)
             {
-                index2 += i.second;
+                index2 += i->count;
             }
         }
 
@@ -160,8 +156,7 @@ protected:
     using ImplicitQuantile<T, U>::grids;
     using ImplicitQuantile<T, U>::sample;
     void sort_layer(trie_based::NodeCount<T> *p);
-    std::pair<size_t, U> quantile_transform(const std::vector<std::pair<T, T>> &row,
-                                            size_t sample_size, size_t ind, U val01) const;
+    std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const;
 public:
     ImplicitQuantileSorted(std::vector<U> in_lb,
                            std::vector<U> in_ub,
@@ -214,32 +209,50 @@ void ImplicitQuantileSorted<T,U>::sort_layer(trie_based::NodeCount<T> *p)
 template <typename T, typename U>
 void ImplicitQuantileSorted<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
 {
-    auto p = sample.root.get();
+    auto *p = sample.root.get();
     for(size_t i = 0; i != in01.size(); i++)
     {
-        std::vector<std::pair<T, T>> row;
+//        std::vector<std::pair<T, T>> row;
+//        for(size_t j = 0; j != p->children.size(); j++)
+//        {
+//            row.push_back(std::make_pair(p->children[j]->index, p->children[j]->count));
+//        }
+
+        auto rez = quantile_transform(p, i, in01[i]);
+        out[i] = rez.second;
+
+        /*std::vector<std::pair<T, T>> row2;
+        row2.push_back(std::make_pair(p->children[0]->index, p->children[0]->count));
+        std::partial_sum(p->children.begin(), p->children.end(), [](){return ;});
+        for(size_t j = 1; j != p->children.size(); j++)
+        {
+            row2.push_back(std::make_pair(p->children[j]->index, p->children[j]->count + p->children[j - 1]->count));
+        }
         for(size_t j = 0; j != p->children.size(); j++)
         {
-            row.push_back(std::make_pair(p->children[j]->index, p->children[j]->count));
+            std::cout << row2[j].first << '\t' << row2[j].second << std::endl;
         }
 
-        auto rez2 = quantile_transform(row, p->count, i, in01[i]);
-        out[i] = rez2.second;
+        std::cin.get();*/
 
-        T index = 0;
-        for(size_t j = 1; j < p->children.size(); j++)
-        {
-            if(p->children[j]->index == T(rez2.first))
-                index = j;
-        }
-        p = p->children[index].get();
+//        T target = rez2.first;
+//        auto it = std::lower_bound(p->children.begin(), p->children.end(), target,
+//                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+//                                      const T &r)
+//        {
+//            return l->index < r;
+//        });
+//        T index = std::distance(p->children.begin(), it);
+//        std::cout << index << std::endl;    
+//        std::cin.get();
+        p = p->children[rez.first].get();
     }
 }
 template <typename T, typename U>
-std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(const std::vector<std::pair<T, T>> &row, size_t sample_size, size_t ind, U val01) const
+std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const
 {
-    size_t m = 0, count = grids[ind].size() - 1, step, index1 = 0, index2 = 0;
-    U cdf1, cdf2, sample_size_u = static_cast<U>(sample_size);
+    size_t m = 0, count = grids[ind].size() - 1, step, index1 = 0, index2 = 0, pos = 0;
+    U cdf1, cdf2, sample_size_u = static_cast<U>(layer->count);
     auto first = grids[ind].begin();
     auto it = grids[ind].begin();
 
@@ -252,24 +265,25 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(const std:
 
         index1 = 0;
         index2 = 0;
-
-        for(const auto &i : row)
+        
+        for(size_t i = 0; i != layer->children.size(); ++i)
         {
-            size_t t = static_cast<size_t>(i.first);
+            size_t t = static_cast<size_t>(layer->children[i]->index);
             if(t < m)
             {
-                index1 += i.second;
-            } 
+                index1 += layer->children[i]->count;
+            }
             if(t < m + 1)
             {
-                index2 += i.second;
+                index2 += layer->children[i]->count;
             }
             else
             {
                 break;
             }
+            pos = i;
         }
-
+        
         cdf1 = index1/sample_size_u;
         cdf2 = index2/sample_size_u;
 
@@ -286,9 +300,8 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(const std:
     }
     if(index1 == index2)
         return it == grids[ind].begin() ? std::make_pair(size_t(0), grids[ind].front()) : std::make_pair(size_t(grids[ind].size() - 1), grids[ind].back());
-//        U x1 = grids[ind][m + 1], y1 = cdf2;
-//        return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
-    return std::make_pair(m, grids[ind][m] + (val01 - cdf1) * (grids[ind][m + 1] - grids[ind][m]) / (cdf2 - cdf1));
+
+    return std::make_pair(pos, grids[ind][m] + (val01 - cdf1) * (grids[ind][m + 1] - grids[ind][m]) / (cdf2 - cdf1));
 }
 
 }
