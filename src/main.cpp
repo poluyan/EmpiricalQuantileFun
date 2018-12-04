@@ -481,7 +481,7 @@ void simple1d_example()
 }
 
 int main()
-{   
+{
 //    simple_empirical_1d();
 //    simple1d_example();
 
