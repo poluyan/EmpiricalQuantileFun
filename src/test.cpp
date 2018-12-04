@@ -378,8 +378,13 @@ void test_2d2()
 //    explicit_quantile(sample_explicit, grids);
 //    implicit_quantile(sample_implicit, grids);
 //
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+5);
+    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    time_cpp11.reset();
     implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+5);
+    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
 }
 
 void test_3d1()
