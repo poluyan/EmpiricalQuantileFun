@@ -41,12 +41,15 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
         {
             return v < *(it + 1);
         });
+        
         f1 = c1/n;
         f2 = c2/n;
-        if(val01 > f1 && val01 < f2)
-            break;
+        
         if(f1 < val01)
         {
+            if(val01 < f2)
+                break;
+            
             first = ++it;
             count -= step + 1;
         }
@@ -54,8 +57,9 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
             count = step;
     }
     if(c1 == c2)
-        return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1,grid.back());
-    return std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
+        return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1, grid.back());
+    //std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
+    return std::make_pair(m, grid[m] + (val01 - f1) * (grid[m + 1] - grid[m]) / (f2 - f1));
 }
 
 void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
@@ -333,7 +337,7 @@ void test_2d1()
     }
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-//    explicit_quantile(sample_explicit, grids);
+    explicit_quantile(sample_explicit, grids, 2e+3);
 //    implicit_quantile(sample_implicit, grids);
 //
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);

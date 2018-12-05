@@ -43,15 +43,18 @@ int empirical_cdf_int(std::vector<float> &sorted_sample, float val)
 
 float empirical_qantile_from_real_cdf(std::vector<std::pair<float,float>> &cdf, float val01)
 {
-    auto pos = std::lower_bound(cdf.begin(), cdf.end(), val01, 
-    [](const std::pair<float,float> &l, const float &r){return l.second < r;});
-    
+    auto pos = std::lower_bound(cdf.begin(), cdf.end(), val01,
+                                [](const std::pair<float,float> &l, const float &r)
+    {
+        return l.second < r;
+    });
+
     size_t stop = std::distance(cdf.begin(), pos);
     size_t start = stop - 1;
     /*if(std::distance(cdf.begin(), pos) == 0)
     {
-        start = 0; 
-        stop = 1;        
+        start = 0;
+        stop = 1;
     }*/
     float x0 = cdf[start].first, x1 = cdf[stop].first, y0 = cdf[start].second, y1 = cdf[stop].second;
     return x0 + (val01 - y0)*(x1-x0)/(y1-y0);
@@ -61,7 +64,7 @@ float empirical_qantile_1d(std::vector<float> &cdf, float val01)
 {
     auto pos = std::lower_bound(cdf.begin(), cdf.end(), val01);
     //return cdf[std::distance(cdf.begin(), pos)];
-    
+
     return cdf[std::distance(cdf.begin(), pos)];
 }
 
@@ -356,13 +359,19 @@ void simple1d_example()
         sample.push_back(temp);
     }
     data_io::write_default2d("maps/1d/pdf.dat", sample, 4);
-    
-    auto max_pdf = *std::max_element(sample.begin(), sample.end(), 
-    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
-    auto min_pdf = *std::min_element(sample.begin(), sample.end(), 
-    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
+
+    auto max_pdf = *std::max_element(sample.begin(), sample.end(),
+                                     [](const std::vector<float> &a,const std::vector<float> &b)
+    {
+        return a[1] < b[1];
+    });
+    auto min_pdf = *std::min_element(sample.begin(), sample.end(),
+                                     [](const std::vector<float> &a,const std::vector<float> &b)
+    {
+        return a[1] < b[1];
+    });
     std::cout << max_pdf.back() << '\t' << min_pdf.back() << std::endl;
-    
+
     if(max_pdf.back() > 0 && min_pdf.back() < 0)
     {
         for(size_t i = 0; i != sample.size(); i++)
@@ -386,28 +395,37 @@ void simple1d_example()
             sample[i][1] += std::abs(max_pdf.back());
         }
     }
-    
+
     for(size_t i = 0; i != sample.size(); i++)
     {
         sample[i][1] = -sample[i][1];
     }
-    
-    std::sort(sample.begin(), sample.end(), 
-    [](const std::vector<float>& x, const std::vector<float>& y){return x.front() < y.front(); });
-    
-    auto new_max_pdf = *std::max_element(sample.begin(), sample.end(), 
-    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
-    auto new_min_pdf = *std::min_element(sample.begin(), sample.end(), 
-    [](const std::vector<float> &a,const std::vector<float> &b){return a[1] < b[1];});
+
+    std::sort(sample.begin(), sample.end(),
+              [](const std::vector<float>& x, const std::vector<float>& y)
+    {
+        return x.front() < y.front();
+    });
+
+    auto new_max_pdf = *std::max_element(sample.begin(), sample.end(),
+                                         [](const std::vector<float> &a,const std::vector<float> &b)
+    {
+        return a[1] < b[1];
+    });
+    auto new_min_pdf = *std::min_element(sample.begin(), sample.end(),
+                                         [](const std::vector<float> &a,const std::vector<float> &b)
+    {
+        return a[1] < b[1];
+    });
     std::cout << new_max_pdf.back() << '\t' << new_min_pdf.back() << std::endl;
-    
+
     for(size_t i = 0; i != sample.size(); i++)
     {
         sample[i][1] /= new_max_pdf.back();
     }
-    
+
     data_io::write_default2d("maps/1d/pdf.dat", sample, 4);
-    
+
     std::vector<float> s_x;
     for(size_t i = 0; i != sample.size(); i++)
     {
@@ -417,9 +435,9 @@ void simple1d_example()
             s_x.push_back(sample[i][0]);
     }
     std::sort(s_x.begin(), s_x.end());
-    
+
     data_io::write_default1d("maps/1d/sorted.dat", s_x, 1, 4);
-    
+
     size_t N = 100000;
     std::vector<float> cdf(N);
     std::vector<std::pair<int,int>> cdf_int;
@@ -431,34 +449,37 @@ void simple1d_example()
 
     for(size_t i = 0; i != N; i++)
     {
-        cdf[i] = empirical_cdf(s_x, startp + es * i / N);        
+        cdf[i] = empirical_cdf(s_x, startp + es * i / N);
         //std::cout << cdf[i] << std::endl;
     }
     data_io::write_default1d("maps/1d/cdf.dat", cdf, 1, 4);
-    
-    
+
+
     for(size_t i = 0; i != N; i++)
     {
         int t = empirical_cdf_int(s_x, startp + es * i / N);
-        if(std::find_if(cdf_int.begin(),cdf_int.end(),[&t](const std::pair<int,int> &l){return t == l.second;}) == cdf_int.end())
+        if(std::find_if(cdf_int.begin(),cdf_int.end(),[&t](const std::pair<int,int> &l)
+    {
+        return t == l.second;
+    }) == cdf_int.end())
         {
-            cdf_int.push_back(std::make_pair(i, t)); 
-            cdf_float.push_back(std::make_pair(startp + es * i / N, empirical_cdf(s_x, startp + es * i / N))); 
+            cdf_int.push_back(std::make_pair(i, t));
+            cdf_float.push_back(std::make_pair(startp + es * i / N, empirical_cdf(s_x, startp + es * i / N)));
         }
     }
     std::cout << cdf_int.size() << std::endl;
     for(const auto & i : cdf_int)
         std::cout << i.first << '\t' << i.second << std::endl;
-    
+
     std::vector<std::vector<float>> cdf_simple;
     for(const auto & i : cdf_float)
     {
         std::cout << i.first << '\t' << i.second << std::endl;
-        cdf_simple.push_back(std::vector<float>{i.first, i.second});
+        cdf_simple.push_back(std::vector<float> {i.first, i.second});
     }
     data_io::write_default2d("maps/1d/cdf_simple.dat", cdf_simple, 5);
-        
-    
+
+
     std::uniform_real_distribution<float> urand01(0.0,1);
     std::vector<float> sampled;
     for(size_t i = 0; i != 1e4; i++)
@@ -480,14 +501,28 @@ void simple1d_example()
     data_io::write_default1d("maps/1d/quant.dat", cdf, 1, 4);
 }
 
+struct A
+{
+    int a;
+    int b;
+
+    A(int t)
+    {
+        b = t;
+    }
+};
+
 int main()
 {
+//
+//    std::cout << tt.front() == tt.back() << std::endl;
+
 //    simple_empirical_1d();
 //    simple1d_example();
 
-//    test_1d1();
-    //test_1d2();
-    
+    test_1d1();
+//    test_1d2();
+
 //    test_2d1();
-    test_2d2();
+//    test_2d2();
 }

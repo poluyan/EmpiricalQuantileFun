@@ -87,7 +87,7 @@ void ImplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
     {
         auto rez2 = quantile_transform(p, i, in01[i]);
         out[i] = rez2.second;
-        
+
 
         T index = 0;
         for(size_t j = 1; j < p->children.size(); j++)
@@ -152,6 +152,10 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
         return it == grids[ind].begin() ? std::make_pair(size_t(0), grids[ind].front()) : std::make_pair(size_t(grids[ind].size() - 1), grids[ind].back());
 //        U x1 = grids[ind][m + 1], y1 = cdf2;
 //        return std::make_pair(m, x0 + (val01 - y0) * (x1 - x0) / (y1 - y0));
+
+//    std::cout << grids[ind][m] << '\t' << grids[ind][m + 1] << '\t' << val01 << '\t' << cdf1 << '\t' << cdf2 << std::endl;
+//    std::cin.get();
+
     return std::make_pair(m, grids[ind][m] + (val01 - cdf1) * (grids[ind][m + 1] - grids[ind][m]) / (cdf2 - cdf1));
 }
 
@@ -197,12 +201,22 @@ void ImplicitQuantileSorted<T, U>::sort()
 template <typename T, typename U>
 void ImplicitQuantileSorted<T,U>::sort_layer(trie_based::NodeCount<T> *p)
 {
-    std::sort(p->children.begin(), p->children.end(),
-              [](const std::shared_ptr<trie_based::NodeCount<T>> &l, const std::shared_ptr<trie_based::NodeCount<T>> &r)
+    bool must_sort = !std::is_sorted(p->children.begin(), p->children.end(),
+                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                       const std::shared_ptr<trie_based::NodeCount<T>> &r)
     {
         return l->index < r->index;
     });
-    if(p->children != sample.last_layer)
+    if(must_sort)
+    {
+        std::sort(p->children.begin(), p->children.end(),
+                  [](const std::shared_ptr<trie_based::NodeCount<T>> &l, const std::shared_ptr<trie_based::NodeCount<T>> &r)
+        {
+            return l->index < r->index;
+        });
+
+    }
+    if(p->children != sample.last_layer) // bad comparison here
     {
         for(auto &i : p->children)
         {
@@ -218,14 +232,14 @@ void ImplicitQuantileSorted<T, U>::transform(const std::vector<U>& in01, std::ve
     auto *p = sample.root.get();
     for(size_t i = 0; i != in01.size(); ++i)
     {
-        std::vector<size_t> psum(p->children.size(), 0);
+        std::vector<size_t> psum(p->children.size() + 1, 0);
         for(size_t j = 1, k = 0; j != p->children.size(); ++j)
         {
             k += p->children[j-1]->count;
             psum[j] = k;
         }
-        psum.push_back(p->count);
-        
+        psum[p->children.size()] = p->count;
+
         auto rez = quantile_transform(p, psum, i, in01[i]);
         out[i] = rez.second;
 
@@ -254,31 +268,31 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
         step = count / 2;
         std::advance(it, step);
         m = std::distance(grids[ind].begin(), it);
-        
+
         T target = m;
         auto lb1 = std::lower_bound(layer->children.begin(), layer->children.end(), target,
-                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-                                      const T &r)
+                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                       const T &r)
         {
             return l->index < r;
         });
         auto lb2 = std::lower_bound(layer->children.begin(), layer->children.end(), target + 1,
-                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-                                      const T &r)
+                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                       const T &r)
         {
             return l->index < r;
         });
         size_t ind1 = std::distance(layer->children.begin(), lb1);
         size_t ind2 = std::distance(layer->children.begin(), lb2);
-        
+
         if(lb1 == layer->children.end())
             ind1 = psum.size() - 1;
         if(lb2 == layer->children.end())
             ind2 = psum.size() - 1;
-        
+
         index1 = psum[ind1];
         index2 = psum[ind2];
-                
+
         cdf1 = index1/sample_size_u;
         cdf2 = index2/sample_size_u;
 
@@ -286,7 +300,7 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
         {
             if(val01 < cdf2)
                 break;
-                
+
             first = ++it;
             count -= step + 1;
         }
