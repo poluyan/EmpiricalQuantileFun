@@ -33,6 +33,7 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
 void test_1d1();
 void test_1d2();
 void test_1d3();
+void test_1d4();
 
 void test_2d1();
 void test_2d2();

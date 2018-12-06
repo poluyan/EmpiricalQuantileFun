@@ -44,6 +44,8 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
 
         f1 = c1/n;
         f2 = c2/n;
+        
+        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
@@ -57,7 +59,10 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
             count = step;
     }
     if(c1 == c2)
+    {
+        std::cout << c1 << '\t' << c2 << std::endl;
         return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1, grid.back());
+    }
     //std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
     return std::make_pair(m, grid[m] + (val01 - f1) * (grid[m + 1] - grid[m]) / (f2 - f1));
 }
@@ -115,6 +120,7 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
         {
             temp1[j] = ureal01(generator);
         }
+        temp1 = {0.68};
         u01zvectors.push_back(temp1);
         ecdfNd_one_MultipleGrids(sample,grids,temp1,temp2);
         sampled.push_back(temp2);
@@ -149,6 +155,7 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
         {
             temp1[j] = ureal01(generator);
         }
+        temp1 = {0.68};
         quant.transform(temp1,temp2);
         values01.push_back(temp1);
         sampled.push_back(temp2);
@@ -181,6 +188,8 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
         {
             temp1[j] = ureal01(generator);
         }
+        temp1 = {0.68};
+//        temp1 = {0.8};
         quant.transform(temp1,temp2);
         values01.push_back(temp1);
         sampled.push_back(temp2);
@@ -619,7 +628,7 @@ void test_grid_10d()
     std::vector<size_t> grid_number;
     std::vector<std::vector<int>> sample_implicit;
     //400 temp1 = {0.99935, 0.546268, 0.140131, 0.692333, 0.441771, 0.890283, 0.0597646, 0.607688, 0.566813, 0.61283};
-    data_io::load_grid_and_sample("input/grid_test/10000/grid.dat", "input/grid_test/10000/sample.dat", grid_number, sample_implicit);
+    data_io::load_grid_and_sample("input/grid_test/400/grid.dat", "input/grid_test/400/sample.dat", grid_number, sample_implicit);
 
     std::vector<std::vector<float>> grids(grid_number.size());
     std::vector<float> dx(grid_number.size());
@@ -783,4 +792,249 @@ void test_1d3()
     explicit_quantile(sample_explicit, grids, 1e+3);
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+3);
+}
+
+void test_1d4()
+{
+    std::vector<size_t> grid_number = {400};
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -3;
+        float endp = 3;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+    
+    /// must find 0.68
+
+    std::vector<std::vector<int>> sample_implicit;
+
+    sample_implicit.push_back(std::vector{0});
+    sample_implicit.push_back(std::vector{2});
+    sample_implicit.push_back(std::vector{3});
+    sample_implicit.push_back(std::vector{4});
+    sample_implicit.push_back(std::vector{5});
+    sample_implicit.push_back(std::vector{6});
+    sample_implicit.push_back(std::vector{7});
+    sample_implicit.push_back(std::vector{8});
+    sample_implicit.push_back(std::vector{9});
+    sample_implicit.push_back(std::vector{10});
+    sample_implicit.push_back(std::vector{11});
+    sample_implicit.push_back(std::vector{12});
+    sample_implicit.push_back(std::vector{15});
+    sample_implicit.push_back(std::vector{16});
+    sample_implicit.push_back(std::vector{22});
+    sample_implicit.push_back(std::vector{24});
+    sample_implicit.push_back(std::vector{25});
+    sample_implicit.push_back(std::vector{29});
+    sample_implicit.push_back(std::vector{32});
+    sample_implicit.push_back(std::vector{33});
+    sample_implicit.push_back(std::vector{35});
+    sample_implicit.push_back(std::vector{38});
+    sample_implicit.push_back(std::vector{39});
+    sample_implicit.push_back(std::vector{41});
+    sample_implicit.push_back(std::vector{43});
+    sample_implicit.push_back(std::vector{48});
+    sample_implicit.push_back(std::vector{51});
+    sample_implicit.push_back(std::vector{54});
+    sample_implicit.push_back(std::vector{55});
+    sample_implicit.push_back(std::vector{56});
+    sample_implicit.push_back(std::vector{58});
+    sample_implicit.push_back(std::vector{59});
+    sample_implicit.push_back(std::vector{62});
+    sample_implicit.push_back(std::vector{65});
+    sample_implicit.push_back(std::vector{69});
+    sample_implicit.push_back(std::vector{73});
+    sample_implicit.push_back(std::vector{76});
+    sample_implicit.push_back(std::vector{77});
+    sample_implicit.push_back(std::vector{78});
+    sample_implicit.push_back(std::vector{80});
+    sample_implicit.push_back(std::vector{81});
+    sample_implicit.push_back(std::vector{82});
+    sample_implicit.push_back(std::vector{83});
+    sample_implicit.push_back(std::vector{84});
+    sample_implicit.push_back(std::vector{85});
+    sample_implicit.push_back(std::vector{89});
+    sample_implicit.push_back(std::vector{93});
+    sample_implicit.push_back(std::vector{96});
+    sample_implicit.push_back(std::vector{98});
+    sample_implicit.push_back(std::vector{99});
+    sample_implicit.push_back(std::vector{101});
+    sample_implicit.push_back(std::vector{103});
+    sample_implicit.push_back(std::vector{104});
+    sample_implicit.push_back(std::vector{105});
+    sample_implicit.push_back(std::vector{107});
+    sample_implicit.push_back(std::vector{109});
+    sample_implicit.push_back(std::vector{112});
+    sample_implicit.push_back(std::vector{115});
+    sample_implicit.push_back(std::vector{117});
+    sample_implicit.push_back(std::vector{119});
+    sample_implicit.push_back(std::vector{121});
+    sample_implicit.push_back(std::vector{124});
+    sample_implicit.push_back(std::vector{126});
+    sample_implicit.push_back(std::vector{127});
+    sample_implicit.push_back(std::vector{129});
+    sample_implicit.push_back(std::vector{137});
+    sample_implicit.push_back(std::vector{138});
+    sample_implicit.push_back(std::vector{139});
+    sample_implicit.push_back(std::vector{142});
+    sample_implicit.push_back(std::vector{143});
+    sample_implicit.push_back(std::vector{144});
+    sample_implicit.push_back(std::vector{146});
+    sample_implicit.push_back(std::vector{147});
+    sample_implicit.push_back(std::vector{149});
+    sample_implicit.push_back(std::vector{153});
+    sample_implicit.push_back(std::vector{154});
+    sample_implicit.push_back(std::vector{155});
+    sample_implicit.push_back(std::vector{156});
+    sample_implicit.push_back(std::vector{158});
+    sample_implicit.push_back(std::vector{162});
+    sample_implicit.push_back(std::vector{163});
+    sample_implicit.push_back(std::vector{164});
+    sample_implicit.push_back(std::vector{165});
+    sample_implicit.push_back(std::vector{166});
+    sample_implicit.push_back(std::vector{171});
+    sample_implicit.push_back(std::vector{172});
+    sample_implicit.push_back(std::vector{174});
+    sample_implicit.push_back(std::vector{176});
+    sample_implicit.push_back(std::vector{177});
+    sample_implicit.push_back(std::vector{179});
+    sample_implicit.push_back(std::vector{184});
+    sample_implicit.push_back(std::vector{185});
+    sample_implicit.push_back(std::vector{189});
+    sample_implicit.push_back(std::vector{190});
+    sample_implicit.push_back(std::vector{193});
+    sample_implicit.push_back(std::vector{194});
+    sample_implicit.push_back(std::vector{195});
+    sample_implicit.push_back(std::vector{197});
+    sample_implicit.push_back(std::vector{200});
+    sample_implicit.push_back(std::vector{201});
+    sample_implicit.push_back(std::vector{202});
+    sample_implicit.push_back(std::vector{204});
+    sample_implicit.push_back(std::vector{208});
+    sample_implicit.push_back(std::vector{209});
+    sample_implicit.push_back(std::vector{210});
+    sample_implicit.push_back(std::vector{211});
+    sample_implicit.push_back(std::vector{213});
+    sample_implicit.push_back(std::vector{215});
+    sample_implicit.push_back(std::vector{216});
+    sample_implicit.push_back(std::vector{218});
+    sample_implicit.push_back(std::vector{222});
+    sample_implicit.push_back(std::vector{223});
+    sample_implicit.push_back(std::vector{224});
+    sample_implicit.push_back(std::vector{225});
+    sample_implicit.push_back(std::vector{226});
+    sample_implicit.push_back(std::vector{228});
+    sample_implicit.push_back(std::vector{231});
+    sample_implicit.push_back(std::vector{234});
+    sample_implicit.push_back(std::vector{239});
+    sample_implicit.push_back(std::vector{240});
+    sample_implicit.push_back(std::vector{246});
+    sample_implicit.push_back(std::vector{247});
+    sample_implicit.push_back(std::vector{249});
+    sample_implicit.push_back(std::vector{251});
+    sample_implicit.push_back(std::vector{252});
+    sample_implicit.push_back(std::vector{254});
+    sample_implicit.push_back(std::vector{255});
+    sample_implicit.push_back(std::vector{257});
+    sample_implicit.push_back(std::vector{258});
+    sample_implicit.push_back(std::vector{259});
+    sample_implicit.push_back(std::vector{262});
+    sample_implicit.push_back(std::vector{268});
+    sample_implicit.push_back(std::vector{269});
+    sample_implicit.push_back(std::vector{271});
+    sample_implicit.push_back(std::vector{275});
+    sample_implicit.push_back(std::vector{277});
+    sample_implicit.push_back(std::vector{280});
+    sample_implicit.push_back(std::vector{281});
+    sample_implicit.push_back(std::vector{283});
+    sample_implicit.push_back(std::vector{284});
+    sample_implicit.push_back(std::vector{286});
+    sample_implicit.push_back(std::vector{287});
+    sample_implicit.push_back(std::vector{289});
+    sample_implicit.push_back(std::vector{290});
+    sample_implicit.push_back(std::vector{292});
+    sample_implicit.push_back(std::vector{293});
+    sample_implicit.push_back(std::vector{298});
+    sample_implicit.push_back(std::vector{299});
+    sample_implicit.push_back(std::vector{300});
+    sample_implicit.push_back(std::vector{304});
+    sample_implicit.push_back(std::vector{306});
+    sample_implicit.push_back(std::vector{311});
+    sample_implicit.push_back(std::vector{315});
+    sample_implicit.push_back(std::vector{320});
+    sample_implicit.push_back(std::vector{324});
+    sample_implicit.push_back(std::vector{326});
+    sample_implicit.push_back(std::vector{327});
+    sample_implicit.push_back(std::vector{331});
+    sample_implicit.push_back(std::vector{332});
+    sample_implicit.push_back(std::vector{334});
+    sample_implicit.push_back(std::vector{337});
+    sample_implicit.push_back(std::vector{338});
+    sample_implicit.push_back(std::vector{341});
+    sample_implicit.push_back(std::vector{342});
+    sample_implicit.push_back(std::vector{344});
+    sample_implicit.push_back(std::vector{346});
+    sample_implicit.push_back(std::vector{347});
+    sample_implicit.push_back(std::vector{348});
+    sample_implicit.push_back(std::vector{349});
+    sample_implicit.push_back(std::vector{352});
+    sample_implicit.push_back(std::vector{353});
+    sample_implicit.push_back(std::vector{354});
+    sample_implicit.push_back(std::vector{356});
+    sample_implicit.push_back(std::vector{357});
+    sample_implicit.push_back(std::vector{358});
+    sample_implicit.push_back(std::vector{359});
+    sample_implicit.push_back(std::vector{360});
+    sample_implicit.push_back(std::vector{361});
+    sample_implicit.push_back(std::vector{364});
+    sample_implicit.push_back(std::vector{366});
+    sample_implicit.push_back(std::vector{367});
+    sample_implicit.push_back(std::vector{369});
+    sample_implicit.push_back(std::vector{370});
+    sample_implicit.push_back(std::vector{373});
+    sample_implicit.push_back(std::vector{376});
+    sample_implicit.push_back(std::vector{378});
+    sample_implicit.push_back(std::vector{379});
+    sample_implicit.push_back(std::vector{380});
+    sample_implicit.push_back(std::vector{381});
+    sample_implicit.push_back(std::vector{387});
+    sample_implicit.push_back(std::vector{388});
+    sample_implicit.push_back(std::vector{389});
+    sample_implicit.push_back(std::vector{391});
+    sample_implicit.push_back(std::vector{393});
+    sample_implicit.push_back(std::vector{394});
+    sample_implicit.push_back(std::vector{395});
+    sample_implicit.push_back(std::vector{396});
+    sample_implicit.push_back(std::vector{397});
+    sample_implicit.push_back(std::vector{398});
+    sample_implicit.push_back(std::vector{399});
+
+    std::cout << sample_implicit.size() << std::endl;
+        
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+    explicit_quantile(sample_explicit, grids, 1);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1);
+//    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1);
 }
