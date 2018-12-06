@@ -32,12 +32,14 @@ unset table
 reset
 set xrange [-3:3]
 set yrange [-3:3]
-set border 3
+set border -1
 unset key
 set palette defined ( 1 1 1 1, 1 1 1 1 )
 unset colorbox
 set size square
 set tics scale 0
+#unset xtics
+#unset ytics
 
 
 set style line 104 lt 1 lc rgb 'red' pt 13 ps 1.5 lw 2.0

@@ -202,8 +202,8 @@ template <typename T, typename U>
 void ImplicitQuantileSorted<T,U>::sort_layer(trie_based::NodeCount<T> *p)
 {
     bool must_sort = !std::is_sorted(p->children.begin(), p->children.end(),
-                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-                                       const std::shared_ptr<trie_based::NodeCount<T>> &r)
+                                     [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                        const std::shared_ptr<trie_based::NodeCount<T>> &r)
     {
         return l->index < r->index;
     });
@@ -243,15 +243,16 @@ void ImplicitQuantileSorted<T, U>::transform(const std::vector<U>& in01, std::ve
         auto rez = quantile_transform(p, psum, i, in01[i]);
         out[i] = rez.second;
 
-        T target = rez.first;
-        auto it = std::lower_bound(p->children.begin(), p->children.end(), target,
-                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-                                      const T &r)
-        {
-            return l->index < r;
-        });
-        T index = std::distance(p->children.begin(), it);
-        p = p->children[index].get();
+//        T target = rez.first;
+//        auto it = std::lower_bound(p->children.begin(), p->children.end(), target,
+//                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+//                                      const T &r)
+//        {
+//            return l->index < r;
+//        });
+//        T index = std::distance(p->children.begin(), it);
+//        p = p->children[index].get();
+        p = p->children[rez.first].get();
     }
 }
 template <typename T, typename U>
@@ -310,9 +311,27 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
         }
     }
     if(index1 == index2)
-        return it == grids[ind].begin() ? std::make_pair(size_t(0), grids[ind].front()) : std::make_pair(size_t(grids[ind].size() - 1), grids[ind].back());
+    {
+        //return it == grids[ind].begin() ? std::make_pair(size_t(0), grids[ind].front()) : std::make_pair(size_t(grids[ind].size() - 1), grids[ind].back());
+        if(it == grids[ind].begin())
+            return std::make_pair(size_t(0), grids[ind][layer->children.front()->index]);
+        else
+            return std::make_pair(size_t(layer->children.size() - 1), grids[ind][layer->children.back()->index]);
+    }
 
-    return std::make_pair(m, grids[ind][m] + (val01 - cdf1) * (grids[ind][m + 1] - grids[ind][m]) / (cdf2 - cdf1));
+    T target = m;
+    auto itt = std::lower_bound(layer->children.begin(), layer->children.end(), target,
+                               [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                  const T &r)
+    {
+        return l->index < r;
+    });
+    T index = std::distance(layer->children.begin(), itt);
+    
+    if(itt == layer->children.end())
+        std::cout << "\n\n\n --------------     fatal!! ---------------------" << std::endl;
+
+    return std::make_pair(index, grids[ind][m] + (val01 - cdf1) * (grids[ind][m + 1] - grids[ind][m]) / (cdf2 - cdf1));
 }
 
 }

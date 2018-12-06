@@ -41,15 +41,15 @@ std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std
         {
             return v < *(it + 1);
         });
-        
+
         f1 = c1/n;
         f2 = c2/n;
-        
+
         if(f1 < val01)
         {
             if(val01 < f2)
                 break;
-            
+
             first = ++it;
             count -= step + 1;
         }
@@ -122,8 +122,8 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
-    data_io::write_default2d("maps/z.dat", u01zvectors, 5);
+    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 15);
+    data_io::write_default2d("maps/z.dat", u01zvectors, 15);
 }
 
 
@@ -155,8 +155,8 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    data_io::write_default2d("maps/values01.dat", values01, 5);
-    data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 5);
+    data_io::write_default2d("maps/values01.dat", values01, 15);
+    data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 15);
 }
 
 void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample, size_t nrolls)
@@ -187,8 +187,8 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
     }
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(nrolls) << std::endl;
-    data_io::write_default2d("maps/values01.dat", values01, 5);
-    data_io::write_default2d("maps/sampled_implicit_class_sorted.dat", sampled, 5);
+    data_io::write_default2d("maps/values01.dat", values01, 15);
+    data_io::write_default2d("maps/sampled_implicit_class_sorted.dat", sampled, 15);
 }
 
 void test_1d1()
@@ -367,27 +367,27 @@ void test_2d2()
         dx[i] = es/(float(grid_number[i])*2);
     }
 
-//    std::vector<std::vector<float>> sample_explicit;
-//    for(size_t i = 0; i != sample_implicit.size(); ++i)
-//    {
-//        std::vector<float> temp;
-//        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
-//        {
-//            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
-//        }
-//        sample_explicit.push_back(temp);
-//    }
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-//    explicit_quantile(sample_explicit, grids);
-//    implicit_quantile(sample_implicit, grids);
-//
     timer::Timer time_cpp11;
     time_cpp11.reset();
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+5);
+    explicit_quantile(sample_explicit, grids, 2e+1);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
     time_cpp11.reset();
-    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+5);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+1);
+    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    time_cpp11.reset();
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+1);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
 }
 
@@ -611,4 +611,176 @@ void test_3d2()
     //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
     implicit_quantile_class(0, 3, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class_sorted(0, 3, grid_number, sample_implicit, 1e+3);
+}
+
+
+void test_grid_10d()
+{
+    std::vector<size_t> grid_number;
+    std::vector<std::vector<int>> sample_implicit;
+    //400 temp1 = {0.99935, 0.546268, 0.140131, 0.692333, 0.441771, 0.890283, 0.0597646, 0.607688, 0.566813, 0.61283};
+    data_io::load_grid_and_sample("input/grid_test/10000/grid.dat", "input/grid_test/10000/sample.dat", grid_number, sample_implicit);
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -3;
+        float endp = 3;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
+//    explicit_quantile(sample_explicit, grids, 1e+1);
+    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    time_cpp11.reset();
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
+    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    time_cpp11.reset();
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+5);
+    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+}
+
+void test_1d3()
+{
+    std::vector<size_t> grid_number = {400};
+
+    std::vector<std::vector<float>> grids(grid_number.size());
+    std::vector<float> dx(grid_number.size());
+
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<float> grid(grid_number[i] + 1);
+        float startp = -3;
+        float endp = 3;
+        float es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/float(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(float(grid_number[i])*2);
+    }
+
+    std::vector<std::vector<int>> sample_implicit;
+
+    sample_implicit.push_back(std::vector{0});
+    sample_implicit.push_back(std::vector{2});
+    sample_implicit.push_back(std::vector{4});
+    sample_implicit.push_back(std::vector{11});
+    sample_implicit.push_back(std::vector{12});
+    sample_implicit.push_back(std::vector{16});
+    sample_implicit.push_back(std::vector{19});
+    sample_implicit.push_back(std::vector{20});
+    sample_implicit.push_back(std::vector{24});
+    sample_implicit.push_back(std::vector{25});
+    sample_implicit.push_back(std::vector{26});
+    sample_implicit.push_back(std::vector{27});
+    sample_implicit.push_back(std::vector{28});
+    sample_implicit.push_back(std::vector{30});
+    sample_implicit.push_back(std::vector{31});
+    sample_implicit.push_back(std::vector{33});
+    sample_implicit.push_back(std::vector{34});
+    sample_implicit.push_back(std::vector{36});
+    sample_implicit.push_back(std::vector{39});
+    sample_implicit.push_back(std::vector{41});
+    sample_implicit.push_back(std::vector{44});
+    sample_implicit.push_back(std::vector{46});
+    sample_implicit.push_back(std::vector{47});
+    sample_implicit.push_back(std::vector{48});
+    sample_implicit.push_back(std::vector{50});
+    sample_implicit.push_back(std::vector{51});
+    sample_implicit.push_back(std::vector{54});
+    sample_implicit.push_back(std::vector{56});
+    sample_implicit.push_back(std::vector{61});
+    sample_implicit.push_back(std::vector{62});
+    sample_implicit.push_back(std::vector{63});
+    sample_implicit.push_back(std::vector{64});
+    sample_implicit.push_back(std::vector{66});
+    sample_implicit.push_back(std::vector{68});
+    sample_implicit.push_back(std::vector{71});
+    sample_implicit.push_back(std::vector{77});
+    sample_implicit.push_back(std::vector{78});
+    sample_implicit.push_back(std::vector{79});
+    sample_implicit.push_back(std::vector{80});
+    sample_implicit.push_back(std::vector{81});
+    sample_implicit.push_back(std::vector{82});
+    sample_implicit.push_back(std::vector{84});
+    sample_implicit.push_back(std::vector{85});
+    sample_implicit.push_back(std::vector{87});
+    sample_implicit.push_back(std::vector{88});
+    sample_implicit.push_back(std::vector{93});
+    sample_implicit.push_back(std::vector{94});
+    sample_implicit.push_back(std::vector{95});
+    sample_implicit.push_back(std::vector{96});
+    sample_implicit.push_back(std::vector{99});
+    sample_implicit.push_back(std::vector{101});
+    sample_implicit.push_back(std::vector{103});
+    sample_implicit.push_back(std::vector{104});
+    sample_implicit.push_back(std::vector{106});
+    sample_implicit.push_back(std::vector{107});
+    sample_implicit.push_back(std::vector{110});
+    sample_implicit.push_back(std::vector{112});
+    sample_implicit.push_back(std::vector{114});
+    sample_implicit.push_back(std::vector{118});
+    sample_implicit.push_back(std::vector{121});
+    sample_implicit.push_back(std::vector{123});
+    sample_implicit.push_back(std::vector{126});
+    sample_implicit.push_back(std::vector{129});
+    sample_implicit.push_back(std::vector{130});
+    sample_implicit.push_back(std::vector{133});
+    sample_implicit.push_back(std::vector{137});
+    sample_implicit.push_back(std::vector{138});
+    sample_implicit.push_back(std::vector{140});
+    sample_implicit.push_back(std::vector{143});
+    sample_implicit.push_back(std::vector{146});
+    sample_implicit.push_back(std::vector{150});
+    sample_implicit.push_back(std::vector{151});
+    sample_implicit.push_back(std::vector{153});
+    sample_implicit.push_back(std::vector{154});
+    sample_implicit.push_back(std::vector{157});
+    sample_implicit.push_back(std::vector{162});
+    sample_implicit.push_back(std::vector{163});
+    sample_implicit.push_back(std::vector{164});
+    sample_implicit.push_back(std::vector{166});
+
+
+    //sample_implicit.push_back(std::vector{8});
+
+    std::vector<std::vector<float>> sample_explicit;
+    for(size_t i = 0; i != sample_implicit.size(); ++i)
+    {
+        std::vector<float> temp;
+        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
+        {
+            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
+        }
+        sample_explicit.push_back(temp);
+    }
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+    explicit_quantile(sample_explicit, grids, 1e+3);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+3);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+3);
 }
