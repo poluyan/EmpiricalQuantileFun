@@ -523,11 +523,11 @@ int main()
 //    test_1d1();
 //    test_1d2();
 //    test_1d3();
-    test_1d4();
+//    test_1d4();
 
 
 //    test_2d1();
 //    test_2d2();
 
-//    test_grid_10d();
+    test_grid_10d();
 }

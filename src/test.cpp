@@ -120,7 +120,6 @@ void explicit_quantile(std::vector<std::vector<float> > &sample, std::vector<std
         {
             temp1[j] = ureal01(generator);
         }
-        temp1 = {0.68};
         u01zvectors.push_back(temp1);
         ecdfNd_one_MultipleGrids(sample,grids,temp1,temp2);
         sampled.push_back(temp2);
@@ -155,7 +154,6 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
         {
             temp1[j] = ureal01(generator);
         }
-        temp1 = {0.68};
         quant.transform(temp1,temp2);
         values01.push_back(temp1);
         sampled.push_back(temp2);
@@ -188,8 +186,6 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
         {
             temp1[j] = ureal01(generator);
         }
-        temp1 = {0.68};
-//        temp1 = {0.8};
         quant.transform(temp1,temp2);
         values01.push_back(temp1);
         sampled.push_back(temp2);
@@ -1035,6 +1031,6 @@ void test_1d4()
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
 //    explicit_quantile(sample_explicit, grids, 1);
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1);
-    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e3);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e3);
 }

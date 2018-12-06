@@ -99,22 +99,9 @@ void ImplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
     auto p = sample.root.get();
     for(size_t i = 0; i != in01.size(); i++)
     {
-        auto rez2 = quantile_transform(p, i, in01[i]);
-        out[i] = rez2.second;
-
-
-        T index = 0;
-        for(size_t j = 1; j < p->children.size(); j++)
-        {
-            if(p->children[j]->index == T(rez2.first))
-            {
-                index = j;
-                break;
-            }
-        }
-//        std::cout << index << std::endl;
-//        std::cin.get();
-        p = p->children[index].get();
+        auto rez = quantile_transform(p, i, in01[i]);
+        out[i] = rez.second;
+        p = p->children[rez.first].get();
     }
 }
 template <typename T, typename U>
@@ -135,7 +122,7 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
         c1 = count_less(layer, m);
         f1 = c1/sample_size_u;
 
-        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
+//        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
@@ -156,9 +143,6 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
 
     if(c1 == c2)
     {
-//        std::cout << "here!" << std::endl;
-//        std::cout << "m " << m << '\t' << c1 << std::endl;
-
         int diff = std::numeric_limits<int>::max();
         size_t index = 0;
         for(size_t i = 0; i != layer->children.size(); ++i)
@@ -170,11 +154,19 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
                 index = i;
             }
         }
-//        std::cout << "nearest" << std::endl;
-//        std::cout << diff << '\t' << index << std::endl;
         return std::make_pair(index, grids[ind][index]);
     }
-    return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+    size_t index = 0;
+    T target = m;
+    for(size_t j = 1; j < layer->children.size(); j++)
+    {
+        if(layer->children[j]->index == target)
+        {
+            index = j;
+            break;
+        }
+    }
+    return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
 }
 
 template <typename T, typename U>
@@ -262,16 +254,6 @@ void ImplicitQuantileSorted<T, U>::transform(const std::vector<U>& in01, std::ve
 
         auto rez = quantile_transform(p, psum, i, in01[i]);
         out[i] = rez.second;
-
-//        T target = rez.first;
-//        auto it = std::lower_bound(p->children.begin(), p->children.end(), target,
-//                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-//                                      const T &r)
-//        {
-//            return l->index < r;
-//        });
-//        T index = std::distance(p->children.begin(), it);
-//        p = p->children[index].get();
         p = p->children[rez.first].get();
     }
 }
@@ -308,8 +290,6 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
 
         c1 = psum[count_less_binary(layer, m)];
         f1 = c1/sample_size_u;
-
-        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
@@ -349,7 +329,7 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
             return l->index < r;
         });
         T index = std::distance(layer->children.begin(), pos);
-        
+
         if(index > 0)
         {
             int curr1 = std::abs(static_cast<int>(layer->children[index]->index) - static_cast<int>(m));
@@ -357,25 +337,6 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
             return curr1 < curr2 ? std::make_pair(index, grids[ind][index]) : std::make_pair(index, grids[ind][index - 1]);
         }
         return std::make_pair(index, grids[ind][index]);
-
-//        std::cout << "here!" << std::endl;
-//        std::cout << "m " << m << '\t' << c1 << std::endl;
-
-//        int diff = std::numeric_limits<int>::max();
-//        size_t index = 0;
-//        for(size_t i = 0; i != layer->children.size(); ++i)
-//        {
-//            int curr = std::abs(static_cast<int>(layer->children[i]->index) - static_cast<int>(m));
-//            if(diff > curr)
-//            {
-//                diff = curr;
-//                index = i;
-//            }
-//        }
-//        std::cout << "nearest" << std::endl;
-//        std::cout << diff << '\t' << index << std::endl;
-//        return std::make_pair(index, grids[ind][index]);
-
     }
     T target = m;
     auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
