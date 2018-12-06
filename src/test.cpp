@@ -1034,7 +1034,7 @@ void test_1d4()
     }
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    explicit_quantile(sample_explicit, grids, 1);
+//    explicit_quantile(sample_explicit, grids, 1);
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1);
-//    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1);
 }
