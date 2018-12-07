@@ -501,26 +501,15 @@ void simple1d_example()
     data_io::write_default1d("maps/1d/quant.dat", cdf, 1, 4);
 }
 
-struct A
-{
-    int a;
-    int b;
-
-    A(int t)
-    {
-        b = t;
-    }
-};
-
 int main()
-{
+{ 
 //
 //    std::cout << tt.front() == tt.back() << std::endl;
 
 //    simple_empirical_1d();
 //    simple1d_example();
 
-//    test_1d1();
+    test_1d1();
 //    test_1d2();
 //    test_1d3();
 //    test_1d4();
@@ -529,5 +518,5 @@ int main()
 //    test_2d1();
 //    test_2d2();
 
-    test_grid_10d();
+//    test_grid_10d();
 }

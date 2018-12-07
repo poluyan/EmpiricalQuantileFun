@@ -28,6 +28,201 @@ namespace empirical_quantile
 {
 
 template <typename T, typename U>
+class Quantile
+{
+protected:
+    std::vector<U> lb;
+    std::vector<U> ub;
+    std::vector<U> dx;
+    std::vector<size_t> grid_number;
+    std::vector<std::vector<U>> grids;
+public:
+    Quantile();
+    Quantile(std::vector<U> in_lb,
+             std::vector<U> in_ub,
+             std::vector<size_t> in_gridn);
+
+    void set_grid_and_gridn(std::vector<U> in_lb,
+                            std::vector<U> in_ub,
+                            std::vector<size_t> in_gridn);
+};
+
+template <typename T, typename U>
+Quantile<T, U>::Quantile()
+{
+}
+
+template <typename T, typename U>
+Quantile<T, U>::Quantile(std::vector<U> in_lb,
+                         std::vector<U> in_ub,
+                         std::vector<size_t> in_gridn)
+{
+    lb = in_lb;
+    ub = in_ub;
+    grid_number = in_gridn;
+
+    dx.resize(grid_number.size());
+    grids.resize(grid_number.size());
+    for(size_t i = 0; i != grids.size(); i++)
+    {
+        std::vector<U> grid(grid_number[i] + 1);
+        U startp = lb[i];
+        U endp = ub[i];
+        U es = endp - startp;
+        for(size_t j = 0; j != grid.size(); j++)
+        {
+            grid[j] = startp + j*es/U(grid_number[i]);
+        }
+        grids[i] = grid;
+        dx[i] = es/(U(grid_number[i])*2);
+    }
+}
+
+template <typename T, typename U>
+void Quantile<T, U>::set_grid_and_gridn(std::vector<U> in_lb,
+                                        std::vector<U> in_ub,
+                                        std::vector<size_t> in_gridn)
+{
+    Quantile<T, U>(in_lb, in_ub, in_gridn);
+}
+
+
+template <typename T, typename U>
+class ExplicitQuantile : public Quantile<T, U>
+{
+protected:
+    using Quantile<T, U>::grids;
+    using Quantile<T, U>::dx;
+    
+    typedef std::vector<std::vector<U>> sample_type;
+    std::shared_ptr<sample_type> sample;
+
+    size_t count_less(const std::vector<U> &layer, size_t m) const;
+    std::pair<size_t, U> quantile_transform(const std::vector<U> &layer, size_t ind, U val01) const;
+public:
+    ExplicitQuantile();
+    ExplicitQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    using Quantile<T, U>::set_grid_and_gridn;
+    void set_sample(std::vector<std::vector<T>> in_sample);
+//    void set_sample(std::shared_ptr<sample_type> in_sample);
+    void transform(const std::vector<U>& in01, std::vector<U>& out) const;
+};
+
+template <typename T, typename U>
+ExplicitQuantile<T, U>::ExplicitQuantile(): Quantile<T, U>()
+{
+}
+
+template <typename T, typename U>
+ExplicitQuantile<T, U>::ExplicitQuantile(std::vector<U> in_lb,
+        std::vector<U> in_ub,
+        std::vector<size_t> in_gridn): Quantile<T, U>(in_lb, in_ub, in_gridn)
+{
+}
+
+template <typename T, typename U>
+void ExplicitQuantile<T, U>::set_sample(std::vector<std::vector<T>> in_sample)
+{
+    sample = std::make_shared< std::vector<std::vector<U>> >();
+    for(size_t i = 0; i != in_sample.size(); ++i)
+    {
+        std::vector<U> temp;
+        for(size_t j = 0; j != in_sample[i].size(); ++j)
+        {
+            temp.push_back(grids[j][in_sample[i][j]] + dx[j]);
+        }
+        sample->push_back(temp);
+    }
+}
+//template <typename T, typename U>
+//void ExplicitQuantile<T, U>::set_sample(std::shared_ptr<sample_type> in_sample)
+//{
+//    sample = std::move(in_sample);
+//}
+
+template <typename T, typename U>
+void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
+{
+    std::vector<size_t> m(grids.size());
+    for(size_t i = 0, g = in01.size(); i != g; i++)
+    {
+        std::vector<float> row(sample->size());
+        size_t index = 0;
+        for(size_t j = 0, n = sample->size(); j != n; j++)
+        {
+            bool flag = true;
+            for(size_t k = 0, t = m.size(); k != t; k++)
+            {
+                if(!((*sample)[j][k] > grids[k][m[k]] && (*sample)[j][k] < grids[k][m[k] + 1]))
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag)
+            {
+                row[index] = (*sample)[j][i];
+                ++index;
+            }
+        }
+        row.resize(index);
+        auto rez = quantile_transform(row, i, in01[i]);
+        out[i] = rez.second;
+        m[i] = rez.first;
+    }
+}
+
+template <typename T, typename U>
+std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vector<U> &layer, size_t ind, U val01) const
+{
+    size_t count = grids[ind].size() - 1, step, c1 = 0, c2 = 0, m = 0;
+    float f1, f2, n = layer.size();
+    std::vector<float>::const_iterator first = grids[ind].begin(), it;
+    while(count > 0)
+    {
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        m = std::distance(grids[ind].begin(), it);
+        c1 = std::count_if(layer.begin(), layer.end(),
+                           [&it](const float &v)
+        {
+            return v < *it;
+        });
+        c2 = std::count_if(layer.begin(), layer.end(),
+                           [&it](const float &v)
+        {
+            return v < *(it + 1);
+        });
+
+        f1 = c1/n;
+        f2 = c2/n;
+
+//        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
+
+        if(f1 < val01)
+        {
+            if(val01 < f2)
+                break;
+
+            first = ++it;
+            count -= step + 1;
+        }
+        else
+            count = step;
+    }
+    if(c1 == c2)
+    {
+        std::cout << c1 << '\t' << c2 << std::endl;
+        return it == grids[ind].begin() ? std::make_pair(size_t(0), grids[ind].front()) : std::make_pair(grids[ind].size() - 1, grids[ind].back());
+    }
+    //std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
+    return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+}
+
+
+
+template <typename T, typename U>
 class ImplicitQuantile
 {
 protected:
