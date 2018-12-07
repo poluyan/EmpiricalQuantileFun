@@ -23,9 +23,6 @@
 #include "trie_based.h"
 #include "quantile.h"
 
-std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01);
-void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample, const std::vector<std::vector<float> > &grids, const std::vector<float> &val01, std::vector<float> &rez);
-
 void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
 void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
 void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);

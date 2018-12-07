@@ -20,87 +20,7 @@
 #include "data_io.h"
 #include <random>
 
-std::pair<size_t, float> ecdf1d_pair(const std::vector<float> &sample, const std::vector<float> &grid, float val01)
-{
-    size_t count = grid.size() - 1, step, c1 = 0, c2 = 0, m = 0;
-    float f1, f2, n = sample.size();
-    std::vector<float>::const_iterator first = grid.begin(), it;
-    while(count > 0)
-    {
-        it = first;
-        step = count / 2;
-        std::advance(it, step);
-        m = std::distance(grid.begin(), it);
-        c1 = std::count_if(sample.begin(), sample.end(),
-                           [&it](const float &v)
-        {
-            return v < *it;
-        });
-        c2 = std::count_if(sample.begin(), sample.end(),
-                           [&it](const float &v)
-        {
-            return v < *(it + 1);
-        });
-
-        f1 = c1/n;
-        f2 = c2/n;
-        
-        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
-
-        if(f1 < val01)
-        {
-            if(val01 < f2)
-                break;
-
-            first = ++it;
-            count -= step + 1;
-        }
-        else
-            count = step;
-    }
-    if(c1 == c2)
-    {
-        std::cout << c1 << '\t' << c2 << std::endl;
-        return it == grid.begin() ? std::make_pair(size_t(0), grid.front()) : std::make_pair(grid.size() - 1, grid.back());
-    }
-    //std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
-    return std::make_pair(m, grid[m] + (val01 - f1) * (grid[m + 1] - grid[m]) / (f2 - f1));
-}
-
-void ecdfNd_one_MultipleGrids(const std::vector<std::vector<float> > &sample,
-                              const std::vector<std::vector<float> > &grids,
-                              const std::vector<float> &val01,
-                              std::vector<float> &rez)
-{
-    std::vector<size_t> m;
-    for(size_t i = 0, g = val01.size(); i != g; i++)
-    {
-        std::vector<float> row(sample.size());
-        size_t index = 0;
-        for(size_t j = 0, n = sample.size(); j != n; j++)
-        {
-            bool flag = true;
-            for(size_t k = 0, t = m.size(); k != t; k++)
-            {
-                if(!(sample[j][k] > grids[k][m[k]] && sample[j][k] < grids[k][m[k] + 1]))
-                {
-                    flag = false;
-                    break;
-                }
-            }
-            if(flag)
-            {
-                row[index] = sample[j][i];
-                ++index;
-            }
-        }
-        row.resize(index);
-        auto rez2 = ecdf1d_pair(row,grids[i],val01[i]);
-        rez[i] = rez2.second;
-        m.push_back(rez2.first);
-    }
-}
-void explicit_quantile(float lb, float ub, std::vector<size_t> gridn,std::vector<std::vector<int> > &sample, size_t nrolls)
+void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)
 {    
     std::mt19937_64 generator;
     generator.seed(1);
@@ -211,9 +131,9 @@ void test_1d1()
     sample_implicit.push_back(std::vector{5});
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    explicit_quantile(-2, 4, grid_number, sample_implicit, 1e+3);
-    implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1e+3);
-    implicit_quantile_class_sorted(-2, 4, grid_number, sample_implicit, 1e+3);
+    explicit_quantile(-2, 4, grid_number, sample_implicit, 1e3);
+    implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1e3);
+    implicit_quantile_class_sorted(-2, 4, grid_number, sample_implicit, 1e3);
 }
 
 void test_1d2()

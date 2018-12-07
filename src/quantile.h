@@ -151,8 +151,9 @@ void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
         for(size_t j = 0, n = sample->size(); j != n; j++)
         {
             bool flag = true;
-            for(size_t k = 0, t = m.size(); k != t; k++)
+            for(size_t k = 0; k != i; k++)
             {
+                std::cout << (*sample)[j][k] << std::endl;
                 if(!((*sample)[j][k] > grids[k][m[k]] && (*sample)[j][k] < grids[k][m[k] + 1]))
                 {
                     flag = false;
@@ -166,6 +167,7 @@ void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
             }
         }
         row.resize(index);
+                
         auto rez = quantile_transform(row, i, in01[i]);
         out[i] = rez.second;
         m[i] = rez.first;
@@ -197,7 +199,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
 
         f1 = c1/n;
         f2 = c2/n;
-
+        
 //        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
