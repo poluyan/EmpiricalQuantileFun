@@ -15,8 +15,8 @@ reset
 xs = -0.2
 ys = -0.7
 f(x,y)= 3.0*((1.0-(x-xs))**2)*exp(-((x-xs)**2) - ((y-ys)+1.0)**2) - 10.0*((x-xs)/5.0 - (x-xs)**3 -  (y-ys)**5)*exp(-(x-xs)**2-(y-ys)**2) - 1.0/3.0*exp(-((x-xs)+1.0)**2 - (y-ys)**2) 
-set xrange [-3:3]
-set yrange [-3:3]
+set xrange [-4:4]
+set yrange [-4:4]
 set isosample 2000, 2000
 set table 'test.dat'
 splot f(x,y)
@@ -30,8 +30,8 @@ splot f(x,y)
 unset table
 
 reset
-set xrange [-3:3]
-set yrange [-3:3]
+set xrange [-4:4]
+set yrange [-4:4]
 set border -1
 unset key
 set palette defined ( 1 1 1 1, 1 1 1 1 )

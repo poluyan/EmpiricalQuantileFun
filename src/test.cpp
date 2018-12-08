@@ -428,23 +428,6 @@ void test_2d1()
 {
     std::vector<size_t> grid_number = {9, 10};
 
-    std::vector<std::vector<float>> grids(grid_number.size());
-    std::vector<float> dx(grid_number.size());
-
-    for(size_t i = 0; i != grids.size(); i++)
-    {
-        std::vector<float> grid(grid_number[i] + 1);
-        float startp = -3;
-        float endp = 3;
-        float es = endp - startp;
-        for(size_t j = 0; j != grid.size(); j++)
-        {
-            grid[j] = startp + j*es/float(grid_number[i]);
-        }
-        grids[i] = grid;
-        dx[i] = es/(float(grid_number[i])*2);
-    }
-
     std::vector<std::vector<int>> sample_implicit;
     sample_implicit.push_back(std::vector{2,6});
 
@@ -467,23 +450,10 @@ void test_2d1()
     sample_implicit.push_back(std::vector{6,3});
     sample_implicit.push_back(std::vector{6,4});
 
-    std::vector<std::vector<float>> sample_explicit;
-    for(size_t i = 0; i != sample_implicit.size(); ++i)
-    {
-        std::vector<float> temp;
-        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
-        {
-            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
-        }
-        sample_explicit.push_back(temp);
-    }
-
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    explicit_quantile(-3, 3, grid_number, sample_implicit, 2);
-//    implicit_quantile(sample_implicit, grids);
-//
-//    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
-//    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+3);
+    explicit_quantile(-3, 3, grid_number, sample_implicit, 2e3);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+3);
 }
 
 void test_2d2()
@@ -491,34 +461,6 @@ void test_2d2()
     std::vector<size_t> grid_number;
     std::vector<std::vector<int>> sample_implicit;
     data_io::load_grid_and_sample("input/2d/grid.dat", "input/2d/points.dat", grid_number, sample_implicit);
-
-    std::vector<std::vector<float>> grids(grid_number.size());
-    std::vector<float> dx(grid_number.size());
-
-    for(size_t i = 0; i != grids.size(); i++)
-    {
-        std::vector<float> grid(grid_number[i] + 1);
-        float startp = -3;
-        float endp = 3;
-        float es = endp - startp;
-        for(size_t j = 0; j != grid.size(); j++)
-        {
-            grid[j] = startp + j*es/float(grid_number[i]);
-        }
-        grids[i] = grid;
-        dx[i] = es/(float(grid_number[i])*2);
-    }
-
-    std::vector<std::vector<float>> sample_explicit;
-    for(size_t i = 0; i != sample_implicit.size(); ++i)
-    {
-        std::vector<float> temp;
-        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
-        {
-            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
-        }
-        sample_explicit.push_back(temp);
-    }
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     timer::Timer time_cpp11;
@@ -536,23 +478,6 @@ void test_2d2()
 void test_3d1()
 {
     std::vector<size_t> grid_number = {5,5,5};
-
-    std::vector<std::vector<float>> grids(grid_number.size());
-    std::vector<float> dx(grid_number.size());
-
-    for(size_t i = 0; i != grids.size(); i++)
-    {
-        std::vector<float> grid(grid_number[i] + 1);
-        float startp = 0;
-        float endp = 5;
-        float es = endp - startp;
-        for(size_t j = 0; j != grid.size(); j++)
-        {
-            grid[j] = startp + j*es/float(grid_number[i]);
-        }
-        grids[i] = grid;
-        dx[i] = es/(float(grid_number[i])*2);
-    }
 
     std::vector<std::vector<int>> sample_implicit;
 
@@ -585,22 +510,8 @@ void test_3d1()
     sample_implicit.push_back(std::vector{2,1,4}); // cbe
     sample_implicit.push_back(std::vector{2,2,4}); // cce
 
-
-    std::vector<std::vector<float>> sample_explicit;
-    for(size_t i = 0; i != sample_implicit.size(); ++i)
-    {
-        std::vector<float> temp;
-        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
-        {
-            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
-        }
-        sample_explicit.push_back(temp);
-    }
-
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-//    explicit_quantile(sample_explicit, grids);
-//    implicit_quantile(sample_implicit, grids);
-
+    explicit_quantile(0, 5, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class(0, 5, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class_sorted(0, 5, grid_number, sample_implicit, 1e+3);
 }
@@ -609,25 +520,7 @@ void test_3d2()
 {
     std::vector<size_t> grid_number = {3,3,3};
 
-    std::vector<std::vector<float>> grids(grid_number.size());
-    std::vector<float> dx(grid_number.size());
-
-    for(size_t i = 0; i != grids.size(); i++)
-    {
-        std::vector<float> grid(grid_number[i] + 1);
-        float startp = 0;//-3;
-        float endp = 3;//3
-        float es = endp - startp;
-        for(size_t j = 0; j != grid.size(); j++)
-        {
-            grid[j] = startp + j*es/float(grid_number[i]);
-        }
-        grids[i] = grid;
-        dx[i] = es/(float(grid_number[i])*2);
-    }
-
     std::vector<std::vector<int>> sample_implicit;
-
 
 //    ///sample_implicit.push_back(std::vector{9, 12, 13, 8, 19, 44, 8, 4, 6, 7});
 //    sample_implicit.push_back(std::vector{4, 2, 6, 3, 2, 3, 2, 1, 2, 4});
@@ -735,22 +628,8 @@ void test_3d2()
 
     */
 
-    std::vector<std::vector<float>> sample_explicit;
-    for(size_t i = 0; i != sample_implicit.size(); ++i)
-    {
-        std::vector<float> temp;
-        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
-        {
-            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
-        }
-        sample_explicit.push_back(temp);
-    }
-
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-//    explicit_quantile(sample_explicit, grids);
-//    implicit_quantile(sample_implicit, grids);
-
-    //implicit_quantile_class(-3, 3, grid_number, sample_implicit);
+    explicit_quantile(0, 3, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class(0, 3, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class_sorted(0, 3, grid_number, sample_implicit, 1e+3);
 }
@@ -763,44 +642,16 @@ void test_grid_10d()
     //400 temp1 = {0.99935, 0.546268, 0.140131, 0.692333, 0.441771, 0.890283, 0.0597646, 0.607688, 0.566813, 0.61283};
     data_io::load_grid_and_sample("input/grid_test/400/grid.dat", "input/grid_test/400/sample.dat", grid_number, sample_implicit);
 
-    std::vector<std::vector<float>> grids(grid_number.size());
-    std::vector<float> dx(grid_number.size());
-
-    for(size_t i = 0; i != grids.size(); i++)
-    {
-        std::vector<float> grid(grid_number[i] + 1);
-        float startp = -3;
-        float endp = 3;
-        float es = endp - startp;
-        for(size_t j = 0; j != grid.size(); j++)
-        {
-            grid[j] = startp + j*es/float(grid_number[i]);
-        }
-        grids[i] = grid;
-        dx[i] = es/(float(grid_number[i])*2);
-    }
-
-    std::vector<std::vector<float>> sample_explicit;
-    for(size_t i = 0; i != sample_implicit.size(); ++i)
-    {
-        std::vector<float> temp;
-        for(size_t j = 0; j != sample_implicit[i].size(); ++j)
-        {
-            temp.push_back(grids[j][sample_implicit[i][j]] + dx[j]);
-        }
-        sample_explicit.push_back(temp);
-    }
-
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     timer::Timer time_cpp11;
     time_cpp11.reset();
-    explicit_quantile(-3, 3, grid_number, sample_implicit, 1);
+//    explicit_quantile(-3, 3, grid_number, sample_implicit, 1);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
     time_cpp11.reset();
-//    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
     time_cpp11.reset();
-//    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+5);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+5);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
 }
 

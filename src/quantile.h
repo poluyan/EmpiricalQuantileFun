@@ -218,33 +218,61 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
     }
     if(c1 == c2)
     {
-        std::cout << c1 << '\t' << c2 << std::endl;
-        std::cout << layer.size() << '\t' << val01 << std::endl;
+//        std::cout << c1 << '\t' << c2 << std::endl;
+//        std::cout << layer.size() << '\t' << val01 << std::endl;
 
-        U diff = std::numeric_limits<U>::max();
-        size_t index = 0;
-        for(size_t i = 1; i < layer.size(); ++i)
+        if(m == 0)
         {
-            U curr = std::abs(layer[i] - grids[ind][m]);
-            if(diff > curr)
-            {
-                diff = curr;
-                index = i;
-            }
+            auto result = std::min_element(layer.begin(), layer.end());
+            size_t result_ind = std::distance(layer.begin(), result);
+            U min_val = layer[result_ind];
+            
+            return std::make_pair(m, min_val - dx[ind]);
         }
-        return std::make_pair(index, layer[index] - dx[ind]);
+        else
+        {
+            auto result = std::max_element(layer.begin(), layer.end());
+            size_t result_ind = std::distance(layer.begin(), result);
+            U max_val = layer[result_ind];
+            
+            std::cout << "asdfasdf" << std::endl;
+            
+            return std::make_pair(m, max_val + dx[ind]);
+        }
+//        else
+//        {
+//            auto result = std::max_element(layer.begin(), layer.end());
+//            size_t result_ind = std::distance(layer.begin(), result);
+//            U min_val = layer[result_ind];
+//            
+//            return std::make_pair(result_ind, min_val - dx[ind]);
+//        }
+        //return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
     }
 //    U diff = std::numeric_limits<U>::max();
 //    size_t index = 0;
 //    for(size_t i = 1; i < layer.size(); ++i)
 //    {
-//        U curr = std::abs(layer[i] - grids[ind][m]);
+//        U curr = std::abs(layer[i] - grids[ind][m] + dx[ind]);
 //        if(diff > curr)
 //        {
 //            diff = curr;
 //            index = i;
 //        }
 //    }
+    
+//    diff = std::numeric_limits<U>::max();
+//    size_t grid_ind = 0;
+//    for(size_t i = 1; i < grids[ind].size() - 1; ++i)
+//    {
+//        U curr = std::abs(layer[index] - grids[ind][i] - dx[ind]);
+//        if(diff > curr)
+//        {
+//            diff = curr;
+//            grid_ind = i;
+//        }
+//    }
+    
     return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
 }
 
@@ -347,6 +375,7 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
         {
             c2 = count_less(layer, m + 1);
             f2 = c2/sample_size_u;
+
             if(val01 < f2)
                 break;
 
@@ -356,10 +385,11 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
         else
             count = step;
     }
-
-    c2 = count_less(layer, m + 1);
-    f2 = c2/sample_size_u;
-
+    if(count == 0)
+    {
+        c2 = count_less(layer, m + 1);
+        f2 = c2/sample_size_u;
+    }
     if(c1 == c2)
     {
         int diff = std::numeric_limits<int>::max();
@@ -373,7 +403,7 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
                 index = i;
             }
         }
-        return std::make_pair(index, grids[ind][index]);
+        return std::make_pair(index, grids[ind][layer->children[index]->index]);
     }
     size_t index = 0;
     T target = m;
