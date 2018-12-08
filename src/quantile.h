@@ -90,7 +90,7 @@ protected:
     typedef std::vector<std::vector<U>> sample_type;
     std::shared_ptr<sample_type> sample;
 
-    size_t count_less(const std::vector<U> &layer, size_t m) const;
+    size_t count_less(const std::vector<U> &layer, U target) const;
     std::pair<size_t, U> quantile_transform(const std::vector<U> &layer, size_t ind, U val01) const;
 public:
     ExplicitQuantile();
@@ -126,6 +126,7 @@ void ExplicitQuantile<T, U>::set_sample(std::vector<std::vector<T>> in_sample)
         }
         sample->push_back(temp);
     }
+    std::cout << grids.front()[in_sample.front().front()] << '\t' << grids.front()[in_sample.back().front()] << std::endl;
 }
 template <typename T, typename U>
 void ExplicitQuantile<T, U>::set_sample(std::shared_ptr<sample_type> in_sample)
@@ -139,14 +140,14 @@ void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
     std::vector<size_t> m(grids.size());
     for(size_t i = 0, g = in01.size(); i != g; i++)
     {
-        std::vector<float> row(sample->size());
+        std::vector<U> row(sample->size());
         size_t index = 0;
         for(size_t j = 0, n = sample->size(); j != n; j++)
         {
             bool flag = true;
             for(size_t k = 0; k != i; k++)
             {
-                std::cout << (*sample)[j][k] << std::endl;
+//                std::cout << (*sample)[j][k] << std::endl;
                 if(!((*sample)[j][k] > grids[k][m[k]] && (*sample)[j][k] < grids[k][m[k] + 1]))
                 {
                     flag = false;
@@ -168,35 +169,38 @@ void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
 }
 
 template <typename T, typename U>
+size_t ExplicitQuantile<T, U>::count_less(const std::vector<U> &layer, U target) const
+{
+    return std::count_if(layer.begin(), layer.end(), [&](const U &v)
+    {
+        return v < target;
+    });
+}
+
+template <typename T, typename U>
 std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vector<U> &layer, size_t ind, U val01) const
 {
     size_t count = grids[ind].size() - 1, step, c1 = 0, c2 = 0, m = 0;
-    float f1, f2, n = layer.size();
-    std::vector<float>::const_iterator first = grids[ind].begin(), it;
+    U f1 = 0.0, f2 = 0.0, n = layer.size();
+    auto first = grids[ind].begin();
+    auto it = grids[ind].begin();
     while(count > 0)
     {
         it = first;
         step = count / 2;
         std::advance(it, step);
         m = std::distance(grids[ind].begin(), it);
-        c1 = std::count_if(layer.begin(), layer.end(),
-                           [&it](const float &v)
-        {
-            return v < *it;
-        });
-        c2 = std::count_if(layer.begin(), layer.end(),
-                           [&it](const float &v)
-        {
-            return v < *(it + 1);
-        });
 
+        c1 = count_less(layer, grids[ind][m]);
         f1 = c1/n;
-        f2 = c2/n;
 
 //        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
+            c2 = count_less(layer, grids[ind][m + 1]);
+            f2 = c2/n;
+
             if(val01 < f2)
                 break;
 
@@ -206,12 +210,41 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         else
             count = step;
     }
+
+    if(count == 0)
+    {
+        c2 = count_less(layer, grids[ind][m + 1]);
+        f2 = c2/n;
+    }
     if(c1 == c2)
     {
         std::cout << c1 << '\t' << c2 << std::endl;
-        return it == grids[ind].begin() ? std::make_pair(size_t(0), grids[ind].front()) : std::make_pair(grids[ind].size() - 1, grids[ind].back());
+        std::cout << layer.size() << '\t' << val01 << std::endl;
+
+        U diff = std::numeric_limits<U>::max();
+        size_t index = 0;
+        for(size_t i = 1; i < layer.size(); ++i)
+        {
+            U curr = std::abs(layer[i] - grids[ind][m]);
+            if(diff > curr)
+            {
+                diff = curr;
+                index = i;
+            }
+        }
+        return std::make_pair(index, layer[index] - dx[ind]);
     }
-    //std::make_pair(m, *it + (val01 - f1) * (*(it + 1) - *it) / (f2 - f1));
+//    U diff = std::numeric_limits<U>::max();
+//    size_t index = 0;
+//    for(size_t i = 1; i < layer.size(); ++i)
+//    {
+//        U curr = std::abs(layer[i] - grids[ind][m]);
+//        if(diff > curr)
+//        {
+//            diff = curr;
+//            index = i;
+//        }
+//    }
     return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
 }
 
@@ -224,10 +257,7 @@ protected:
     typedef trie_based::TrieBased<trie_based::NodeCount<T>,T> sample_type;
     std::shared_ptr<sample_type> sample;
 
-    using Quantile<T, U>::lb;
-    using Quantile<T, U>::ub;
     using Quantile<T, U>::grids;
-    using Quantile<T, U>::grid_number;
 
     size_t count_less(trie_based::NodeCount<T> *layer, size_t m) const;
     std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const;
@@ -372,10 +402,10 @@ protected:
 public:
     ImplicitQuantileSorted();
     ImplicitQuantileSorted(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
-    
+
     void set_sample(const std::vector<std::vector<T>> &in_sample);
     void set_sample_shared(std::shared_ptr<sample_type> in_sample);
-    
+
     void sort();
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
 
