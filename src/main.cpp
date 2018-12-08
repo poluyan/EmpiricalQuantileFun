@@ -509,8 +509,8 @@ int main()
 //    simple_empirical_1d();
 //    simple1d_example();
 
-    test_1d1();
-//    test_1d2();
+//    test_1d1();
+    test_1d2();
 //    test_1d3();
 //    test_1d4();
 

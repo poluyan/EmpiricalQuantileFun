@@ -38,13 +38,8 @@ protected:
     std::vector<std::vector<U>> grids;
 public:
     Quantile();
-    Quantile(std::vector<U> in_lb,
-             std::vector<U> in_ub,
-             std::vector<size_t> in_gridn);
-
-    void set_grid_and_gridn(std::vector<U> in_lb,
-                            std::vector<U> in_ub,
-                            std::vector<size_t> in_gridn);
+    Quantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    void set_grid_and_gridn(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
 };
 
 template <typename T, typename U>
@@ -79,9 +74,7 @@ Quantile<T, U>::Quantile(std::vector<U> in_lb,
 }
 
 template <typename T, typename U>
-void Quantile<T, U>::set_grid_and_gridn(std::vector<U> in_lb,
-                                        std::vector<U> in_ub,
-                                        std::vector<size_t> in_gridn)
+void Quantile<T, U>::set_grid_and_gridn(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn)
 {
     Quantile<T, U>(in_lb, in_ub, in_gridn);
 }
@@ -93,7 +86,7 @@ class ExplicitQuantile : public Quantile<T, U>
 protected:
     using Quantile<T, U>::grids;
     using Quantile<T, U>::dx;
-    
+
     typedef std::vector<std::vector<U>> sample_type;
     std::shared_ptr<sample_type> sample;
 
@@ -104,7 +97,7 @@ public:
     ExplicitQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
     using Quantile<T, U>::set_grid_and_gridn;
     void set_sample(std::vector<std::vector<T>> in_sample);
-//    void set_sample(std::shared_ptr<sample_type> in_sample);
+    void set_sample(std::shared_ptr<sample_type> in_sample);
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
 };
 
@@ -134,11 +127,11 @@ void ExplicitQuantile<T, U>::set_sample(std::vector<std::vector<T>> in_sample)
         sample->push_back(temp);
     }
 }
-//template <typename T, typename U>
-//void ExplicitQuantile<T, U>::set_sample(std::shared_ptr<sample_type> in_sample)
-//{
-//    sample = std::move(in_sample);
-//}
+template <typename T, typename U>
+void ExplicitQuantile<T, U>::set_sample(std::shared_ptr<sample_type> in_sample)
+{
+    sample = std::move(in_sample);
+}
 
 template <typename T, typename U>
 void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
@@ -167,7 +160,7 @@ void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
             }
         }
         row.resize(index);
-                
+
         auto rez = quantile_transform(row, i, in01[i]);
         out[i] = rez.second;
         m[i] = rez.first;
@@ -199,7 +192,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
 
         f1 = c1/n;
         f2 = c2/n;
-        
+
 //        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
@@ -225,56 +218,55 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
 
 
 template <typename T, typename U>
-class ImplicitQuantile
+class ImplicitQuantile : public Quantile<T, U>
 {
 protected:
     typedef trie_based::TrieBased<trie_based::NodeCount<T>,T> sample_type;
-    sample_type sample;
+    std::shared_ptr<sample_type> sample;
 
-    std::vector<U> lb;
-    std::vector<U> ub;
-    std::vector<std::vector<U>> grids;
-    std::vector<size_t> grid_number;
+    using Quantile<T, U>::lb;
+    using Quantile<T, U>::ub;
+    using Quantile<T, U>::grids;
+    using Quantile<T, U>::grid_number;
 
     size_t count_less(trie_based::NodeCount<T> *layer, size_t m) const;
     std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const;
 public:
-    ImplicitQuantile(std::vector<U> in_lb,
-                     std::vector<U> in_ub,
-                     std::vector<size_t> in_gridn,
-                     std::vector<std::vector<T>> in_sample);
+    ImplicitQuantile();
+    ImplicitQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    void set_sample(const std::vector<std::vector<T>> &in_sample);
+    void set_sample_shared(std::shared_ptr<sample_type> in_sample);
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
 };
 
 template <typename T, typename U>
+ImplicitQuantile<T, U>::ImplicitQuantile()
+{
+}
+
+template <typename T, typename U>
 ImplicitQuantile<T, U>::ImplicitQuantile(std::vector<U> in_lb,
         std::vector<U> in_ub,
-        std::vector<size_t> in_gridn,
-        std::vector<std::vector<T>> in_sample)
+        std::vector<size_t> in_gridn) : Quantile<T, U>(in_lb, in_ub, in_gridn)
 {
-    lb = in_lb;
-    ub = in_ub;
-    grid_number = in_gridn;
 
-    grids.resize(grid_number.size());
-    for(size_t i = 0; i != grids.size(); i++)
-    {
-        std::vector<U> grid(grid_number[i] + 1);
-        U startp = lb[i];
-        U endp = ub[i];
-        U es = endp - startp;
-        for(size_t j = 0; j != grid.size(); j++)
-        {
-            grid[j] = startp + j*es/U(grid_number[i]);
-        }
-        grids[i] = grid;
-        //dx[i] = es/(float(grid_number[i])*2);
-    }
+}
 
-    sample.set_dimension(grids.size());
+template <typename T, typename U>
+void ImplicitQuantile<T, U>::set_sample(const std::vector<std::vector<T>> &in_sample)
+{
+    sample = std::make_shared<sample_type>();
+    sample->set_dimension(grids.size());
     for(const auto & i : in_sample)
-        sample.insert(i);
-    sample.fill_tree_count();
+        sample->insert(i);
+    sample->fill_tree_count();
+}
+
+
+template <typename T, typename U>
+void ImplicitQuantile<T, U>::set_sample_shared(std::shared_ptr<sample_type> in_sample)
+{
+    sample = std::move(in_sample);
 }
 
 template <typename T, typename U>
@@ -293,7 +285,7 @@ size_t ImplicitQuantile<T, U>::count_less(trie_based::NodeCount<T> *layer, size_
 template <typename T, typename U>
 void ImplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
 {
-    auto p = sample.root.get();
+    auto p = sample->root.get();
     for(size_t i = 0; i != in01.size(); i++)
     {
         auto rez = quantile_transform(p, i, in01[i]);
@@ -372,34 +364,59 @@ class ImplicitQuantileSorted : public ImplicitQuantile<T, U>
 protected:
     using ImplicitQuantile<T, U>::grids;
     using ImplicitQuantile<T, U>::sample;
+    using sample_type = typename ImplicitQuantile<T, U>::sample_type;
     void sort_layer(trie_based::NodeCount<T> *p);
 
     size_t count_less_binary(trie_based::NodeCount<T> *layer, T m) const;
     std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, const std::vector<size_t> &row2, size_t ind, U val01) const;
 public:
-    ImplicitQuantileSorted(std::vector<U> in_lb,
-                           std::vector<U> in_ub,
-                           std::vector<size_t> in_gridn,
-                           std::vector<std::vector<T>> in_sample);
+    ImplicitQuantileSorted();
+    ImplicitQuantileSorted(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    
+    void set_sample(const std::vector<std::vector<T>> &in_sample);
+    void set_sample_shared(std::shared_ptr<sample_type> in_sample);
+    
     void sort();
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
 
 };
 
 template <typename T, typename U>
+ImplicitQuantileSorted<T, U>::ImplicitQuantileSorted()
+{
+}
+
+template <typename T, typename U>
 ImplicitQuantileSorted<T, U>::ImplicitQuantileSorted(std::vector<U> in_lb,
         std::vector<U> in_ub,
-        std::vector<size_t> in_gridn,
-        std::vector<std::vector<T>> in_sample): ImplicitQuantile<T, U>(in_lb, in_ub, in_gridn, in_sample)
+        std::vector<size_t> in_gridn) : ImplicitQuantile<T, U>(in_lb, in_ub, in_gridn)
 {
+}
+
+template <typename T, typename U>
+void ImplicitQuantileSorted<T, U>::set_sample(const std::vector<std::vector<T>> &in_sample)
+{
+    sample = std::make_shared<sample_type>();
+    sample->set_dimension(grids.size());
+    for(const auto & i : in_sample)
+        sample->insert(i);
+    sample->fill_tree_count();
+    sort();
+}
+
+
+template <typename T, typename U>
+void ImplicitQuantileSorted<T, U>::set_sample_shared(std::shared_ptr<sample_type> in_sample)
+{
+    sample = std::move(in_sample);
     sort();
 }
 
 template <typename T, typename U>
 void ImplicitQuantileSorted<T, U>::sort()
 {
-    sort_layer(sample.root.get());
-    std::sort(sample.last_layer.begin(), sample.last_layer.end(),
+    sort_layer(sample->root.get());
+    std::sort(sample->last_layer.begin(), sample->last_layer.end(),
               [](const std::shared_ptr<trie_based::NodeCount<T>> &l, const std::shared_ptr<trie_based::NodeCount<T>> &r)
     {
         return l->index < r->index;
@@ -425,7 +442,7 @@ void ImplicitQuantileSorted<T,U>::sort_layer(trie_based::NodeCount<T> *p)
         });
 
     }
-    if(p->children != sample.last_layer) // bad comparison here
+    if(p->children != sample->last_layer) // bad comparison here
     {
         for(auto &i : p->children)
         {
@@ -438,7 +455,7 @@ void ImplicitQuantileSorted<T,U>::sort_layer(trie_based::NodeCount<T> *p)
 template <typename T, typename U>
 void ImplicitQuantileSorted<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
 {
-    auto *p = sample.root.get();
+    auto *p = sample->root.get();
     for(size_t i = 0; i != in01.size(); ++i)
     {
         std::vector<size_t> psum(p->children.size() + 1, 0);

@@ -63,8 +63,9 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
-
+    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    quant.set_sample(sample);
+    
     timer::Timer time_cpp11;
     time_cpp11.reset();
 
@@ -95,8 +96,9 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitQuantileSorted<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn, sample);
-
+    empirical_quantile::ImplicitQuantileSorted<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    quant.set_sample(sample);
+    
     timer::Timer time_cpp11;
     time_cpp11.reset();
 
