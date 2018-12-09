@@ -183,14 +183,6 @@ size_t ExplicitQuantile<T, U>::count_less(const std::vector<U> &layer, U target)
 template <typename T, typename U>
 std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vector<U> &layer, size_t ind, U val01) const
 {
-//    if(layer.size() == 1)
-//    {
-//        auto it = std::lower_bound(grids[ind].begin(), grids[ind].begin() + grids[ind].size() - 1, layer.front());
-//        size_t m = std::distance(grids[ind].begin(), it);
-//        return std::make_pair(m, grids[ind][m] + 2.0*(val01 - 1.0)*dx[ind]);
-//    }
-//    else
-//    {
     size_t count = grids[ind].size() - 1, step, c1 = 0, c2 = 0, m = 0;
     U f1 = 0.0, f2 = 0.0, n = layer.size();
     auto first = grids[ind].begin();
@@ -204,8 +196,6 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
 
         c1 = count_less(layer, grids[ind][m]);
         f1 = c1/n;
-
-        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
@@ -227,8 +217,6 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         c2 = count_less(layer, grids[ind][m + 1]);
         f2 = c2/n;
     }
-
-    std::cout << c1 << '\t' << c2 << std::endl;
 
     if(c1 == c2)
     {
