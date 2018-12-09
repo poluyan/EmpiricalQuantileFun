@@ -67,9 +67,12 @@ Quantile<T, U>::Quantile(std::vector<U> in_lb,
         for(size_t j = 0; j != grid.size(); j++)
         {
             grid[j] = startp + j*es/U(grid_number[i]);
+            std::cout << grid[j] << '\t';
         }
+        std::cout << std::endl;
         grids[i] = grid;
         dx[i] = es/(U(grid_number[i])*2);
+        std::cout << dx[i] << std::endl;
     }
 }
 
@@ -180,6 +183,14 @@ size_t ExplicitQuantile<T, U>::count_less(const std::vector<U> &layer, U target)
 template <typename T, typename U>
 std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vector<U> &layer, size_t ind, U val01) const
 {
+//    if(layer.size() == 1)
+//    {
+//        auto it = std::lower_bound(grids[ind].begin(), grids[ind].begin() + grids[ind].size() - 1, layer.front());
+//        size_t m = std::distance(grids[ind].begin(), it);
+//        return std::make_pair(m, grids[ind][m] + 2.0*(val01 - 1.0)*dx[ind]);
+//    }
+//    else
+//    {
     size_t count = grids[ind].size() - 1, step, c1 = 0, c2 = 0, m = 0;
     U f1 = 0.0, f2 = 0.0, n = layer.size();
     auto first = grids[ind].begin();
@@ -194,7 +205,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         c1 = count_less(layer, grids[ind][m]);
         f1 = c1/n;
 
-//        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
+        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
@@ -216,63 +227,29 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         c2 = count_less(layer, grids[ind][m + 1]);
         f2 = c2/n;
     }
+
+    std::cout << c1 << '\t' << c2 << std::endl;
+
     if(c1 == c2)
     {
-//        std::cout << c1 << '\t' << c2 << std::endl;
-//        std::cout << layer.size() << '\t' << val01 << std::endl;
-
-        if(m == 0)
+        if(c1 == 0)
         {
-            auto result = std::min_element(layer.begin(), layer.end());
-            size_t result_ind = std::distance(layer.begin(), result);
-            U min_val = layer[result_ind];
-            
-            return std::make_pair(m, min_val - dx[ind]);
+            // (x - x0)*(y1 - y0) = (y - y0)*(x1 - x0)
+            // (x - x0) = (y - y0)*(x1 - x0)/(y1 - y0)
+            // x = x0 + val01*(x1 - x0)
+            auto min_val = *std::min_element(layer.begin(), layer.end()) - dx[ind];
+            auto lb_min = std::lower_bound(grids[ind].begin(), grids[ind].end(), min_val);
+            size_t min_ind = std::distance(grids[ind].begin(), lb_min);
+            return std::make_pair(min_ind, grids[ind][min_ind] + 2.0*val01*dx[ind]);
         }
-        else
+        if(c1 == layer.size())
         {
-            auto result = std::max_element(layer.begin(), layer.end());
-            size_t result_ind = std::distance(layer.begin(), result);
-            U max_val = layer[result_ind];
-            
-            std::cout << "asdfasdf" << std::endl;
-            
-            return std::make_pair(m, max_val + dx[ind]);
+            auto max_val = *std::max_element(layer.begin(), layer.end()) - dx[ind];
+            auto lb_max = std::lower_bound(grids[ind].begin(), grids[ind].end(), max_val);
+            size_t max_ind = std::distance(grids[ind].begin(), lb_max);
+            return std::make_pair(max_ind, grids[ind][max_ind] + 2.0*val01*dx[ind]);
         }
-//        else
-//        {
-//            auto result = std::max_element(layer.begin(), layer.end());
-//            size_t result_ind = std::distance(layer.begin(), result);
-//            U min_val = layer[result_ind];
-//            
-//            return std::make_pair(result_ind, min_val - dx[ind]);
-//        }
-        //return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
     }
-//    U diff = std::numeric_limits<U>::max();
-//    size_t index = 0;
-//    for(size_t i = 1; i < layer.size(); ++i)
-//    {
-//        U curr = std::abs(layer[i] - grids[ind][m] + dx[ind]);
-//        if(diff > curr)
-//        {
-//            diff = curr;
-//            index = i;
-//        }
-//    }
-    
-//    diff = std::numeric_limits<U>::max();
-//    size_t grid_ind = 0;
-//    for(size_t i = 1; i < grids[ind].size() - 1; ++i)
-//    {
-//        U curr = std::abs(layer[index] - grids[ind][i] - dx[ind]);
-//        if(diff > curr)
-//        {
-//            diff = curr;
-//            grid_ind = i;
-//        }
-//    }
-    
     return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
 }
 

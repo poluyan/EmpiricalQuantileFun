@@ -41,7 +41,7 @@ void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vecto
     std::vector<float> temp1(gridn.size());
     std::vector<float> temp2(temp1.size());
 
-    for(size_t i = 0; i != nrolls; ++i)
+    /*for(size_t i = 0; i != nrolls; ++i)
     {
         for(size_t j = 0; j != temp1.size(); j++)
         {
@@ -131,7 +131,17 @@ void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vecto
         quant.transform(temp1,temp2);
         values01.push_back(temp1);
         sampled.push_back(temp2);
-    }
+    }*/
+    
+    std::vector<float> a = {0.0};
+    std::vector<float> b = {0.0};
+    quant.transform(a, b);
+    sampled.push_back(b);
+    
+    a = {1.0};
+    b = {0.0};
+    quant.transform(a, b);
+    sampled.push_back(b);
 
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
@@ -390,6 +400,19 @@ void test_1d1()
     implicit_quantile_class_sorted(-2, 4, grid_number, sample_implicit, 1e3);
 }
 
+void test_1d5()
+{
+    std::vector<size_t> grid_number = {6};
+
+    std::vector<std::vector<int>> sample_implicit;
+    sample_implicit.push_back(std::vector{3});
+
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n
+    explicit_quantile(-2, 4, grid_number, sample_implicit, 1);
+//    implicit_quantile_class(-2, 4, grid_number, sample_implicit, 1);
+//    implicit_quantile_class_sorted(-2, 4, grid_number, sample_implicit, 1);
+}
+
 void test_1d2()
 {
     std::vector<size_t> grid_number = {6};
@@ -450,10 +473,10 @@ void test_2d1()
     sample_implicit.push_back(std::vector{6,3});
     sample_implicit.push_back(std::vector{6,4});
 
-    /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    explicit_quantile(-3, 3, grid_number, sample_implicit, 2e3);
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e+3);
-    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e+3);
+    /// multivariate quantile function [0,1]^n -> [-3,3]^n nrolls = 2e3
+    explicit_quantile(-3, 3, grid_number, sample_implicit, 1);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1);
 }
 
 void test_2d2()
