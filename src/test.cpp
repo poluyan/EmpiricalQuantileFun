@@ -987,3 +987,137 @@ void test_1d4()
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e3);
     implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e3);
 }
+
+
+void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+    
+    typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+    
+    std::vector<int> temp(gridN.size());
+    for(size_t i = 0; i != Nsamples;)
+    {
+        for(size_t j = 0; j != gridN.size(); j++)
+        {
+            temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
+        }
+        if(!sample->search(temp))
+        {
+            sample->insert(temp);
+            i++;
+        }
+    }
+    
+    std::vector<std::vector<float> > sampled;
+    std::vector<std::vector<float> > values01;
+            
+    empirical_quantile::ImplicitQuantile<int, float> quant(lb, ub, gridN);
+    quant.set_sample_shared(sample);
+
+    timer::Timer time_cpp11;
+    time_cpp11.reset();
+
+    std::vector<float> temp1(gridN.size());
+    std::vector<float> temp2(temp1.size());
+
+    for(size_t i = 0; i != Nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        temp1[i] = 0.0;
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        temp1[i] = 1.0;
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = 0.0;
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = 1.0;
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+
+    for(size_t i = 0; i != temp1.size() - 1; ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = 0.0;
+        }
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+    for(size_t i = 0; i != temp1.size() - 1; ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = 1.0;
+        }
+        quant.transform(temp1,temp2);
+        values01.push_back(temp1);
+        sampled.push_back(temp2);
+    }
+
+    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    data_io::write_default2d("maps/values01.dat", values01, 15);
+    data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 15);
+}

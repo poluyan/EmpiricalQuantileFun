@@ -67,12 +67,12 @@ Quantile<T, U>::Quantile(std::vector<U> in_lb,
         for(size_t j = 0; j != grid.size(); j++)
         {
             grid[j] = startp + j*es/U(grid_number[i]);
-            std::cout << grid[j] << '\t';
+//            std::cout << grid[j] << '\t';
         }
-        std::cout << std::endl;
+//        std::cout << std::endl;
         grids[i] = grid;
         dx[i] = es/(U(grid_number[i])*2);
-        std::cout << dx[i] << std::endl;
+//        std::cout << dx[i] << std::endl;
     }
 }
 
@@ -129,7 +129,7 @@ void ExplicitQuantile<T, U>::set_sample(std::vector<std::vector<T>> in_sample)
         }
         sample->push_back(temp);
     }
-    std::cout << grids.front()[in_sample.front().front()] << '\t' << grids.front()[in_sample.back().front()] << std::endl;
+//    std::cout << grids.front()[in_sample.front().front()] << '\t' << grids.front()[in_sample.back().front()] << std::endl;
 }
 template <typename T, typename U>
 void ExplicitQuantile<T, U>::set_sample(std::shared_ptr<sample_type> in_sample)
@@ -251,6 +251,7 @@ protected:
     std::shared_ptr<sample_type> sample;
 
     using Quantile<T, U>::grids;
+    using Quantile<T, U>::dx;
 
     size_t count_less(trie_based::NodeCount<T> *layer, size_t m) const;
     std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const;
@@ -290,6 +291,7 @@ template <typename T, typename U>
 void ImplicitQuantile<T, U>::set_sample_shared(std::shared_ptr<sample_type> in_sample)
 {
     sample = std::move(in_sample);
+    sample->fill_tree_count();
 }
 
 template <typename T, typename U>
@@ -357,18 +359,42 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
     }
     if(c1 == c2)
     {
-        int diff = std::numeric_limits<int>::max();
-        size_t index = 0;
-        for(size_t i = 0; i != layer->children.size(); ++i)
+//        int diff = std::numeric_limits<int>::max();
+//        size_t index = 0;
+//        for(size_t i = 0; i != layer->children.size(); ++i)
+//        {
+//            int curr = std::abs(static_cast<int>(layer->children[i]->index) - static_cast<int>(m));
+//            if(diff > curr)
+//            {
+//                diff = curr;
+//                index = i;
+//            }
+//        }
+//        return std::make_pair(index, grids[ind][layer->children[index]->index]);
+
+        if(c1 == 0)
         {
-            int curr = std::abs(static_cast<int>(layer->children[i]->index) - static_cast<int>(m));
-            if(diff > curr)
+            auto min_val_it = std::min_element(layer->children.begin(), layer->children.end(),
+                                             [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                                const std::shared_ptr<trie_based::NodeCount<T>> &r)
             {
-                diff = curr;
-                index = i;
-            }
+                return l->index < r->index;
+            });
+            size_t min_ind = std::distance(layer->children.begin(), min_val_it);
+            return std::make_pair(min_ind, grids[ind][layer->children[min_ind]->index] + 2.0*val01*dx[ind]);
         }
-        return std::make_pair(index, grids[ind][layer->children[index]->index]);
+        if(c1 == layer->count)
+        {
+            auto max_val_it = std::max_element(layer->children.begin(), layer->children.end(),
+                                             [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                                const std::shared_ptr<trie_based::NodeCount<T>> &r)
+            {
+                return l->index < r->index;
+            });
+            size_t max_ind = std::distance(layer->children.begin(), max_val_it);
+            return std::make_pair(max_ind, grids[ind][layer->children[max_ind]->index] + 2.0*val01*dx[ind]);
+        }
+        
     }
     size_t index = 0;
     T target = m;
@@ -434,6 +460,7 @@ template <typename T, typename U>
 void ImplicitQuantileSorted<T, U>::set_sample_shared(std::shared_ptr<sample_type> in_sample)
 {
     sample = std::move(in_sample);
+    sample->fill_tree_count();
     sort();
 }
 
@@ -547,8 +574,11 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
         }
     }
 
-    c2 = psum[count_less_binary(layer, m + 1)];
-    f2 = c2/sample_size_u;
+    if(count == 0)
+    {
+        c2 = psum[count_less_binary(layer, m + 1)];
+        f2 = c2/sample_size_u;
+    }
 
     if(c1 == c2)
     {

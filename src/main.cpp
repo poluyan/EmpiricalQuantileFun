@@ -513,11 +513,19 @@ int main()
 //    test_1d2();
 //    test_1d3();
 //    test_1d4();
-    test_1d5();
+//    test_1d5();
 
 
 //    test_2d1();
 //    test_2d2();
 
 //    test_grid_10d();
+
+    size_t N = 2;
+    std::vector<size_t> g = {13,20};
+    //std::vector<size_t> g(N, 10);
+    std::vector<float> lb = {-3, -2};
+    std::vector<float> ub = {1, 5};
+    test_Nd(g, lb, ub, 100, 1e3);
+
 }

@@ -41,4 +41,6 @@ void test_3d2();
 
 void test_grid_10d();
 
+void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls);
+
 #endif
