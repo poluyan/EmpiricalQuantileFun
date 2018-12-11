@@ -991,12 +991,27 @@ void test_1d4()
 
 void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
 {
+    size_t max_sample_size = gridN.front();
+    for(size_t i = 1; i != gridN.size(); i++)
+    {
+        max_sample_size *= gridN[i];
+    }
+    if(Nsamples > max_sample_size)
+        return;
+    for(size_t i = 0; i != lb.size(); i++)
+    {
+        if(lb[i] > ub[i])
+            return;
+    }
+        
     std::mt19937_64 generator;
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
     
     typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
     std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+    
+    std::vector<std::vector<int> > sample_implicit;
     
     std::vector<int> temp(gridN.size());
     for(size_t i = 0; i != Nsamples;)
@@ -1008,19 +1023,13 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         if(!sample->search(temp))
         {
             sample->insert(temp);
+            sample_implicit.push_back(temp);
             i++;
         }
     }
     
-    std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
-            
-    empirical_quantile::ImplicitQuantile<int, float> quant(lb, ub, gridN);
-    quant.set_sample_shared(sample);
-
-    timer::Timer time_cpp11;
-    time_cpp11.reset();
-
+   
     std::vector<float> temp1(gridN.size());
     std::vector<float> temp2(temp1.size());
 
@@ -1030,9 +1039,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         {
             temp1[j] = ureal01(generator);
         }
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
 
     for(size_t i = 0; i != temp1.size(); ++i)
@@ -1042,9 +1049,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
             temp1[j] = ureal01(generator);
         }
         temp1[i] = 0.0;
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
     for(size_t i = 0; i != temp1.size(); ++i)
     {
@@ -1053,9 +1058,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
             temp1[j] = ureal01(generator);
         }
         temp1[i] = 1.0;
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
 
     for(size_t i = 0; i != temp1.size(); ++i)
@@ -1068,9 +1071,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         {
             temp1[j] = ureal01(generator);
         }
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
     for(size_t i = 0; i != temp1.size(); ++i)
     {
@@ -1082,9 +1083,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         {
             temp1[j] = ureal01(generator);
         }
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
 
     for(size_t i = 0; i != temp1.size() - 1; ++i)
@@ -1097,9 +1096,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         {
             temp1[j] = 0.0;
         }
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
     for(size_t i = 0; i != temp1.size() - 1; ++i)
     {
@@ -1111,13 +1108,38 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         {
             temp1[j] = 1.0;
         }
-        quant.transform(temp1,temp2);
         values01.push_back(temp1);
-        sampled.push_back(temp2);
     }
-
-    std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
     data_io::write_default2d("maps/values01.dat", values01, 15);
-    data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 15);
+    
+    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+    
+    timer::Timer time_cpp11;
+    
+    empirical_quantile::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
+    quant_expl.set_sample(sample_implicit);
+    time_cpp11.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_expl.transform(values01[i], sampled[i]);
+    std::cout << "\ntotal time explicit       : " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
+    
+    empirical_quantile::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+    quant_impl.set_sample_shared(sample);
+    time_cpp11.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impl.transform(values01[i], sampled[i]);
+    std::cout << "\ntotal time implicit       : " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
+    
+    empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+    quant_impls.set_sample_shared(sample);
+    time_cpp11.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impls.transform(values01[i], sampled[i]);
+    std::cout << "\ntotal time implicit sorted: " << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
 }

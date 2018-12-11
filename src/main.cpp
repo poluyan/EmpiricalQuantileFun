@@ -521,11 +521,33 @@ int main()
 
 //    test_grid_10d();
 
-    size_t N = 2;
-    std::vector<size_t> g = {13,20};
+
+    /// 2-dimensional test
+
+//    std::vector<size_t> g = {13, 20};
+//    //std::vector<size_t> g(N, 10);
+//    std::vector<float> lb = {-3, -2};
+//    std::vector<float> ub = {1, 4};
+//    test_Nd(g, lb, ub, 100, 1e5);
+    
+    /// N-dimensional test
+    
+    std::mt19937_64 generator;
+    generator.seed(1);
+    
+    std::uniform_int_distribution<size_t> dis(2, 20);
+    size_t N = 10;
+    std::vector<size_t> g(N);
+    for(size_t i = 0; i != N; i++)
+    {
+        g[i] = dis(generator);
+        std::cout << g[i] << '\t';
+    }
+    std::cout << std::endl;
+    
     //std::vector<size_t> g(N, 10);
-    std::vector<float> lb = {-3, -2};
-    std::vector<float> ub = {1, 5};
-    test_Nd(g, lb, ub, 100, 1e3);
+    std::vector<float> lb(N, -10);
+    std::vector<float> ub(N, 10);
+    test_Nd(g, lb, ub, 100000, 1e1);
 
 }
