@@ -132,13 +132,13 @@ void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vecto
         values01.push_back(temp1);
         sampled.push_back(temp2);
     }
-    
+
 //    std::vector<float> a = {0.0};
 //    std::vector<float> b = {0.0};
 //    quant.transform(a, b);
 //    sampled.push_back(b);
-//    
-//    a = {1.0};
+
+//    a = {0.68};
 //    b = {0.0};
 //    quant.transform(a, b);
 //    sampled.push_back(b);
@@ -260,10 +260,20 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
         sampled.push_back(temp2);
     }
 
+//    std::vector<float> a = {0.0};
+//    std::vector<float> b = {0.0};
+//    quant.transform(a, b);
+//    sampled.push_back(b);
+//
+//    a = {0.68};
+//    b = {0.0};
+//    quant.transform(a, b);
+//    sampled.push_back(b);
+
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
     data_io::write_default2d("maps/values01.dat", values01, 15);
-    data_io::write_default2d("maps/sampled_implicit_class.dat", sampled, 15);
+    data_io::write_default2d("maps/sampled_implicit.dat", sampled, 15);
 }
 
 void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)
@@ -376,10 +386,20 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
         sampled.push_back(temp2);
     }
 
+//    std::vector<float> a = {0.0};
+//    std::vector<float> b = {0.0};
+//    quant.transform(a, b);
+//    sampled.push_back(b);
+//
+//    a = {0.68};
+//    b = {0.0};
+//    quant.transform(a, b);
+//    sampled.push_back(b);
+
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
     data_io::write_default2d("maps/values01.dat", values01, 15);
-    data_io::write_default2d("maps/sampled_implicit_class_sorted.dat", sampled, 15);
+    data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 15);
 }
 
 void test_1d1()
@@ -668,7 +688,7 @@ void test_grid_10d()
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     timer::Timer time_cpp11;
     time_cpp11.reset();
-//    explicit_quantile(-3, 3, grid_number, sample_implicit, 1);
+//    explicit_quantile(-3, 3, grid_number, sample_implicit, 1e1);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
     time_cpp11.reset();
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
@@ -1003,16 +1023,16 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         if(lb[i] > ub[i])
             return;
     }
-        
+
     std::mt19937_64 generator;
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
-    
+
     typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
     std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-    
+
     std::vector<std::vector<int> > sample_implicit;
-    
+
     std::vector<int> temp(gridN.size());
     for(size_t i = 0; i != Nsamples;)
     {
@@ -1027,9 +1047,9 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
             i++;
         }
     }
-    
+
     std::vector<std::vector<float> > values01;
-   
+
     std::vector<float> temp1(gridN.size());
     std::vector<float> temp2(temp1.size());
 
@@ -1111,11 +1131,28 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         values01.push_back(temp1);
     }
     data_io::write_default2d("maps/values01.dat", values01, 15);
-    
+
+
+//    values01.clear();
+
+//    values01.push_back(std::vector<float>{7.128837108612061e-01	,
+//    8.562362790107727e-01,	1.416520029306412e-01,	1.646486222743988e-01,	3.487232625484467e-01,
+//    2.512360513210297e-01,	9.061432480812073e-01,	7.048301100730896e-01,	3.441495597362518e-01,
+//	0.000000000000000e+00});
+//
+//    values01.push_back(
+//    std::vector<float>{
+//    5.726840496063232e-01,	3.626562356948853e-01,	8.979787230491638e-01,	3.496656417846680e-01,
+//    1.190820038318634e-01,	4.006883800029755e-01,	7.749708294868469e-01,	4.034065902233124e-0,
+//    7.621356248855591e-01,	2.899370491504669e-01});
+
+
+
+
     std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
-    
+
     timer::Timer time_cpp11;
-    
+
     empirical_quantile::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
     quant_expl.set_sample(sample_implicit);
     time_cpp11.reset();
@@ -1123,8 +1160,20 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         quant_expl.transform(values01[i], sampled[i]);
     std::cout << "\ntotal time explicit       : " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
     data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
-    
+
     empirical_quantile::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
     quant_impl.set_sample_shared(sample);
     time_cpp11.reset();
@@ -1132,8 +1181,20 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         quant_impl.transform(values01[i], sampled[i]);
     std::cout << "\ntotal time implicit       : " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
     data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
-    
+
     empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
     quant_impls.set_sample_shared(sample);
     time_cpp11.reset();
@@ -1141,5 +1202,17 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         quant_impls.transform(values01[i], sampled[i]);
     std::cout << "\ntotal time implicit sorted: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
     data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
 }
