@@ -197,9 +197,6 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         c1 = count_less(layer, grids[ind][m]);
         f1 = c1/n;
 
-        if(ind == grids.size() - 1)
-            std::cout << f1 << '\t' << val01 << '\t' << '\t' << c1 << std::endl;
-
         if(f1 < val01)
         {
             c2 = count_less(layer, grids[ind][m + 1]);
@@ -240,7 +237,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
             size_t max_ind = std::distance(grids[ind].begin(), lb_max);
             return std::make_pair(max_ind, grids[ind][max_ind] + 2.0*val01*dx[ind]);
         }
-        std::cout << "\n\n\nhere\n\n\n" << std::endl;
+//        std::cout << "\n\n\nhere\n\n\n" << std::endl;
 
 //        int diff = std::numeric_limits<int>::max();
 //        size_t index = 0;
@@ -258,13 +255,14 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         U target = grids[ind][m];
         U diff = std::numeric_limits<U>::max();
         size_t index = 0;
-        for(size_t i = 0; i != layer.size(); ++i)
+        for(size_t i = 1; i != layer.size(); ++i)
         {
             U curr = std::abs(layer[i] - target);
             if(diff > curr)
             {
                 diff = curr;
                 index = i;
+//                std::cout << curr << '\t' << layer[i] << std::endl;
             }
         }
 
@@ -371,8 +369,6 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
         f1 = c1/sample_size_u;
 
 //        std::cout << f1 << '\t' << val01 << '\t' << m << '\t' << c1 << std::endl;
-        if(ind == grids.size() - 1)
-            std::cout << f1 << '\t' << val01 << '\t' << '\t' << c1 << std::endl;
 
         if(f1 < val01)
         {
@@ -417,19 +413,29 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
             size_t max_ind = std::distance(layer->children.begin(), max_val_it);
             return std::make_pair(max_ind, grids[ind][layer->children[max_ind]->index] + 2.0*val01*dx[ind]);
         }
-        std::cout << "\n\n\nhere implicit\n\n\n" << std::endl;
+//        std::cout << "\n\n\nhere implicit\n\n\n" << std::endl;
         int diff = std::numeric_limits<int>::max();
         size_t index = 0;
+        int min_ind = static_cast<int>(layer->children[index]->index);
         for(size_t i = 1; i != layer->children.size(); ++i)
         {
-            int curr = std::abs(static_cast<int>(layer->children[i]->index) - static_cast<int>(m));
+            int t = static_cast<int>(layer->children[i]->index);
+            int curr = std::abs(t - static_cast<int>(m));
             if(diff > curr)
-            {
+            {                
                 diff = curr;
                 index = i;
+                min_ind = t;
             }
-        }
-        std::cout << layer->children[index]->index << std::endl;
+            else if(diff == curr)
+            {
+                if(min_ind > t)
+                {
+                    min_ind = t;
+                    index = i;
+                }
+            }
+        }        
         return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
     }
     size_t index = 0;
@@ -595,9 +601,6 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
         c1 = psum[count_less_binary(layer, m)];
         f1 = c1/sample_size_u;
 
-        if(ind == grids.size() - 1)
-            std::cout << f1 << '\t' << val01 << '\t' << '\t' << c1 << std::endl;
-
         if(f1 < val01)
         {
             c2 = psum[count_less_binary(layer, m + 1)];
@@ -631,7 +634,7 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
         {
             return std::make_pair(layer->children.size() - 1, grids[ind][layer->children.back()->index] + 2.0*val01*dx[ind]);
         }
-        std::cout << "\n\n\nhere implicit sorted\n\n\n" << std::endl;
+//        std::cout << "\n\n\nhere implicit sorted\n\n\n" << std::endl;
 //        if(m <= static_cast<size_t>(layer->children.front()->index))
 //        {
 //            return std::make_pair(size_t(0), grids[ind][layer->children.front()->index]);
@@ -648,19 +651,35 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
             return l->index < r;
         });
         size_t index = std::distance(layer->children.begin(), pos);
-        std::cout << layer->children[index]->index << std::endl;
+
         if(index > 0)
         {
             int curr1 = std::abs(static_cast<int>(layer->children[index]->index) - static_cast<int>(m));
             int curr2 = std::abs(static_cast<int>(layer->children[index - 1]->index) - static_cast<int>(m));
-            
-            std::cout << curr1 << '\t' << curr2 << std::endl;
-            
-            return curr1 < curr2 ?
-                   std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]) :
-                   std::make_pair(index, grids[ind][layer->children[index - 1]->index] + 2.0*val01*dx[ind]);
+
+//            std::cout << std::abs(static_cast<int>(layer->children[index - 1]->index) - static_cast<int>(m)) << '\t' << layer->children[index - 1]->index << std::endl;
+//            std::cout << std::abs(static_cast<int>(layer->children[index]->index) - static_cast<int>(m)) << '\t' << layer->children[index]->index << std::endl;
+
+            if(curr1 < curr2)
+            {
+                return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+            }
+            else if(curr1 == curr2)
+            {
+                if(layer->children[index - 1]->index < layer->children[index]->index)
+                    return std::make_pair(index - 1, grids[ind][layer->children[index - 1]->index] + 2.0*val01*dx[ind]);
+                else
+                    return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+            }
+            else
+            {
+                return std::make_pair(index - 1, grids[ind][layer->children[index - 1]->index] + 2.0*val01*dx[ind]);
+            }
+
+//            return curr1 < curr2 ?
+//                   std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]) :
+//                   std::make_pair(index - 1, grids[ind][layer->children[index - 1]->index] + 2.0*val01*dx[ind]);
         }
-        std::cout << layer->children[index]->index << std::endl;
         return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
 
         /*int diff = std::numeric_limits<int>::max();
