@@ -536,7 +536,7 @@ int main()
 //    generator.seed(1);
 //    
 //    std::uniform_int_distribution<size_t> dis(2, 20);
-//    size_t N = 20;
+//    size_t N = 60;
 //    std::vector<size_t> g(N);
 //    for(size_t i = 0; i != N; i++)
 //    {
@@ -546,6 +546,5 @@ int main()
 //    std::cout << std::endl;
 //    std::vector<float> lb(N, -10);
 //    std::vector<float> ub(N, 10);
-//    test_Nd(g, lb, ub, 100000, 1e3);
-
+//    test_Nd(g, lb, ub, 100000, 1e2);
 }

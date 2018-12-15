@@ -220,6 +220,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
 
     if(c1 == c2)
     {
+//        std::cout << "h1 " << c1 << '\t' << layer.size() << std::endl;
         if(c1 == 0)
         {
             // (x - x0)*(y1 - y0) = (y - y0)*(x1 - x0)
@@ -232,7 +233,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
         }
         if(c1 == layer.size())
         {
-            auto max_val = *std::max_element(layer.begin(), layer.end()) - dx[ind];
+            auto max_val = *std::max_element(layer.begin(), layer.end()) - 2.0*dx[ind];
             auto lb_max = std::lower_bound(grids[ind].begin(), grids[ind].end(), max_val);
             size_t max_ind = std::distance(grids[ind].begin(), lb_max);
             return std::make_pair(max_ind, grids[ind][max_ind] + 2.0*val01*dx[ind]);
@@ -262,7 +263,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
             {
                 diff = curr;
                 index = i;
-//                std::cout << curr << '\t' << layer[i] << std::endl;
+                std::cout << curr << '\t' << layer[i] << std::endl;
             }
         }
 
@@ -391,6 +392,7 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
     }
     if(c1 == c2)
     {
+//        std::cout << "h2 " << c1 << '\t' << layer->count << std::endl;
         if(c1 == 0)
         {
             auto min_val_it = std::min_element(layer->children.begin(), layer->children.end(),
