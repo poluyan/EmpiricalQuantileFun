@@ -154,8 +154,8 @@ void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vecto
 //    sampled.push_back(b);
 
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
-    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 15);
+    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
     //data_io::write_default2d("maps/z.dat", values01, 15);
 }
 
@@ -291,9 +291,9 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
 //    sampled.push_back(b);
 
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
-    data_io::write_default2d("maps/values01.dat", values01, 15);
-    data_io::write_default2d("maps/sampled_implicit.dat", sampled, 15);
+    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+//    data_io::write_default2d("maps/values01.dat", values01, 15);
+    data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
 }
 
 void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)
@@ -427,9 +427,9 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
 //    sampled.push_back(b);
 
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
-    data_io::write_default2d("maps/values01.dat", values01, 15);
-    data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 15);
+    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+//    data_io::write_default2d("maps/values01.dat", values01, 15);
+    data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
 }
 
 void test_1d1()
@@ -718,13 +718,13 @@ void test_grid_10d()
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     timer::Timer time_cpp11;
     time_cpp11.reset();
-    explicit_quantile(-3, 3, grid_number, sample_implicit, 1e+1);
+    explicit_quantile(-3, 3, grid_number, sample_implicit, 1e+2);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
     time_cpp11.reset();
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+1);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
     time_cpp11.reset();
-    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+1);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+5);
     std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
 }
 
@@ -1045,9 +1045,15 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     for(size_t i = 1; i != gridN.size(); i++)
     {
         max_sample_size *= gridN[i];
+        if(max_sample_size > Nsamples)
+            break;
     }
     if(Nsamples > max_sample_size)
+    {
+        std::cout << "Nsamples > max_sample_size" << std::endl;
+        std::cout << Nsamples << " > " << max_sample_size << std::endl;
         return;
+    }
     for(size_t i = 0; i != lb.size(); i++)
     {
         if(lb[i] > ub[i])
@@ -1177,22 +1183,19 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
 //    7.621356248855591e-01,	2.899370491504669e-01});
 
 //    values01.push_back(std::vector<float>{
-//        3.842369019985199e-01,	3.113699853420258e-01,	5.914384126663208e-01,	6.040902137756348e-01,	
-//        7.430433034896851e-01,	8.774918913841248e-01,	1.933544427156448e-01,	3.517977595329285e-01,	
-//        9.651318788528442e-01,	3.330467343330383e-01,	6.593098044395447e-01,	7.970626354217529e-01,	
+//        3.842369019985199e-01,	3.113699853420258e-01,	5.914384126663208e-01,	6.040902137756348e-01,
+//        7.430433034896851e-01,	8.774918913841248e-01,	1.933544427156448e-01,	3.517977595329285e-01,
+//        9.651318788528442e-01,	3.330467343330383e-01,	6.593098044395447e-01,	7.970626354217529e-01,
 //        1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
-//	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00	,1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
-//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	
+//	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00	,1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
+//    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
 //    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00});
-
-
-
 
     std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
 
@@ -1203,8 +1206,8 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
         quant_expl.transform(values01[i], sampled[i]);
-    std::cout << "\ntotal time explicit       : " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    std::cout << "\ntotal time explicit       : " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 
     for(size_t i = 0; i != sampled.size(); i++)
     {
@@ -1224,8 +1227,8 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
         quant_impl.transform(values01[i], sampled[i]);
-    std::cout << "\ntotal time implicit       : " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    std::cout << "\ntotal time implicit       : " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 
     for(size_t i = 0; i != sampled.size(); i++)
     {
@@ -1245,8 +1248,8 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
         quant_impls.transform(values01[i], sampled[i]);
-    std::cout << "\ntotal time implicit sorted: " << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+    std::cout << "\ntotal time implicit sorted: " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
+    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 
     for(size_t i = 0; i != sampled.size(); i++)
     {
@@ -1260,4 +1263,173 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
         }
     }
     data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
+}
+
+
+
+std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
+{
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+
+    std::vector<int> temp(gridN.size());
+    for(size_t i = 0; i != Nsamples;)
+    {
+        for(size_t j = 0; j != gridN.size(); j++)
+        {
+            temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
+        }
+        if(!sample->search(temp))
+        {
+            sample->insert(temp);
+            i++;
+        }
+    }
+
+    std::vector<std::vector<float> > values01;
+
+    std::vector<float> temp1(gridN.size());
+    std::vector<float> temp2(temp1.size());
+
+    for(size_t i = 0; i != Nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        temp1[i] = 0.0;
+        values01.push_back(temp1);
+    }
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        temp1[i] = 1.0;
+        values01.push_back(temp1);
+    }
+
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = 0.0;
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = 1.0;
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+
+    for(size_t i = 0; i != temp1.size() - 1; ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = 0.0;
+        }
+        values01.push_back(temp1);
+    }
+    for(size_t i = 0; i != temp1.size() - 1; ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = 1.0;
+        }
+        values01.push_back(temp1);
+    }
+
+    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+
+    timer::Timer time_cpp11;
+
+    empirical_quantile::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+    quant_impl.set_sample_shared(sample);
+    time_cpp11.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impl.transform(values01[i], sampled[i]);
+    double first = time_cpp11.elapsed_seconds()/double(sampled.size());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+    
+    empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+    quant_impls.set_sample_shared(sample);
+    time_cpp11.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impls.transform(values01[i], sampled[i]);
+    double second = time_cpp11.elapsed_seconds()/double(sampled.size());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+    return std::make_pair(first, second);
+}
+
+void grid_test_Nd()
+{   
+    for(size_t g_size = 100; g_size < 10000; g_size+=100)
+    {
+        std::cout << g_size << std::endl;
+        
+//        size_t N = 100;
+//        std::vector<size_t> g(N);
+//        for(size_t i = 0; i != N; i++)
+//        {
+//            g[i] = g_size;
+//        }
+//        std::vector<float> lb(N, -10);
+//        std::vector<float> ub(N, 10);
+//        auto rez = test_Nd_time(g, lb, ub, 500000, 1e5);
+//        std::cout << g_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
+    }
 }

@@ -502,7 +502,7 @@ void simple1d_example()
 }
 
 int main()
-{ 
+{
 //
 //    std::cout << tt.front() == tt.back() << std::endl;
 
@@ -519,7 +519,7 @@ int main()
 //    test_2d1();
 //    test_2d2();
 
-    test_grid_10d();
+//    test_grid_10d();
 
 
     /// 2-dimensional test
@@ -529,14 +529,14 @@ int main()
 //    std::vector<float> lb = {-3, -2};
 //    std::vector<float> ub = {1, 4};
 //    test_Nd(g, lb, ub, 100, 1e5);
-    
+
     /// N-dimensional test
-    
+
 //    std::mt19937_64 generator;
 //    generator.seed(1);
-//    
+//
 //    std::uniform_int_distribution<size_t> dis(2, 20);
-//    size_t N = 60;
+//    size_t N = 10;
 //    std::vector<size_t> g(N);
 //    for(size_t i = 0; i != N; i++)
 //    {
@@ -546,5 +546,21 @@ int main()
 //    std::cout << std::endl;
 //    std::vector<float> lb(N, -10);
 //    std::vector<float> ub(N, 10);
-//    test_Nd(g, lb, ub, 100000, 1e2);
+//    test_Nd(g, lb, ub, 50000, 1e2);
+
+
+//    size_t N = 2;
+//    std::vector<size_t> g(N);
+//    for(size_t i = 0; i != N; i++)
+//    {
+//        g[i] = 10000;
+//    }
+//    std::cout << std::endl;
+//    std::vector<float> lb(N, -10);
+//    std::vector<float> ub(N, 10);
+//    test_Nd(g, lb, ub, 10000, 1e5);
+
+    /// grid test
+    grid_test_Nd();
+
 }

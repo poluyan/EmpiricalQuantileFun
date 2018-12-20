@@ -263,7 +263,7 @@ std::pair<size_t, U> ExplicitQuantile<T, U>::quantile_transform(const std::vecto
             {
                 diff = curr;
                 index = i;
-                std::cout << curr << '\t' << layer[i] << std::endl;
+//                std::cout << curr << '\t' << layer[i] << std::endl;
             }
         }
 
