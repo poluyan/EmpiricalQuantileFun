@@ -1270,7 +1270,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
 std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
 {
     std::mt19937_64 generator;
-    generator.seed(1);
+    generator.seed(1 + gridN.size() + gridN.front());
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
     typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
@@ -1394,7 +1394,7 @@ std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<fl
             }
         }
     }
-    
+
     empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
     quant_impls.set_sample_shared(sample);
     time_cpp11.reset();
@@ -1416,20 +1416,33 @@ std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<fl
 }
 
 void grid_test_Nd()
-{   
-    for(size_t g_size = 100; g_size < 10000; g_size+=100)
+{
+    for(size_t g_size = 1000; g_size < 10000 + 1; g_size+=1000)
     {
-        std::cout << g_size << std::endl;
-        
-//        size_t N = 100;
-//        std::vector<size_t> g(N);
-//        for(size_t i = 0; i != N; i++)
-//        {
-//            g[i] = g_size;
-//        }
-//        std::vector<float> lb(N, -10);
-//        std::vector<float> ub(N, 10);
-//        auto rez = test_Nd_time(g, lb, ub, 500000, 1e5);
-//        std::cout << g_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
+//        std::cout << g_size << std::endl;
+
+        size_t N = 100;
+        std::vector<size_t> g(N);
+        for(size_t i = 0; i != N; i++)
+        {
+            g[i] = g_size;
+        }
+        std::vector<float> lb(N, -10);
+        std::vector<float> ub(N, 10);
+        auto rez = test_Nd_time(g, lb, ub, 500000, 1e5);
+        std::cout << g_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
+    }
+}
+
+void dim_test_Nd()
+{
+    for(size_t dim_size = 10; dim_size < 500 + 1; dim_size+=10)
+    {
+        size_t N = dim_size;
+        std::vector<size_t> g(N, 1000);
+        std::vector<float> lb(N, -10);
+        std::vector<float> ub(N, 10);
+        auto rez = test_Nd_time(g, lb, ub, 100000, 1e3);
+        std::cout << dim_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
     }
 }

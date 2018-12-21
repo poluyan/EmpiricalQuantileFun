@@ -560,7 +560,7 @@ int main()
 //    std::vector<float> ub(N, 10);
 //    test_Nd(g, lb, ub, 10000, 1e5);
 
-    /// grid test
-    grid_test_Nd();
-
+    /// grid and dim test
+//    grid_test_Nd();
+    dim_test_Nd();
 }
