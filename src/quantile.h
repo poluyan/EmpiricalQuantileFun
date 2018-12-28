@@ -20,7 +20,6 @@
 #define QUANTILE_H
 
 #include "trie_based.h"
-#include "data_io.h"
 
 #include <numeric>
 

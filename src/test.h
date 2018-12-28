@@ -48,4 +48,6 @@ std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<fl
 void grid_test_Nd();
 void dim_test_Nd();
 
+void grid_test_2d();
+
 #endif

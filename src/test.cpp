@@ -1446,3 +1446,201 @@ void dim_test_Nd()
         std::cout << dim_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
     }
 }
+
+
+
+
+
+
+
+std::vector<double> test_2d_time(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
+{
+    std::mt19937_64 generator;
+    generator.seed(1 + gridN.size() + gridN.front());
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+    
+    std::vector<std::vector<int>> sample_int;
+    std::vector<int> temp(gridN.size());
+    for(size_t i = 0; i != Nsamples;)
+    {
+        for(size_t j = 0; j != gridN.size(); j++)
+        {
+            temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
+        }
+        if(!sample->search(temp))
+        {
+            sample->insert(temp);
+            sample_int.push_back(temp);
+            i++;
+        }
+    }
+
+    std::vector<std::vector<float> > values01;
+
+    std::vector<float> temp1(gridN.size());
+    std::vector<float> temp2(temp1.size());
+
+    for(size_t i = 0; i != Nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        temp1[i] = 0.0;
+        values01.push_back(temp1);
+    }
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        temp1[i] = 1.0;
+        values01.push_back(temp1);
+    }
+
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = 0.0;
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+    for(size_t i = 0; i != temp1.size(); ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = 1.0;
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+
+    for(size_t i = 0; i != temp1.size() - 1; ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = 0.0;
+        }
+        values01.push_back(temp1);
+    }
+    for(size_t i = 0; i != temp1.size() - 1; ++i)
+    {
+        for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        for(size_t j = i + 1; j < temp1.size(); j++)
+        {
+            temp1[j] = 1.0;
+        }
+        values01.push_back(temp1);
+    }
+
+    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+
+    timer::Timer time_all_trans, full_time;
+    std::vector<double> result;
+    
+//    empirical_quantile::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
+//    quant_expl.set_sample(sample_int);
+//    full_time.reset();
+//    time_all_trans.reset();
+//    for(size_t i = 0; i != values01.size(); i++)
+//        quant_expl.transform(values01[i], sampled[i]);
+//    result.push_back(time_all_trans.elapsed_seconds());
+//    result.push_back(result.back()/double(sampled.size()));
+//    result.push_back(full_time.elapsed_seconds());
+//    for(size_t i = 0; i != sampled.size(); i++)
+//    {
+//        for(size_t j = 0; j != sampled[i].size(); j++)
+//        {
+//            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+//            {
+//                std::cout << "beyond bounds" << std::endl;
+//                std::cout << sampled[i][j] << std::endl;
+//            }
+//        }
+//    }
+
+    empirical_quantile::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+    full_time.reset();
+    quant_impl.set_sample_shared(sample);
+    time_all_trans.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impl.transform(values01[i], sampled[i]);
+    result.push_back(time_all_trans.elapsed_seconds());
+    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(full_time.elapsed_seconds());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+
+    empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+    full_time.reset();
+    quant_impls.set_sample_shared(sample);
+    time_all_trans.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impls.transform(values01[i], sampled[i]);
+    result.push_back(time_all_trans.elapsed_seconds());
+    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(full_time.elapsed_seconds());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+    return result;
+}
+
+
+
+void grid_test_2d()
+{
+    size_t N = 2;
+    std::vector<size_t> g(N, 1440);
+    std::vector<float> lb(N, -acos(-1.0));
+    std::vector<float> ub(N, acos(-1.0));
+    auto rez = test_2d_time(g, lb, ub, 1e6, 1e4);
+    for(const auto &i : rez)
+        std::cout << std::scientific << i << '\t';
+    std::cout << std::endl;
+}

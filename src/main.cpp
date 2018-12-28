@@ -23,11 +23,11 @@
 #include <random>
 #include <algorithm>
 
-
 #include "timer.h"
 #include "trie_based.h"
 #include "quantile.h"
 #include "test.h"
+#include "data_io.h"
 
 float empirical_cdf(std::vector<float> &sorted_sample, float val)
 {
@@ -562,5 +562,19 @@ int main()
 
     /// grid and dim test
 //    grid_test_Nd();
-    dim_test_Nd();
+//    dim_test_Nd();
+
+
+//    size_t N = 1;
+//    std::vector<size_t> g(N);
+//    for(size_t i = 0; i != N; i++)
+//    {
+//        g[i] = 100;
+//    }
+//    std::cout << std::endl;
+//    std::vector<float> lb(N, -10);
+//    std::vector<float> ub(N, 10);
+//    test_Nd(g, lb, ub, 50, 1e5);
+
+    grid_test_2d();
 }
