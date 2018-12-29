@@ -50,4 +50,6 @@ void dim_test_Nd();
 
 void grid_test_2d();
 
+void sample_size_test(size_t dim);
+
 #endif

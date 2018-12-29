@@ -576,5 +576,6 @@ int main()
 //    std::vector<float> ub(N, 10);
 //    test_Nd(g, lb, ub, 50, 1e5);
 
-    grid_test_2d();
+//    grid_test_2d();
+    sample_size_test(10);
 }
