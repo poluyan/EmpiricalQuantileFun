@@ -1645,10 +1645,10 @@ void grid_test_2d()
     std::cout << std::endl;
 }
 
-std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
+std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls, size_t seed_append)
 {
     std::mt19937_64 generator;
-    generator.seed(1 + gridN.size() + gridN.front());
+    generator.seed(1 + gridN.size() + gridN.front() + Nsamples + seed_append);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
     typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
@@ -1756,15 +1756,28 @@ std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector
 
 void sample_size_test(size_t dim)
 {
-    for(size_t sample_size = 1000000; sample_size < 10000000 + 1; sample_size+=1000000)
+    for(size_t sample_size = 1e5; sample_size < 1e6 + 1; sample_size+=1e5)
     {
         std::cout << sample_size << '\t';
-        std::vector<size_t> g(dim, 100);
-        std::vector<float> lb(dim, -1.0);
-        std::vector<float> ub(dim, 1.0);
-        auto rez = sample_size_procedure(g, lb, ub, sample_size, 1e2);
-        for(const auto &i : rez)
-            std::cout << std::scientific << i << '\t';
+        std::vector<double> times;
+        for(size_t i = 0; i != 30; i++)
+        {
+            std::vector<size_t> g(dim, 100);
+            std::vector<float> lb(dim, -1.0);
+            std::vector<float> ub(dim, 1.0);
+            auto rez = sample_size_procedure(g, lb, ub, sample_size, 1e1, i);
+            times.resize(rez.size());
+            for(size_t j = 0; j != times.size(); j++)
+            {
+                times[j] += rez[j];
+            }
+        }
+        for(size_t j = 0; j != times.size(); j++)
+        {
+            times[j] /= double(times.size());
+        }
+        for(const auto &i : times)
+                std::cout << std::scientific << i << '\t';
         std::cout << std::endl;
     }
 }
