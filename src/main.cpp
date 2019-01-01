@@ -579,6 +579,6 @@ int main()
 //    grid_test_2d();
 //    sample_size_test(10);
 
-
-    worst_space_test_grid();
+    worst_space_test_dim();
+//    worst_space_test_grid();
 }

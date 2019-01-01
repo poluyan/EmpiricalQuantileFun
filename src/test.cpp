@@ -1814,7 +1814,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
     {
         sample->insert(sample_int[i]);
     }
-    
+
     std::vector<std::vector<float> > values01;
 
     std::vector<float> temp1(gridN.size());
@@ -1902,33 +1902,64 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
 
 void worst_space_test_dim()
 {
+    size_t tries = 50, nrolls = 1e2, grid_size = 10;
     for(size_t dim = 1; dim != 7; dim++)
     {
         std::cout << dim << '\t';
-        std::vector<size_t> g(dim, 10);
-        std::vector<float> lb(dim, -1.0);
-        std::vector<float> ub(dim, 1.0);
-        auto rez = worst_space(g, lb, ub, 1e2, 1);
+        std::vector<double> times;
+        for(size_t i = 0; i != tries; i++)
+        {
+            std::vector<size_t> g(dim, grid_size);
+            std::vector<float> lb(dim, -1.0);
+            std::vector<float> ub(dim, 1.0);
+            auto rez = worst_space(g, lb, ub, nrolls, i);
 
-        for(const auto &i : rez)
+            times.resize(rez.size());
+            for(size_t j = 0; j != times.size(); j++)
+            {
+                times[j] += rez[j];
+            }
+        }
+        for(size_t j = 0; j != times.size(); j++)
+        {
+            times[j] /= double(tries);
+        }
+        for(const auto &i : times)
             std::cout << std::scientific << i << '\t';
-        std::cout << std::endl;
+        std::vector<size_t> g(dim, grid_size);
+        std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
+        std::cout << '\t' << grid_size << '^' << dim << std::endl;
     }
 }
 
 void worst_space_test_grid()
 {
-    size_t dim = 4;
+    size_t dim = 4, tries = 50, nrolls = 1e2;
     for(size_t grid_size = 1; grid_size != 31; grid_size++)
     {
         std::cout << grid_size << '\t';
-        std::vector<size_t> g(dim, grid_size);
-        std::vector<float> lb(dim, -1.0);
-        std::vector<float> ub(dim, 1.0);
-        auto rez = worst_space(g, lb, ub, 1e3, 1); // constant seed
+        std::vector<double> times;
+        for(size_t i = 0; i != tries; i++)
+        {
+            std::vector<size_t> g(dim, grid_size);
+            std::vector<float> lb(dim, -1.0);
+            std::vector<float> ub(dim, 1.0);
+            auto rez = worst_space(g, lb, ub, nrolls, i);
 
-        for(const auto &i : rez)
+            times.resize(rez.size());
+            for(size_t j = 0; j != times.size(); j++)
+            {
+                times[j] += rez[j];
+            }
+        }
+        for(size_t j = 0; j != times.size(); j++)
+        {
+            times[j] /= double(tries);
+        }
+        for(const auto &i : times)
             std::cout << std::scientific << i << '\t';
-        std::cout << std::endl;
+        std::vector<size_t> g(dim, grid_size);
+        std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
+        std::cout << '\t' << grid_size << '^' << dim << std::endl;
     }
 }
