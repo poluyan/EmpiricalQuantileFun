@@ -577,5 +577,8 @@ int main()
 //    test_Nd(g, lb, ub, 50, 1e5);
 
 //    grid_test_2d();
-    sample_size_test(10);
+//    sample_size_test(10);
+
+
+    worst_space_test_grid();
 }

@@ -1777,7 +1777,158 @@ void sample_size_test(size_t dim)
             times[j] /= double(times.size());
         }
         for(const auto &i : times)
-                std::cout << std::scientific << i << '\t';
+            std::cout << std::scientific << i << '\t';
+        std::cout << std::endl;
+    }
+}
+
+
+
+
+
+
+///
+
+
+std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nrolls, size_t seed_append)
+{
+    std::mt19937_64 generator;
+    generator.seed(1 + gridN.size() + gridN.front() + seed_append);
+    std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+    typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+
+    std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
+    for(size_t i = 0; i != gridN.size(); i++)
+    {
+        variable_values[i].resize(gridN[i]);
+        for(size_t j = 0; j != gridN[i]; j++)
+        {
+            variable_values[i][j] = j;
+        }
+    }
+    std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
+
+    for(size_t i = 0; i != sample_int.size(); i++)
+    {
+        sample->insert(sample_int[i]);
+    }
+    
+    std::vector<std::vector<float> > values01;
+
+    std::vector<float> temp1(gridN.size());
+    std::vector<float> temp2(temp1.size());
+
+    for(size_t i = 0; i != Nrolls; ++i)
+    {
+        for(size_t j = 0; j != temp1.size(); j++)
+        {
+            temp1[j] = ureal01(generator);
+        }
+        values01.push_back(temp1);
+    }
+
+    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+
+    timer::Timer time_all_trans, full_time;
+    std::vector<double> result;
+
+    empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+    quant_expl.set_sample(sample_int);
+    full_time.reset();
+    time_all_trans.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_expl.transform(values01[i], sampled[i]);
+    result.push_back(time_all_trans.elapsed_seconds());
+    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(full_time.elapsed_seconds());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+
+    empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+    full_time.reset();
+    quant_impl.set_sample_shared(sample);
+    time_all_trans.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impl.transform(values01[i], sampled[i]);
+    result.push_back(time_all_trans.elapsed_seconds());
+    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(full_time.elapsed_seconds());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+
+    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+    full_time.reset();
+    quant_impls.set_sample_shared(sample);
+    time_all_trans.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_impls.transform(values01[i], sampled[i]);
+    result.push_back(time_all_trans.elapsed_seconds());
+    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(full_time.elapsed_seconds());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+    return result;
+}
+
+
+void worst_space_test_dim()
+{
+    for(size_t dim = 1; dim != 7; dim++)
+    {
+        std::cout << dim << '\t';
+        std::vector<size_t> g(dim, 10);
+        std::vector<float> lb(dim, -1.0);
+        std::vector<float> ub(dim, 1.0);
+        auto rez = worst_space(g, lb, ub, 1e2, 1);
+
+        for(const auto &i : rez)
+            std::cout << std::scientific << i << '\t';
+        std::cout << std::endl;
+    }
+}
+
+void worst_space_test_grid()
+{
+    size_t dim = 4;
+    for(size_t grid_size = 1; grid_size != 31; grid_size++)
+    {
+        std::cout << grid_size << '\t';
+        std::vector<size_t> g(dim, grid_size);
+        std::vector<float> lb(dim, -1.0);
+        std::vector<float> ub(dim, 1.0);
+        auto rez = worst_space(g, lb, ub, 1e3, 1); // constant seed
+
+        for(const auto &i : rez)
+            std::cout << std::scientific << i << '\t';
         std::cout << std::endl;
     }
 }
