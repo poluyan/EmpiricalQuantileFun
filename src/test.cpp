@@ -1756,11 +1756,12 @@ std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector
 
 void sample_size_test(size_t dim)
 {
+    size_t tries = 30;
     for(size_t sample_size = 1e5; sample_size < 1e6 + 1; sample_size+=1e5)
     {
         std::cout << sample_size << '\t';
         std::vector<double> times;
-        for(size_t i = 0; i != 30; i++)
+        for(size_t i = 0; i != tries; i++)
         {
             std::vector<size_t> g(dim, 100);
             std::vector<float> lb(dim, -1.0);
@@ -1774,7 +1775,7 @@ void sample_size_test(size_t dim)
         }
         for(size_t j = 0; j != times.size(); j++)
         {
-            times[j] /= double(times.size());
+            times[j] /= double(tries);
         }
         for(const auto &i : times)
             std::cout << std::scientific << i << '\t';

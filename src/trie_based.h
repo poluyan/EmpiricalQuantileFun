@@ -52,7 +52,7 @@ struct NodeCount: public TrieNode<NodeCount, I>
 template <typename T, typename I>
 class TrieBased
 {
-private:
+protected:
     size_t dimension;
 public:
     std::shared_ptr<T> root;
@@ -61,17 +61,19 @@ public:
     TrieBased(size_t dim);
     ~TrieBased();
     void set_dimension(size_t dim);
+    size_t get_dimension() const;
     void insert(const std::vector<I> &key);
     bool search(const std::vector<I> &key) const;
     void fill_tree_count();
-    void fill_tree_count(T *p);
-    void get_number(T *p, size_t &count) const;
     bool empty() const;
     void remove_tree();
-    void is_all_empty(T *p) const;
     size_t get_total_count() const;
-    void delete_last(int dim);
     std::vector<I> get_and_remove_last();
+protected:
+    void fill_tree_count(T *p);
+    void get_number(T *p, size_t &count) const;
+    void is_all_empty(T *p) const;
+    void delete_last(int dim);
 };
 template <typename T, typename I>
 TrieBased<T,I>::TrieBased()
@@ -90,7 +92,11 @@ void TrieBased<T,I>::set_dimension(size_t dim)
 {
     dimension = dim;
 }
-
+template <typename T, typename I>
+size_t TrieBased<T,I>::get_dimension() const
+{
+    return dimension;
+}
 template <typename T, typename I>
 bool TrieBased<T,I>::empty() const
 {
@@ -279,6 +285,5 @@ void TrieBased<T,I>::get_number(T *p, size_t &count) const
     }
 }
 }
-
 
 #endif

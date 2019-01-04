@@ -435,7 +435,7 @@ protected:
     using sample_type = typename ImplicitQuantile<T, U>::sample_type;
     void sort_layer(trie_based::NodeCount<T> *p);
 
-    size_t count_less_binary(trie_based::NodeCount<T> *layer, T m) const;
+    size_t count_less_binary(trie_based::NodeCount<T> *layer, T target) const;
     std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, const std::vector<size_t> &row2, size_t ind, U val01) const;
 public:
     ImplicitQuantileSorted();
