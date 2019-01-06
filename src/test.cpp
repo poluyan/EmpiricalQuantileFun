@@ -1834,28 +1834,28 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
 
     timer::Timer time_all_trans, full_time;
     std::vector<double> result;
-
+/*
     empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
     quant_expl.set_sample(sample_int);
     full_time.reset();
     time_all_trans.reset();
-    for(size_t i = 0; i != values01.size(); i++)
+    for(size_t i = 0; i != 10; i++)
         quant_expl.transform(values01[i], sampled[i]);
     result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(result.back()/double(10));
     result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-        for(size_t j = 0; j != sampled[i].size(); j++)
-        {
-            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-            {
-                std::cout << "beyond bounds" << std::endl;
-                std::cout << sampled[i][j] << std::endl;
-            }
-        }
-    }
-
+//    for(size_t i = 0; i != sampled.size(); i++)
+//    {
+//        for(size_t j = 0; j != sampled[i].size(); j++)
+//        {
+//            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+//            {
+//                std::cout << "beyond bounds" << std::endl;
+//                std::cout << sampled[i][j] << std::endl;
+//            }
+//        }
+//    }
+*/
     empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
     full_time.reset();
     quant_impl.set_sample_shared(sample);
@@ -1903,7 +1903,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
 
 void worst_space_test_dim()
 {
-    size_t tries = 50, nrolls = 1e2, grid_size = 10;
+    size_t tries = 50, nrolls = 1e5, grid_size = 10;
     for(size_t dim = 1; dim != 7; dim++)
     {
         std::cout << dim << '\t';
@@ -1935,8 +1935,40 @@ void worst_space_test_dim()
 
 void worst_space_test_grid()
 {
-    size_t dim = 4, tries = 50, nrolls = 1e2;
-    for(size_t grid_size = 1; grid_size != 31; grid_size++)
+    size_t dim = 4, tries = 50, nrolls = 1e5;
+    for(size_t grid_size = 1; grid_size != 33; grid_size++)
+    {
+        std::cout << grid_size << '\t';
+        std::vector<double> times;
+        for(size_t i = 0; i != tries; i++)
+        {
+            std::vector<size_t> g(dim, grid_size);
+            std::vector<float> lb(dim, -1.0);
+            std::vector<float> ub(dim, 1.0);
+            auto rez = worst_space(g, lb, ub, nrolls, i);
+
+            times.resize(rez.size());
+            for(size_t j = 0; j != times.size(); j++)
+            {
+                times[j] += rez[j];
+            }
+        }
+        for(size_t j = 0; j != times.size(); j++)
+        {
+            times[j] /= double(tries);
+        }
+        for(const auto &i : times)
+            std::cout << std::scientific << i << '\t';
+        std::vector<size_t> g(dim, grid_size);
+        std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
+        std::cout << '\t' << grid_size << '^' << dim << std::endl;
+    }
+}
+
+void worst_space_test_grid_2d()
+{
+    size_t dim = 2, tries = 50, nrolls = 1e5;
+    for(size_t grid_size = 1; grid_size != 100 + 1; grid_size++)
     {
         std::cout << grid_size << '\t';
         std::vector<double> times;

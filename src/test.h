@@ -100,4 +100,6 @@ std::vector<std::vector<T>> iterate(const std::vector<std::vector<T>> &v)
 void worst_space_test_dim();
 void worst_space_test_grid();
 
+void worst_space_test_grid_2d();
+
 #endif
