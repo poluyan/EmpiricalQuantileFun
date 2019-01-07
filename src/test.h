@@ -97,6 +97,17 @@ std::vector<std::vector<T>> iterate(const std::vector<std::vector<T>> &v)
     return values;
 }
 
+template <typename T>
+void iterate_trie(const std::vector<std::vector<T>> &v, std::shared_ptr<trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t>> sample)
+{
+    std::vector<size_t> it(v.size(), 0);
+    do
+    {
+        sample->insert(get_line(v, it));
+    }
+    while(increase(v, it));
+}
+
 void worst_space_test_dim();
 void worst_space_test_grid();
 

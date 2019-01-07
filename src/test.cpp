@@ -2012,31 +2012,22 @@ void worst_space_(std::vector<size_t> gridN, std::vector<float> lb, std::vector<
             variable_values[i][j] = j;
         }
     }
-        
-    std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
-    
-    variable_values.clear();
-    variable_values.shrink_to_fit();
 
     if(impl)
     {
         typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
         std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
     
-        for(size_t i = 0; i != sample_int.size(); i++)
-        {
-            sample->insert(sample_int[i]);
-        }
-        sample_int.clear();
-        sample_int.shrink_to_fit();
-        
+        iterate_trie(variable_values, sample);
+
         empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
         quant_impl.set_sample_shared(sample);
     }
     else
     {
+        std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
         empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
-        quant_expl.set_sample(sample_int);
+        //quant_expl.set (sample_int);
     }
     
 //    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
