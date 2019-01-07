@@ -581,5 +581,7 @@ int main()
 
 //    worst_space_test_dim();
 //    worst_space_test_grid();
-    worst_space_test_grid_2d();
+//    worst_space_test_grid_2d();
+
+    worst_space_check();
 }

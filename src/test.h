@@ -102,4 +102,6 @@ void worst_space_test_grid();
 
 void worst_space_test_grid_2d();
 
+void worst_space_check();
+
 #endif

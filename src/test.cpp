@@ -1834,7 +1834,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
 
     timer::Timer time_all_trans, full_time;
     std::vector<double> result;
-/*
+
     empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
     quant_expl.set_sample(sample_int);
     full_time.reset();
@@ -1844,18 +1844,18 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
     result.push_back(time_all_trans.elapsed_seconds());
     result.push_back(result.back()/double(10));
     result.push_back(full_time.elapsed_seconds());
-//    for(size_t i = 0; i != sampled.size(); i++)
-//    {
-//        for(size_t j = 0; j != sampled[i].size(); j++)
-//        {
-//            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-//            {
-//                std::cout << "beyond bounds" << std::endl;
-//                std::cout << sampled[i][j] << std::endl;
-//            }
-//        }
-//    }
-*/
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+
     empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
     full_time.reset();
     quant_impl.set_sample_shared(sample);
@@ -1967,7 +1967,7 @@ void worst_space_test_grid()
 
 void worst_space_test_grid_2d()
 {
-    size_t dim = 2, tries = 50, nrolls = 1e5;
+    size_t dim = 2, tries = 50, nrolls = 1e6;
     for(size_t grid_size = 1; grid_size != 100 + 1; grid_size++)
     {
         std::cout << grid_size << '\t';
@@ -1995,4 +1995,75 @@ void worst_space_test_grid_2d()
         std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
         std::cout << '\t' << grid_size << '^' << dim << std::endl;
     }
+}
+
+
+
+
+
+void worst_space_(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, bool impl)
+{
+    std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
+    for(size_t i = 0; i != gridN.size(); i++)
+    {
+        variable_values[i].resize(gridN[i]);
+        for(size_t j = 0; j != gridN[i]; j++)
+        {
+            variable_values[i][j] = j;
+        }
+    }
+        
+    std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
+    
+    variable_values.clear();
+    variable_values.shrink_to_fit();
+
+    if(impl)
+    {
+        typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+        std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+    
+        for(size_t i = 0; i != sample_int.size(); i++)
+        {
+            sample->insert(sample_int[i]);
+        }
+        sample_int.clear();
+        sample_int.shrink_to_fit();
+        
+        empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+        quant_impl.set_sample_shared(sample);
+    }
+    else
+    {
+        empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+        quant_expl.set_sample(sample_int);
+    }
+    
+//    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+//    quant_impls.set_sample_shared(sample);
+}
+
+
+void worst_space_check()
+{
+    size_t dim = 2, grid_size = 10;
+    
+    //std::cin >> dim;
+   
+    std::vector<size_t> g(dim, grid_size);
+    std::vector<float> lb(dim, -1.0);
+    std::vector<float> ub(dim, 1.0);
+    worst_space_(g, lb, ub, false);
+    std::cout << "hit it" << std::endl;
+    //std::cin.get();
+    //std::cin.get();
+    
+    // g=10, d=1  
+    // g=10, d=2
+    // g=10, d=3
+    // g=10, d=4
+    // g=10, d=5
+    // g=10, d=6
+    // g=10, d=7
+    // g=10, d=8
 }
