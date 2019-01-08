@@ -97,8 +97,8 @@ std::vector<std::vector<T>> iterate(const std::vector<std::vector<T>> &v)
     return values;
 }
 
-template <typename T>
-void iterate_trie(const std::vector<std::vector<T>> &v, std::shared_ptr<trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t>> sample)
+template <typename T, typename I>
+void iterate_trie(const std::vector<std::vector<T>> &v, std::shared_ptr<trie_based::TrieBased<trie_based::NodeCount<I>,I>> sample)
 {
     std::vector<size_t> it(v.size(), 0);
     do

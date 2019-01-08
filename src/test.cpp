@@ -19,6 +19,8 @@
 #include "test.h"
 #include "data_io.h"
 #include <random>
+#include <chrono>
+#include <thread>
 
 void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)
 {
@@ -2001,7 +2003,7 @@ void worst_space_test_grid_2d()
 
 
 
-void worst_space_(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, bool impl)
+void worst_space_f(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, bool impl)
 {
     std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
     for(size_t i = 0; i != gridN.size(); i++)
@@ -2034,20 +2036,65 @@ void worst_space_(std::vector<size_t> gridN, std::vector<float> lb, std::vector<
 //    quant_impls.set_sample_shared(sample);
 }
 
+void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vector<double> ub, bool impl)
+{
+    std::vector<std::vector<int>> variable_values(gridN.size());
+    for(size_t i = 0; i != gridN.size(); i++)
+    {
+        variable_values[i].resize(gridN[i]);
+        for(size_t j = 0; j != gridN[i]; j++)
+        {
+            variable_values[i][j] = j;
+        }
+    }
+
+    if(impl)
+    {
+        typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+        std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+    
+        iterate_trie(variable_values, sample);
+
+        empirical_quantile::ImplicitQuantile<int, double> quant_impl(lb, ub, gridN);
+        quant_impl.set_sample_shared(sample);
+    }
+    else
+    {
+        std::vector<std::vector<int>> sample_int = iterate(variable_values);
+        empirical_quantile::ExplicitQuantile<int, double> quant_expl(lb, ub, gridN);
+        //quant_expl.set (sample_int);
+    }
+    
+//    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+//    quant_impls.set_sample_shared(sample);
+}
+
 
 void worst_space_check()
 {
-    size_t dim = 2, grid_size = 10;
+    size_t dim = 3, grid_size = 100;
     
     //std::cin >> dim;
    
     std::vector<size_t> g(dim, grid_size);
-    std::vector<float> lb(dim, -1.0);
-    std::vector<float> ub(dim, 1.0);
-    worst_space_(g, lb, ub, false);
+    std::vector<double> lb(dim, -1.0);
+    std::vector<double> ub(dim, 1.0);
+    worst_space_d(g, lb, ub, false);
     std::cout << "hit it" << std::endl;
     //std::cin.get();
     //std::cin.get();
+    
+    std::chrono::seconds dura( 10 );
+    std::this_thread::sleep_for( dura );
+    
+    // g=100, d=3
+    // g=100, d=3
+    // g=200, d=3
+    // g=300, d=3
+    // g=400, d=3
+    // g=500, d=3
+    // g=600, d=3
+    // g=700, d=3
     
     // g=10, d=1  
     // g=10, d=2
