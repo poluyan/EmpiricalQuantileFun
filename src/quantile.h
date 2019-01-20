@@ -95,7 +95,7 @@ public:
     ExplicitQuantile();
     ExplicitQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
     using Quantile<T, U>::set_grid_and_gridn;
-    void set_sample(std::vector<std::vector<T>> in_sample);
+    void set_sample(const std::vector<std::vector<T>> &in_sample);
     void set_sample(std::shared_ptr<sample_type> in_sample);
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
 };
@@ -113,7 +113,7 @@ ExplicitQuantile<T, U>::ExplicitQuantile(std::vector<U> in_lb,
 }
 
 template <typename T, typename U>
-void ExplicitQuantile<T, U>::set_sample(std::vector<std::vector<T>> in_sample)
+void ExplicitQuantile<T, U>::set_sample(const std::vector<std::vector<T>> &in_sample)
 {
     sample = std::make_shared< std::vector<std::vector<U>> >();
     for(size_t i = 0; i != in_sample.size(); ++i)

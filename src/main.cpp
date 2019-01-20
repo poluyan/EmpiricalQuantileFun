@@ -584,4 +584,5 @@ int main()
 //    worst_space_test_grid_2d();
 
     worst_space_check();
+    //std::vector<std::vector<double>> x(100,std::vector<double>(10));
 }

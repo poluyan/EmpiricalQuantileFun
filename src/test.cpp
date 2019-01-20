@@ -526,9 +526,9 @@ void test_2d1()
     sample_implicit.push_back(std::vector{6,4});
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n nrolls = 2e3
-    explicit_quantile(-3, 3, grid_number, sample_implicit, 1);
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1);
-    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1);
+    explicit_quantile(-3, 3, grid_number, sample_implicit, 2e3);
+    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e3);
+    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e3);
 }
 
 void test_2d2()
@@ -2019,19 +2019,29 @@ void worst_space_f(std::vector<size_t> gridN, std::vector<float> lb, std::vector
     {
         typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
         std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-    
+
         iterate_trie(variable_values, sample);
 
         empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
         quant_impl.set_sample_shared(sample);
+
+        std::cout << "hit it" << std::endl;
+        std::chrono::seconds dura(1000);
+        std::this_thread::sleep_for(dura);
     }
     else
     {
         std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
         empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
-        //quant_expl.set (sample_int);
+//        quant_expl.set_sample(sample_int);
+//        sample_int.clear();
+//        sample_int.shrink_to_fit();
+
+        std::cout << "hit it" << std::endl;
+        std::chrono::seconds dura(1000);
+        std::this_thread::sleep_for(dura);
     }
-    
+
 //    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
 //    quant_impls.set_sample_shared(sample);
 }
@@ -2052,19 +2062,29 @@ void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vecto
     {
         typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
         std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-    
+
         iterate_trie(variable_values, sample);
 
         empirical_quantile::ImplicitQuantile<int, double> quant_impl(lb, ub, gridN);
         quant_impl.set_sample_shared(sample);
+
+        std::cout << "hit it" << std::endl;
+        std::chrono::seconds dura(1000);
+        std::this_thread::sleep_for(dura);
     }
     else
     {
         std::vector<std::vector<int>> sample_int = iterate(variable_values);
         empirical_quantile::ExplicitQuantile<int, double> quant_expl(lb, ub, gridN);
-        //quant_expl.set (sample_int);
+//        quant_expl.set_sample(sample_int);
+//        sample_int.clear();
+//        sample_int.shrink_to_fit();
+
+        std::cout << "hit it" << std::endl;
+        std::chrono::seconds dura(1000);
+        std::this_thread::sleep_for(dura);
     }
-    
+
 //    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
 //    quant_impls.set_sample_shared(sample);
 }
@@ -2072,36 +2092,10 @@ void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vecto
 
 void worst_space_check()
 {
-    size_t dim = 3, grid_size = 100;
-    
-    //std::cin >> dim;
-   
+    size_t dim = 8, grid_size = 8;
+
     std::vector<size_t> g(dim, grid_size);
     std::vector<double> lb(dim, -1.0);
     std::vector<double> ub(dim, 1.0);
-    worst_space_d(g, lb, ub, false);
-    std::cout << "hit it" << std::endl;
-    //std::cin.get();
-    //std::cin.get();
-    
-    std::chrono::seconds dura( 10 );
-    std::this_thread::sleep_for( dura );
-    
-    // g=100, d=3
-    // g=100, d=3
-    // g=200, d=3
-    // g=300, d=3
-    // g=400, d=3
-    // g=500, d=3
-    // g=600, d=3
-    // g=700, d=3
-    
-    // g=10, d=1  
-    // g=10, d=2
-    // g=10, d=3
-    // g=10, d=4
-    // g=10, d=5
-    // g=10, d=6
-    // g=10, d=7
-    // g=10, d=8
+    worst_space_d(g, lb, ub, true);
 }

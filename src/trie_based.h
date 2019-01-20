@@ -126,12 +126,8 @@ void TrieBased<T,I>::insert(const std::vector<I> &key)
         if(it == p->children.end())
         {
             p->children.emplace_back(std::make_shared<T>(value));
+            p->children.shrink_to_fit();
             p = p->children.back().get();
-            
-//            auto it = std::lower_bound(p->children.begin(), p->children.end(), value,
-//                [](const std::shared_ptr<T> &l, I r){return l->index < r;});
-//            p->children.insert(it, std::make_shared<T>(value));
-//            p = p->children[std::distance(p->children.begin(), it)].get();
         }
         else
         {
@@ -147,6 +143,7 @@ void TrieBased<T,I>::insert(const std::vector<I> &key)
     if(it == last_layer.end())
     {
         last_layer.emplace_back(std::make_shared<T>(value));
+        last_layer.shrink_to_fit();
         dist = last_layer.size() - 1;
     }
     else
@@ -162,6 +159,7 @@ void TrieBased<T,I>::insert(const std::vector<I> &key)
     {
         std::shared_ptr<T> ptr(last_layer[dist]);
         p->children.push_back(ptr);
+        p->children.shrink_to_fit();
     }
 }
 template <typename T, typename I>
