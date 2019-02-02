@@ -158,7 +158,7 @@ void TrieBased<T,I>::insert(const std::vector<I> &key)
     if(it == p->children.end())
     {
         std::shared_ptr<T> ptr(last_layer[dist]);
-        p->children.push_back(ptr);
+        p->children.emplace_back(ptr);
         p->children.shrink_to_fit();
     }
 }

@@ -438,13 +438,7 @@ void test_1d1()
 {
     std::vector<size_t> grid_number = {6};
 
-    std::vector<std::vector<int>> sample_implicit;
-    sample_implicit.push_back(std::vector{0});
-    sample_implicit.push_back(std::vector{1});
-    sample_implicit.push_back(std::vector{2});
-    sample_implicit.push_back(std::vector{3});
-    sample_implicit.push_back(std::vector{4});
-    sample_implicit.push_back(std::vector{5});
+    std::vector<std::vector<int>> sample_implicit = {{0},{1},{2},{3},{4},{5}};
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(-2, 4, grid_number, sample_implicit, 1e+3);
@@ -456,8 +450,7 @@ void test_1d5()
 {
     std::vector<size_t> grid_number = {6};
 
-    std::vector<std::vector<int>> sample_implicit;
-    sample_implicit.push_back(std::vector{3});
+    std::vector<std::vector<int>> sample_implicit = {{3}};
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(-2, 4, grid_number, sample_implicit, 1e3);
@@ -486,10 +479,7 @@ void test_1d2()
         dx[i] = es/(float(grid_number[i])*2);
     }
 
-    std::vector<std::vector<int>> sample_implicit;
-    sample_implicit.push_back(std::vector{4});
-    sample_implicit.push_back(std::vector{1});
-    sample_implicit.push_back(std::vector{3});
+    std::vector<std::vector<int>> sample_implicit = {{4},{1},{3}};
     //sample_implicit.push_back(std::vector{8});
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
@@ -503,29 +493,31 @@ void test_2d1()
 {
     std::vector<size_t> grid_number = {9, 10};
 
-    std::vector<std::vector<int>> sample_implicit;
-    sample_implicit.push_back(std::vector{2,6});
+    std::vector<std::vector<int>> sample_implicit =
+    {
+        {2,6},
 
-    sample_implicit.push_back(std::vector{3,2});
-    sample_implicit.push_back(std::vector{3,3});
-    sample_implicit.push_back(std::vector{3,5});
-    sample_implicit.push_back(std::vector{3,6});
-    sample_implicit.push_back(std::vector{3,7});
+        {3,2},
+        {3,3},
+        {3,5},
+        {3,6},
+        {3,7},
 
-    sample_implicit.push_back(std::vector{4,5});
-    sample_implicit.push_back(std::vector{4,6});
-    sample_implicit.push_back(std::vector{4,7});
+        {4,5},
+        {4,6},
+        {4,7},
 
-    sample_implicit.push_back(std::vector{5,3});
-    sample_implicit.push_back(std::vector{5,4});
-    sample_implicit.push_back(std::vector{5,5});
-    sample_implicit.push_back(std::vector{5,6});
-    sample_implicit.push_back(std::vector{5,7});
+        {5,3},
+        {5,4},
+        {5,5},
+        {5,6},
+        {5,7},
 
-    sample_implicit.push_back(std::vector{6,3});
-    sample_implicit.push_back(std::vector{6,4});
+        {6,3},
+        {6,4}
+    };
 
-    /// multivariate quantile function [0,1]^n -> [-3,3]^n nrolls = 2e3
+/// multivariate quantile function [0,1]^n -> [-3,3]^n nrolls = 2e3
     explicit_quantile(-3, 3, grid_number, sample_implicit, 2e3);
     implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e3);
     implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e3);
@@ -566,24 +558,27 @@ void test_3d1()
 //    sample_implicit.push_back(std::vector{1, 2, 3, 4, 5, 6, 2, 0, 0, 2});
 
     // 0 a,       1 b,         2 c,           3 d,             4 e
-    sample_implicit.push_back(std::vector{1,0,0}); // baa
-    sample_implicit.push_back(std::vector{2,0,0}); // caa
-    sample_implicit.push_back(std::vector{4,0,0}); // eaa
-    sample_implicit.push_back(std::vector{0,2,0}); // aca
-    sample_implicit.push_back(std::vector{4,4,0}); // eea
-    sample_implicit.push_back(std::vector{4,3,0}); // eda
-    sample_implicit.push_back(std::vector{3,3,0}); // dda
+    sample_implicit =
+    {
+        {1,0,0}, /* baa */
+        {2,0,0}, /* caa */
+        {4,0,0}, /* eaa */
+        {0,2,0}, /* aca */
+        {4,4,0}, /* eea */
+        {4,3,0}, /* eda */
+        {3,3,0}, /* dda */
 
-    sample_implicit.push_back(std::vector{0,0,1}); // aab
+        {0,0,1}, /* aab */
 
-    sample_implicit.push_back(std::vector{3,0,2}); // dac
-    sample_implicit.push_back(std::vector{0,3,2}); // adc
+        {3,0,2}, /* dac */
+        {0,3,2}, /* adc */
 
-    sample_implicit.push_back(std::vector{0,3,3}); // add
+        {0,3,3}, /* add */
 
-    sample_implicit.push_back(std::vector{2,0,4}); // cae
-    sample_implicit.push_back(std::vector{2,1,4}); // cbe
-    sample_implicit.push_back(std::vector{2,2,4}); // cce
+        {2,0,4}, /* cae */
+        {2,1,4}, /* cbe */
+        {2,2,4} /* cce */
+    };
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(0, 5, grid_number, sample_implicit, 1e+3);
@@ -606,42 +601,44 @@ void test_3d2()
 //    sample_implicit.push_back(std::vector{1, 2, 3, 4, 5, 6, 2, 0, 0, 2});
 
     // 0 a,       1 b,         2 c,           3 d,             4 e
-    sample_implicit.push_back(std::vector{0,0,0}); // aaa
-    sample_implicit.push_back(std::vector{0,0,0}); // aab
-    sample_implicit.push_back(std::vector{0,0,0}); // aac
+    sample_implicit =
+    {
+        {0,0,0}, /* aaa */
+        {0,0,0}, /* aab */
+        {0,0,0}, /* aac */
 
-    sample_implicit.push_back(std::vector{0,2,0}); // aba
-    sample_implicit.push_back(std::vector{4,4,0}); // abb
-    sample_implicit.push_back(std::vector{4,3,0}); // abc
+        {0,2,0}, /* aba */
+        {4,4,0}, /* abb */
+        {4,3,0}, /* abc */
 
-    sample_implicit.push_back(std::vector{3,3,0}); // aca
-    sample_implicit.push_back(std::vector{3,3,0}); // acb
-    sample_implicit.push_back(std::vector{3,3,0}); // acc
+        {3,3,0}, /* aca */
+        {3,3,0}, /* acb */
+        {3,3,0}, /* acc */
 
-    sample_implicit.push_back(std::vector{3,3,0}); // baa
-    sample_implicit.push_back(std::vector{3,3,0}); // bab
-    sample_implicit.push_back(std::vector{3,3,0}); // bac
+        {3,3,0}, /* baa */
+        {3,3,0}, /* bab */
+        {3,3,0}, /* bac */
 
-    sample_implicit.push_back(std::vector{3,3,0}); // bba
-    sample_implicit.push_back(std::vector{3,3,0}); // bbb
-    sample_implicit.push_back(std::vector{3,3,0}); // bbc
+        {3,3,0}, /* bba */
+        {3,3,0}, /* bbb */
+        {3,3,0}, /* bbc */
 
-    sample_implicit.push_back(std::vector{3,3,0}); // bca
-    sample_implicit.push_back(std::vector{3,3,0}); // bcb
-    sample_implicit.push_back(std::vector{3,3,0}); // bcc
+        {3,3,0}, /* bca */
+        {3,3,0}, /* bcb */
+        {3,3,0}, /* bcc */
 
-    sample_implicit.push_back(std::vector{3,3,0}); // caa
-    sample_implicit.push_back(std::vector{3,3,0}); // cab
-    sample_implicit.push_back(std::vector{0,0,1}); // cac
+        {3,3,0}, /* caa */
+        {3,3,0}, /* cab */
+        {0,0,1}, /* cac */
 
-    sample_implicit.push_back(std::vector{0,0,1}); // cba
-    sample_implicit.push_back(std::vector{0,0,1}); // cbb
-    sample_implicit.push_back(std::vector{0,0,1}); // cbc
+        {0,0,1}, /* cba */
+        {0,0,1}, /* cbb */
+        {0,0,1}, /* cbc */
 
-    sample_implicit.push_back(std::vector{0,0,1}); // cca
-    sample_implicit.push_back(std::vector{0,0,1}); // ccb
-    sample_implicit.push_back(std::vector{0,0,1}); // ccc
-
+        {0,0,1}, /* cca */
+        {0,0,1}, /* ccb */
+        {0,0,1} /* ccc */
+    };
     /*
      digraph G {
     "root" -> "0"
@@ -734,87 +731,14 @@ void test_1d3()
 {
     std::vector<size_t> grid_number = {400};
 
-    std::vector<std::vector<int>> sample_implicit;
-
-    sample_implicit.push_back(std::vector{0});
-    sample_implicit.push_back(std::vector{2});
-    sample_implicit.push_back(std::vector{4});
-    sample_implicit.push_back(std::vector{11});
-    sample_implicit.push_back(std::vector{12});
-    sample_implicit.push_back(std::vector{16});
-    sample_implicit.push_back(std::vector{19});
-    sample_implicit.push_back(std::vector{20});
-    sample_implicit.push_back(std::vector{24});
-    sample_implicit.push_back(std::vector{25});
-    sample_implicit.push_back(std::vector{26});
-    sample_implicit.push_back(std::vector{27});
-    sample_implicit.push_back(std::vector{28});
-    sample_implicit.push_back(std::vector{30});
-    sample_implicit.push_back(std::vector{31});
-    sample_implicit.push_back(std::vector{33});
-    sample_implicit.push_back(std::vector{34});
-    sample_implicit.push_back(std::vector{36});
-    sample_implicit.push_back(std::vector{39});
-    sample_implicit.push_back(std::vector{41});
-    sample_implicit.push_back(std::vector{44});
-    sample_implicit.push_back(std::vector{46});
-    sample_implicit.push_back(std::vector{47});
-    sample_implicit.push_back(std::vector{48});
-    sample_implicit.push_back(std::vector{50});
-    sample_implicit.push_back(std::vector{51});
-    sample_implicit.push_back(std::vector{54});
-    sample_implicit.push_back(std::vector{56});
-    sample_implicit.push_back(std::vector{61});
-    sample_implicit.push_back(std::vector{62});
-    sample_implicit.push_back(std::vector{63});
-    sample_implicit.push_back(std::vector{64});
-    sample_implicit.push_back(std::vector{66});
-    sample_implicit.push_back(std::vector{68});
-    sample_implicit.push_back(std::vector{71});
-    sample_implicit.push_back(std::vector{77});
-    sample_implicit.push_back(std::vector{78});
-    sample_implicit.push_back(std::vector{79});
-    sample_implicit.push_back(std::vector{80});
-    sample_implicit.push_back(std::vector{81});
-    sample_implicit.push_back(std::vector{82});
-    sample_implicit.push_back(std::vector{84});
-    sample_implicit.push_back(std::vector{85});
-    sample_implicit.push_back(std::vector{87});
-    sample_implicit.push_back(std::vector{88});
-    sample_implicit.push_back(std::vector{93});
-    sample_implicit.push_back(std::vector{94});
-    sample_implicit.push_back(std::vector{95});
-    sample_implicit.push_back(std::vector{96});
-    sample_implicit.push_back(std::vector{99});
-    sample_implicit.push_back(std::vector{101});
-    sample_implicit.push_back(std::vector{103});
-    sample_implicit.push_back(std::vector{104});
-    sample_implicit.push_back(std::vector{106});
-    sample_implicit.push_back(std::vector{107});
-    sample_implicit.push_back(std::vector{110});
-    sample_implicit.push_back(std::vector{112});
-    sample_implicit.push_back(std::vector{114});
-    sample_implicit.push_back(std::vector{118});
-    sample_implicit.push_back(std::vector{121});
-    sample_implicit.push_back(std::vector{123});
-    sample_implicit.push_back(std::vector{126});
-    sample_implicit.push_back(std::vector{129});
-    sample_implicit.push_back(std::vector{130});
-    sample_implicit.push_back(std::vector{133});
-    sample_implicit.push_back(std::vector{137});
-    sample_implicit.push_back(std::vector{138});
-    sample_implicit.push_back(std::vector{140});
-    sample_implicit.push_back(std::vector{143});
-    sample_implicit.push_back(std::vector{146});
-    sample_implicit.push_back(std::vector{150});
-    sample_implicit.push_back(std::vector{151});
-    sample_implicit.push_back(std::vector{153});
-    sample_implicit.push_back(std::vector{154});
-    sample_implicit.push_back(std::vector{157});
-    sample_implicit.push_back(std::vector{162});
-    sample_implicit.push_back(std::vector{163});
-    sample_implicit.push_back(std::vector{164});
-    sample_implicit.push_back(std::vector{166});
+    std::vector<std::vector<int>> sample_implicit =
+    {
+        {0},{2},{4},{11},{12},{16},{19},{20},{24},{25},{26},{27},{28},{30},{31},{33},{34},{36},{39},
+        {41},{44},{46},{47},{48},{50},{51},{54},{56},{61},{62},{63},{64},{66},{68},{71},{77},{78},{79},{80},
+        {81},{82},{84},{85},{87},{88},{93},{94},{95},{96},{99},{101},{103},{104},{106},{107},{110},{112},
+        {114},{118},{121},{123},{126},{129},{130},{133},{137},{138},{140},{143},{146},{150},{151},{153},
+        {154},{157},{162},{163},{164},{166}
+    };
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(-3, 3, grid_number, sample_implicit, 1e+3);
@@ -831,208 +755,21 @@ void test_1d4()
 
     /// must find 0.68
 
-    std::vector<std::vector<int>> sample_implicit;
-
-    sample_implicit.push_back(std::vector{0});
-    sample_implicit.push_back(std::vector{2});
-    sample_implicit.push_back(std::vector{3});
-    sample_implicit.push_back(std::vector{4});
-    sample_implicit.push_back(std::vector{5});
-    sample_implicit.push_back(std::vector{6});
-    sample_implicit.push_back(std::vector{7});
-    sample_implicit.push_back(std::vector{8});
-    sample_implicit.push_back(std::vector{9});
-    sample_implicit.push_back(std::vector{10});
-    sample_implicit.push_back(std::vector{11});
-    sample_implicit.push_back(std::vector{12});
-    sample_implicit.push_back(std::vector{15});
-    sample_implicit.push_back(std::vector{16});
-    sample_implicit.push_back(std::vector{22});
-    sample_implicit.push_back(std::vector{24});
-    sample_implicit.push_back(std::vector{25});
-    sample_implicit.push_back(std::vector{29});
-    sample_implicit.push_back(std::vector{32});
-    sample_implicit.push_back(std::vector{33});
-    sample_implicit.push_back(std::vector{35});
-    sample_implicit.push_back(std::vector{38});
-    sample_implicit.push_back(std::vector{39});
-    sample_implicit.push_back(std::vector{41});
-    sample_implicit.push_back(std::vector{43});
-    sample_implicit.push_back(std::vector{48});
-    sample_implicit.push_back(std::vector{51});
-    sample_implicit.push_back(std::vector{54});
-    sample_implicit.push_back(std::vector{55});
-    sample_implicit.push_back(std::vector{56});
-    sample_implicit.push_back(std::vector{58});
-    sample_implicit.push_back(std::vector{59});
-    sample_implicit.push_back(std::vector{62});
-    sample_implicit.push_back(std::vector{65});
-    sample_implicit.push_back(std::vector{69});
-    sample_implicit.push_back(std::vector{73});
-    sample_implicit.push_back(std::vector{76});
-    sample_implicit.push_back(std::vector{77});
-    sample_implicit.push_back(std::vector{78});
-    sample_implicit.push_back(std::vector{80});
-    sample_implicit.push_back(std::vector{81});
-    sample_implicit.push_back(std::vector{82});
-    sample_implicit.push_back(std::vector{83});
-    sample_implicit.push_back(std::vector{84});
-    sample_implicit.push_back(std::vector{85});
-    sample_implicit.push_back(std::vector{89});
-    sample_implicit.push_back(std::vector{93});
-    sample_implicit.push_back(std::vector{96});
-    sample_implicit.push_back(std::vector{98});
-    sample_implicit.push_back(std::vector{99});
-    sample_implicit.push_back(std::vector{101});
-    sample_implicit.push_back(std::vector{103});
-    sample_implicit.push_back(std::vector{104});
-    sample_implicit.push_back(std::vector{105});
-    sample_implicit.push_back(std::vector{107});
-    sample_implicit.push_back(std::vector{109});
-    sample_implicit.push_back(std::vector{112});
-    sample_implicit.push_back(std::vector{115});
-    sample_implicit.push_back(std::vector{117});
-    sample_implicit.push_back(std::vector{119});
-    sample_implicit.push_back(std::vector{121});
-    sample_implicit.push_back(std::vector{124});
-    sample_implicit.push_back(std::vector{126});
-    sample_implicit.push_back(std::vector{127});
-    sample_implicit.push_back(std::vector{129});
-    sample_implicit.push_back(std::vector{137});
-    sample_implicit.push_back(std::vector{138});
-    sample_implicit.push_back(std::vector{139});
-    sample_implicit.push_back(std::vector{142});
-    sample_implicit.push_back(std::vector{143});
-    sample_implicit.push_back(std::vector{144});
-    sample_implicit.push_back(std::vector{146});
-    sample_implicit.push_back(std::vector{147});
-    sample_implicit.push_back(std::vector{149});
-    sample_implicit.push_back(std::vector{153});
-    sample_implicit.push_back(std::vector{154});
-    sample_implicit.push_back(std::vector{155});
-    sample_implicit.push_back(std::vector{156});
-    sample_implicit.push_back(std::vector{158});
-    sample_implicit.push_back(std::vector{162});
-    sample_implicit.push_back(std::vector{163});
-    sample_implicit.push_back(std::vector{164});
-    sample_implicit.push_back(std::vector{165});
-    sample_implicit.push_back(std::vector{166});
-    sample_implicit.push_back(std::vector{171});
-    sample_implicit.push_back(std::vector{172});
-    sample_implicit.push_back(std::vector{174});
-    sample_implicit.push_back(std::vector{176});
-    sample_implicit.push_back(std::vector{177});
-    sample_implicit.push_back(std::vector{179});
-    sample_implicit.push_back(std::vector{184});
-    sample_implicit.push_back(std::vector{185});
-    sample_implicit.push_back(std::vector{189});
-    sample_implicit.push_back(std::vector{190});
-    sample_implicit.push_back(std::vector{193});
-    sample_implicit.push_back(std::vector{194});
-    sample_implicit.push_back(std::vector{195});
-    sample_implicit.push_back(std::vector{197});
-    sample_implicit.push_back(std::vector{200});
-    sample_implicit.push_back(std::vector{201});
-    sample_implicit.push_back(std::vector{202});
-    sample_implicit.push_back(std::vector{204});
-    sample_implicit.push_back(std::vector{208});
-    sample_implicit.push_back(std::vector{209});
-    sample_implicit.push_back(std::vector{210});
-    sample_implicit.push_back(std::vector{211});
-    sample_implicit.push_back(std::vector{213});
-    sample_implicit.push_back(std::vector{215});
-    sample_implicit.push_back(std::vector{216});
-    sample_implicit.push_back(std::vector{218});
-    sample_implicit.push_back(std::vector{222});
-    sample_implicit.push_back(std::vector{223});
-    sample_implicit.push_back(std::vector{224});
-    sample_implicit.push_back(std::vector{225});
-    sample_implicit.push_back(std::vector{226});
-    sample_implicit.push_back(std::vector{228});
-    sample_implicit.push_back(std::vector{231});
-    sample_implicit.push_back(std::vector{234});
-    sample_implicit.push_back(std::vector{239});
-    sample_implicit.push_back(std::vector{240});
-    sample_implicit.push_back(std::vector{246});
-    sample_implicit.push_back(std::vector{247});
-    sample_implicit.push_back(std::vector{249});
-    sample_implicit.push_back(std::vector{251});
-    sample_implicit.push_back(std::vector{252});
-    sample_implicit.push_back(std::vector{254});
-    sample_implicit.push_back(std::vector{255});
-    sample_implicit.push_back(std::vector{257});
-    sample_implicit.push_back(std::vector{258});
-    sample_implicit.push_back(std::vector{259});
-    sample_implicit.push_back(std::vector{262});
-    sample_implicit.push_back(std::vector{268});
-    sample_implicit.push_back(std::vector{269});
-    sample_implicit.push_back(std::vector{271});
-    sample_implicit.push_back(std::vector{275});
-    sample_implicit.push_back(std::vector{277});
-    sample_implicit.push_back(std::vector{280});
-    sample_implicit.push_back(std::vector{281});
-    sample_implicit.push_back(std::vector{283});
-    sample_implicit.push_back(std::vector{284});
-    sample_implicit.push_back(std::vector{286});
-    sample_implicit.push_back(std::vector{287});
-    sample_implicit.push_back(std::vector{289});
-    sample_implicit.push_back(std::vector{290});
-    sample_implicit.push_back(std::vector{292});
-    sample_implicit.push_back(std::vector{293});
-    sample_implicit.push_back(std::vector{298});
-    sample_implicit.push_back(std::vector{299});
-    sample_implicit.push_back(std::vector{300});
-    sample_implicit.push_back(std::vector{304});
-    sample_implicit.push_back(std::vector{306});
-    sample_implicit.push_back(std::vector{311});
-    sample_implicit.push_back(std::vector{315});
-    sample_implicit.push_back(std::vector{320});
-    sample_implicit.push_back(std::vector{324});
-    sample_implicit.push_back(std::vector{326});
-    sample_implicit.push_back(std::vector{327});
-    sample_implicit.push_back(std::vector{331});
-    sample_implicit.push_back(std::vector{332});
-    sample_implicit.push_back(std::vector{334});
-    sample_implicit.push_back(std::vector{337});
-    sample_implicit.push_back(std::vector{338});
-    sample_implicit.push_back(std::vector{341});
-    sample_implicit.push_back(std::vector{342});
-    sample_implicit.push_back(std::vector{344});
-    sample_implicit.push_back(std::vector{346});
-    sample_implicit.push_back(std::vector{347});
-    sample_implicit.push_back(std::vector{348});
-    sample_implicit.push_back(std::vector{349});
-    sample_implicit.push_back(std::vector{352});
-    sample_implicit.push_back(std::vector{353});
-    sample_implicit.push_back(std::vector{354});
-    sample_implicit.push_back(std::vector{356});
-    sample_implicit.push_back(std::vector{357});
-    sample_implicit.push_back(std::vector{358});
-    sample_implicit.push_back(std::vector{359});
-    sample_implicit.push_back(std::vector{360});
-    sample_implicit.push_back(std::vector{361});
-    sample_implicit.push_back(std::vector{364});
-    sample_implicit.push_back(std::vector{366});
-    sample_implicit.push_back(std::vector{367});
-    sample_implicit.push_back(std::vector{369});
-    sample_implicit.push_back(std::vector{370});
-    sample_implicit.push_back(std::vector{373});
-    sample_implicit.push_back(std::vector{376});
-    sample_implicit.push_back(std::vector{378});
-    sample_implicit.push_back(std::vector{379});
-    sample_implicit.push_back(std::vector{380});
-    sample_implicit.push_back(std::vector{381});
-    sample_implicit.push_back(std::vector{387});
-    sample_implicit.push_back(std::vector{388});
-    sample_implicit.push_back(std::vector{389});
-    sample_implicit.push_back(std::vector{391});
-    sample_implicit.push_back(std::vector{393});
-    sample_implicit.push_back(std::vector{394});
-    sample_implicit.push_back(std::vector{395});
-    sample_implicit.push_back(std::vector{396});
-    sample_implicit.push_back(std::vector{397});
-    sample_implicit.push_back(std::vector{398});
-    sample_implicit.push_back(std::vector{399});
+    std::vector<std::vector<int>> sample_implicit =
+    {
+        {0},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{15},{16},{22},{24},{25},{29},{32},{33},{35},
+        {38},{39},{41},{43},{48},{51},{54},{55},{56},{58},{59},{62},{65},{69},{73},{76},{77},{78},{80},
+        {81},{82},{83},{84},{85},{89},{93},{96},{98},{99},{101},{103},{104},{105},{107},{109},{112},{115},
+        {117},{119},{121},{124},{126},{127},{129},{137},{138},{139},{142},{143},{144},{146},{147},{149},{153},
+        {154},{155},{156},{158},{162},{163},{164},{165},{166},{171},{172},{174},{176},{177},{179},{184},{185},
+        {189},{190},{193},{194},{195},{197},{200},{201},{202},{204},{208},{209},{210},{211},{213},{215},{216},
+        {218},{222},{223},{224},{225},{226},{228},{231},{234},{239},{240},{246},{247},{249},{251},{252},{254},
+        {255},{257},{258},{259},{262},{268},{269},{271},{275},{277},{280},{281},{283},{284},{286},{287},{289},
+        {290},{292},{293},{298},{299},{300},{304},{306},{311},{315},{320},{324},{326},{327},{331},{332},{334},
+        {337},{338},{341},{342},{344},{346},{347},{348},{349},{352},{353},{354},{356},{357},{358},{359},{360},
+        {361},{364},{366},{367},{369},{370},{373},{376},{378},{379},{380},{381},{387},{388},{389},{391},{393},
+        {394},{395},{396},{397},{398},{399}
+    };
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
     explicit_quantile(-3, 3, grid_number, sample_implicit, 1e3);

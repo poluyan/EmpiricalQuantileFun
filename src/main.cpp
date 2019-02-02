@@ -517,7 +517,7 @@ int main()
 
 
 //    test_2d1();
-//    test_2d2();
+    test_2d2();
 
 //    test_grid_10d();
 
@@ -583,6 +583,6 @@ int main()
 //    worst_space_test_grid();
 //    worst_space_test_grid_2d();
 
-    worst_space_check();
+//    worst_space_check();
     //std::vector<std::vector<double>> x(100,std::vector<double>(10));
 }
