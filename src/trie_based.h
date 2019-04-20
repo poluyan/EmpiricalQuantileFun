@@ -20,6 +20,7 @@
 #define TRIE_BASED_H
 
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <memory>
 
@@ -282,6 +283,152 @@ void TrieBased<T,I>::get_number(T *p, size_t &count) const
         get_number(i.get(), count);
     }
 }
+
+template <typename I>
+class TrieLayer
+{
+protected:
+    size_t dimension;
+    std::vector<std::multimap<I,std::vector<I>>> layers;
+    std::vector<I> last_layer;
+    bool sorted;
+public:
+    TrieLayer();
+    TrieLayer(size_t dim);
+    void set_dimension(size_t dim);
+    size_t get_dimension() const;
+    bool empty() const;
+    void insert(const std::vector<I> &key);
+    bool search(const std::vector<I> &key);
+    void sort();
+//    void print() const;
+};
+
+template <typename I>
+TrieLayer<I>::TrieLayer() {}
+
+template <typename I>
+TrieLayer<I>::TrieLayer(size_t dim): dimension(dim)
+{
+    layers.resize(dimension);
+}
+template <typename I>
+void TrieLayer<I>::set_dimension(size_t dim)
+{
+    dimension = dim;
+}
+template <typename I>
+size_t TrieLayer<I>::get_dimension() const
+{
+    return dimension;
+}
+template <typename I>
+bool TrieLayer<I>::empty() const
+{
+    return last_layer.empty();
+}
+template <typename I>
+void TrieLayer<I>::insert(const std::vector<I> &key)
+{
+    sorted = false;
+    for(size_t i = 0; i != dimension - 1; i++)
+    {
+        auto it = layers[i].find(key[i]);
+        if(it == layers[i].end())
+        {
+            layers[i].insert(std::pair<I, std::vector<I>>(key[i], std::vector<I>(1, key[i+1])));
+        }
+        else
+        {
+            auto pos = std::find(it->second.begin(), it->second.end(), key[i + 1]);
+            if(pos == it->second.end())
+                it->second.push_back(key[i + 1]);
+        }
+    }
+    auto ll = std::find(last_layer.begin(), last_layer.end(), key.back());
+    if(ll == last_layer.end())
+        last_layer.push_back(key.back());
+}
+template <typename I>
+void TrieLayer<I>::sort()
+{
+    for(size_t i = 0; i != layers.size(); i++)
+    {
+        for(auto it = layers[i].begin(); it != layers[i].end(); ++it)
+        {
+            std::sort(it->second.begin(), it->second.end());
+        }
+    }
+    std::sort(last_layer.begin(), last_layer.end());
+    sorted = true;
+}
+//template <typename I>
+//void TrieLayer<I>::print() const
+//{
+//    for(size_t i = 0; i != layers.size(); i++)
+//    {
+//        for(auto it = layers[i].begin(); it != layers[i].end(); ++it)
+//        {
+//            std::cout << int(it->first) << " => ";
+//            for(size_t j = 0; j != it->second.size(); j++)
+//            {
+//                std::cout << int(it->second[j]) << ' ';
+//            }
+//            std::cout << std::endl;
+//        }
+//        std::cout << std::endl;
+//    }
+//    for(const auto &i : last_layer)
+//        std::cout << int(i) << ' ';
+//    std::cout << std::endl;
+//}
+template <typename I>
+bool TrieLayer<I>::search(const std::vector<I> &key)
+{
+    if(sorted)
+    {
+        for(size_t i = 0; i != dimension - 1; i++)
+        {
+            auto it = layers[i].find(key[i]);
+            if(it == layers[i].end())
+            {
+                return false;
+            }
+            else
+            {
+                auto pos = std::lower_bound(it->second.begin(), it->second.end(), key[i + 1]);
+                if(pos == it->second.end())
+                    return false;
+                if(*pos != key[i + 1])
+                    return false;
+            }
+        }
+        auto ll = std::lower_bound(last_layer.begin(), last_layer.end(), key.back());
+        if(ll == last_layer.end())
+            return false;
+        return *ll == key.back();
+    }
+    else
+    {
+        for(size_t i = 0; i != dimension - 1; i++)
+        {
+            auto it = layers[i].find(key[i]);
+            if(it == layers[i].end())
+            {
+                return false;
+            }
+            else
+            {
+                auto pos = std::find(it->second.begin(), it->second.end(), key[i + 1]);
+                if(pos == it->second.end())
+                    return false;
+            }
+        }
+        auto ll = std::find(last_layer.begin(), last_layer.end(), key.back());
+        return ll == last_layer.end();
+    }
+}
+
 }
 
 #endif
