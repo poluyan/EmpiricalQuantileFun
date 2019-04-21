@@ -55,6 +55,6 @@ filter3(x,y) = f(x,y) > 1.8 ? x : 1/0
 
 plot \
 'cont.dat' u 1:2 w lines lc 'gray',\
-'sampled_implicit_class.dat' with dots lc rgb 'black'
+'sampled_implicit_class_sorted.dat' with dots lc rgb 'black'
 
 

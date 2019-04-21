@@ -287,10 +287,10 @@ void TrieBased<T,I>::get_number(T *p, size_t &count) const
 template <typename I>
 class TrieLayer
 {
-protected:
+public:
     size_t dimension;
-    std::vector<std::multimap<I,std::vector<I>>> layers;
-    std::vector<I> last_layer;
+    std::vector< std::multimap<I,std::vector<I>> > layers;
+    typename std::multimap<I,std::vector<I>>::iterator root;
     bool sorted;
 public:
     TrieLayer();
@@ -299,7 +299,7 @@ public:
     size_t get_dimension() const;
     bool empty() const;
     void insert(const std::vector<I> &key);
-    bool search(const std::vector<I> &key);
+    bool search(const std::vector<I> &key) const;
     void sort();
 //    void print() const;
 };
@@ -311,11 +311,16 @@ template <typename I>
 TrieLayer<I>::TrieLayer(size_t dim): dimension(dim)
 {
     layers.resize(dimension);
+    layers.front().insert(std::pair<I, std::vector<I>>(0, std::vector<I>()));
+    root = layers.front().find(0);
 }
 template <typename I>
 void TrieLayer<I>::set_dimension(size_t dim)
 {
     dimension = dim;
+    layers.resize(dimension);
+    layers.front().insert(std::pair<I, std::vector<I>>(0, std::vector<I>()));
+    root = layers.front().find(0);
 }
 template <typename I>
 size_t TrieLayer<I>::get_dimension() const
@@ -325,18 +330,23 @@ size_t TrieLayer<I>::get_dimension() const
 template <typename I>
 bool TrieLayer<I>::empty() const
 {
-    return last_layer.empty();
+    return root->second.empty();
 }
 template <typename I>
 void TrieLayer<I>::insert(const std::vector<I> &key)
 {
     sorted = false;
+
+    auto pos = std::find(root->second.begin(), root->second.end(), key.front());
+    if(pos == root->second.end())
+        root->second.push_back(key.front());
+
     for(size_t i = 0; i != dimension - 1; i++)
     {
-        auto it = layers[i].find(key[i]);
-        if(it == layers[i].end())
+        auto it = layers[i+1].find(key[i]);
+        if(it == layers[i+1].end())
         {
-            layers[i].insert(std::pair<I, std::vector<I>>(key[i], std::vector<I>(1, key[i+1])));
+            layers[i+1].insert(std::pair<I, std::vector<I>>(key[i],std::vector<I>(1, key[i+1])));
         }
         else
         {
@@ -345,9 +355,6 @@ void TrieLayer<I>::insert(const std::vector<I> &key)
                 it->second.push_back(key[i + 1]);
         }
     }
-    auto ll = std::find(last_layer.begin(), last_layer.end(), key.back());
-    if(ll == last_layer.end())
-        last_layer.push_back(key.back());
 }
 template <typename I>
 void TrieLayer<I>::sort()
@@ -359,7 +366,6 @@ void TrieLayer<I>::sort()
             std::sort(it->second.begin(), it->second.end());
         }
     }
-    std::sort(last_layer.begin(), last_layer.end());
     sorted = true;
 }
 //template <typename I>
@@ -378,19 +384,22 @@ void TrieLayer<I>::sort()
 //        }
 //        std::cout << std::endl;
 //    }
-//    for(const auto &i : last_layer)
-//        std::cout << int(i) << ' ';
-//    std::cout << std::endl;
 //}
 template <typename I>
-bool TrieLayer<I>::search(const std::vector<I> &key)
+bool TrieLayer<I>::search(const std::vector<I> &key) const
 {
     if(sorted)
     {
+        auto pos = std::lower_bound(root->second.begin(), root->second.end(), key.front());
+        if(pos == root->second.end())
+            return false;
+        if(*pos != key.front())
+            return false;
+
         for(size_t i = 0; i != dimension - 1; i++)
         {
-            auto it = layers[i].find(key[i]);
-            if(it == layers[i].end())
+            auto it = layers[i + 1].find(key[i]);
+            if(it == layers[i + 1].end())
             {
                 return false;
             }
@@ -403,17 +412,17 @@ bool TrieLayer<I>::search(const std::vector<I> &key)
                     return false;
             }
         }
-        auto ll = std::lower_bound(last_layer.begin(), last_layer.end(), key.back());
-        if(ll == last_layer.end())
-            return false;
-        return *ll == key.back();
+        return true;
     }
     else
     {
+        auto pos = std::find(root->second.begin(), root->second.end(), key.front());
+        if(pos == root->second.end())
+            return false;
         for(size_t i = 0; i != dimension - 1; i++)
         {
-            auto it = layers[i].find(key[i]);
-            if(it == layers[i].end())
+            auto it = layers[i + 1].find(key[i]);
+            if(it == layers[i + 1].end())
             {
                 return false;
             }
@@ -424,8 +433,7 @@ bool TrieLayer<I>::search(const std::vector<I> &key)
                     return false;
             }
         }
-        auto ll = std::find(last_layer.begin(), last_layer.end(), key.back());
-        return ll == last_layer.end();
+        return true;
     }
 }
 

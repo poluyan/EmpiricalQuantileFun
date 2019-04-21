@@ -22,6 +22,7 @@
 #include "trie_based.h"
 
 #include <numeric>
+#include <iostream>
 
 namespace empirical_quantile
 {
@@ -395,7 +396,7 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
             int t = static_cast<int>(layer->children[i]->index);
             int curr = std::abs(t - static_cast<int>(m));
             if(diff > curr)
-            {                
+            {
                 diff = curr;
                 index = i;
                 min_ind = t;
@@ -408,7 +409,7 @@ std::pair<size_t, U> ImplicitQuantile<T, U>::quantile_transform(trie_based::Node
                     index = i;
                 }
             }
-        }        
+        }
         return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
     }
     size_t index = 0;
@@ -436,7 +437,7 @@ protected:
     void sort_layer(trie_based::NodeCount<T> *p);
 
     size_t count_less_binary(trie_based::NodeCount<T> *layer, T target) const;
-    std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, const std::vector<size_t> &row2, size_t ind, U val01) const;
+    std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, const std::vector<size_t> &psum, size_t ind, U val01) const;
 public:
     ImplicitQuantileSorted();
     ImplicitQuantileSorted(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
@@ -650,6 +651,182 @@ std::pair<size_t, U> ImplicitQuantileSorted<T, U>::quantile_transform(trie_based
     });
     T index = std::distance(layer->children.begin(), pos);
     return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+}
+
+template <typename T, typename U>
+class ImplicitGraphQuantile : public Quantile<T, U>
+{
+protected:
+    using Quantile<T, U>::grids;
+    using Quantile<T, U>::dx;
+
+    typedef trie_based::TrieLayer<T> sample_type;
+    std::shared_ptr<sample_type> sample;
+
+    size_t count_less_binary(const std::vector<T> &layer, T target) const;
+    std::pair<size_t, U> quantile_transform(const std::vector<T> &layer, const std::vector<size_t> &psum, size_t ind, U val01) const;
+public:
+    ImplicitGraphQuantile();
+    ImplicitGraphQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    using Quantile<T, U>::set_grid_and_gridn;
+    void set_sample(const std::vector<std::vector<T>> &in_sample);
+    void set_sample(std::shared_ptr<sample_type> in_sample);
+    void transform(const std::vector<U>& in01, std::vector<U>& out) const;
+};
+template <typename T, typename U>
+ImplicitGraphQuantile<T, U>::ImplicitGraphQuantile()
+{
+}
+
+template <typename T, typename U>
+ImplicitGraphQuantile<T, U>::ImplicitGraphQuantile(std::vector<U> in_lb,
+        std::vector<U> in_ub,
+        std::vector<size_t> in_gridn) : Quantile<T, U>(in_lb, in_ub, in_gridn)
+{
+
+}
+template <typename T, typename U>
+void ImplicitGraphQuantile<T, U>::set_sample(const std::vector<std::vector<T>> &in_sample)
+{
+    sample = std::make_shared<sample_type>();
+    sample->set_dimension(grids.size());
+    for(const auto & i : in_sample)
+        sample->insert(i);
+    sample->sort();
+}
+template <typename T, typename U>
+void ImplicitGraphQuantile<T, U>::set_sample(std::shared_ptr<sample_type> in_sample)
+{
+    sample = std::move(in_sample);
+    sample->sort();
+}
+template <typename T, typename U>
+void ImplicitGraphQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
+{
+//    // first step
+//    std::vector<size_t> psum(sample->root->second.size() + 1, 0);
+//    for(size_t j = 1, k = 0; j != sample->root->second.size(); ++j)
+//    {
+//        k += 1;
+//        psum[j] = k;
+//    }
+//    psum[sample->root->second.size()] = sample->root->second.size();
+//
+//    auto rez = quantile_transform(sample->root->second, psum, 0, in01[0]);
+//    out[0] = rez.second;
+//    //p = p->children[rez.first].get();
+
+
+    auto p = sample->root;
+    for(size_t i = 0; i != in01.size(); ++i)
+    {
+        std::vector<size_t> psum(p->second.size() + 1, 0);
+        for(size_t j = 1, k = 0; j != p->second.size(); ++j)
+        {
+            k += 1;
+            psum[j] = k;
+        }
+        psum[p->second.size()] = p->second.size();
+
+        auto rez = quantile_transform(p->second, psum, i, in01[i]);
+        out[i] = rez.second;
+        if(i < in01.size() - 1)
+            p = sample->layers[i + 1].find(p->second[rez.first]);
+    }
+}
+template <typename T, typename U>
+std::pair<size_t, U> ImplicitGraphQuantile<T, U>::quantile_transform(const std::vector<T> &layer, const std::vector<size_t> &psum, size_t ind, U val01) const
+{
+    size_t m = 0, count = grids[ind].size() - 1, step, c1 = 0, c2 = 0;
+    U f1 = 0.0, f2 = 0.0, sample_size_u = static_cast<U>(layer.size());
+    auto first = grids[ind].begin();
+    auto it = grids[ind].begin();
+
+    while(count > 0)
+    {
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        m = std::distance(grids[ind].begin(), it);
+
+        c1 = psum[count_less_binary(layer, m)];
+        f1 = c1/sample_size_u;
+
+        if(f1 < val01)
+        {
+            c2 = psum[count_less_binary(layer, m + 1)];
+            f2 = c2/sample_size_u;
+
+            if(val01 < f2)
+                break;
+
+            first = ++it;
+            count -= step + 1;
+        }
+        else
+        {
+            count = step;
+        }
+    }
+
+    if(count == 0)
+    {
+        c2 = psum[count_less_binary(layer, m + 1)];
+        f2 = c2/sample_size_u;
+    }
+
+    if(c1 == c2)
+    {
+        if(c1 == 0)
+        {
+            return std::make_pair(0, grids[ind][layer.front()] + 2.0*val01*dx[ind]);
+        }
+        if(c1 == layer.size())
+        {
+            return std::make_pair(layer.size() - 1, grids[ind][layer.back()] + 2.0*val01*dx[ind]);
+        }
+
+        T target = m;
+        auto pos = std::lower_bound(layer.begin(), layer.end(), target);
+        size_t index = std::distance(layer.begin(), pos);
+
+        if(index > 0)
+        {
+            int curr1 = std::abs(static_cast<int>(layer[index]) - static_cast<int>(m));
+            int curr2 = std::abs(static_cast<int>(layer[index - 1]) - static_cast<int>(m));
+
+            if(curr1 < curr2)
+            {
+                return std::make_pair(index, grids[ind][layer[index]] + 2.0*val01*dx[ind]);
+            }
+            else if(curr1 == curr2)
+            {
+                if(layer[index - 1] < layer[index])
+                    return std::make_pair(index - 1, grids[ind][layer[index - 1]] + 2.0*val01*dx[ind]);
+                else
+                    return std::make_pair(index, grids[ind][layer[index]] + 2.0*val01*dx[ind]);
+            }
+            else
+            {
+                return std::make_pair(index - 1, grids[ind][layer[index - 1]] + 2.0*val01*dx[ind]);
+            }
+
+        }
+        return std::make_pair(index, grids[ind][layer[index]] + 2.0*val01*dx[ind]);
+    }
+    T target = m;
+    auto pos = std::lower_bound(layer.begin(), layer.end(), target);
+    T index = std::distance(layer.begin(), pos);
+    return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+}
+template <typename T, typename U>
+size_t ImplicitGraphQuantile<T, U>::count_less_binary(const std::vector<T> &layer, T target) const
+{
+    auto lb = std::lower_bound(layer.begin(), layer.end(), target);
+    size_t pos = std::distance(layer.begin(), lb);
+    if(lb == layer.end())
+        pos = layer.size(); // to psum! which is layer->children.size() + 1
+    return pos; // to psum!
 }
 
 }
