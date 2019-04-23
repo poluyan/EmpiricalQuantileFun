@@ -22,7 +22,6 @@
 #include "trie_based.h"
 
 #include <numeric>
-#include <iostream>
 
 namespace empirical_quantile
 {
@@ -823,6 +822,169 @@ template <typename T, typename U>
 size_t ImplicitGraphQuantile<T, U>::count_less_binary(const std::vector<T> &layer, T target) const
 {
     auto lb = std::lower_bound(layer.begin(), layer.end(), target);
+    size_t pos = std::distance(layer.begin(), lb);
+    if(lb == layer.end())
+        pos = layer.size(); // to psum! which is layer->children.size() + 1
+    return pos; // to psum!
+}
+
+
+// fsa
+
+template <typename T, typename U>
+class GraphQuantile : public Quantile<T, U>
+{
+protected:
+    using Quantile<T, U>::grids;
+    using Quantile<T, U>::dx;
+
+    typedef trie_based::Graph<T> sample_type;
+    std::shared_ptr<sample_type> sample;
+
+    size_t count_less_binary(const std::vector<trie_based::invect> &layer, T target) const;
+    std::pair<size_t, U> quantile_transform(const std::vector<trie_based::invect> &layer, const std::vector<size_t> &psum, size_t ind, U val01) const;
+public:
+    GraphQuantile();
+    GraphQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    using Quantile<T, U>::set_grid_and_gridn;
+    void transform(const std::vector<U>& in01, std::vector<U>& out) const;
+};
+template <typename T, typename U>
+GraphQuantile<T, U>::GraphQuantile()
+{
+}
+
+template <typename T, typename U>
+GraphQuantile<T, U>::GraphQuantile(std::vector<U> in_lb,
+                                   std::vector<U> in_ub,
+                                   std::vector<size_t> in_gridn) : Quantile<T, U>(in_lb, in_ub, in_gridn)
+{
+    sample = std::make_shared<sample_type>();
+}
+
+template <typename T, typename U>
+void GraphQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
+{
+    auto p = sample->root;
+    for(size_t i = 0; i != in01.size(); ++i)
+    {
+        std::vector<size_t> psum(p->second.size() + 1, 0);
+        for(size_t j = 1, k = 0; j != p->second.size(); ++j)
+        {
+            k += p->second[j-1].count;
+            psum[j] = k;
+            psum.back() += p->second[j-1].count;
+        }
+        psum.back() += p->second.back().count;
+        auto rez = quantile_transform(p->second, psum, i, in01[i]);
+        out[i] = rez.second;
+        p = sample->layers.find(p->second[rez.first].vname);
+    }
+}
+template <typename T, typename U>
+std::pair<size_t, U> GraphQuantile<T, U>::quantile_transform(const std::vector<trie_based::invect> &layer, const std::vector<size_t> &psum, size_t ind, U val01) const
+{
+    size_t m = 0, count = grids[ind].size() - 1, step, c1 = 0, c2 = 0;
+    U f1 = 0.0, f2 = 0.0, sample_size_u = static_cast<U>(psum.back());
+    auto first = grids[ind].begin();
+    auto it = grids[ind].begin();
+
+    while(count > 0)
+    {
+        it = first;
+        step = count / 2;
+        std::advance(it, step);
+        m = std::distance(grids[ind].begin(), it);
+
+        c1 = psum[count_less_binary(layer, m)];
+        f1 = c1/sample_size_u;
+
+        if(f1 < val01)
+        {
+            c2 = psum[count_less_binary(layer, m + 1)];
+            f2 = c2/sample_size_u;
+
+            if(val01 < f2)
+                break;
+
+            first = ++it;
+            count -= step + 1;
+        }
+        else
+        {
+            count = step;
+        }
+    }
+
+    if(count == 0)
+    {
+        c2 = psum[count_less_binary(layer, m + 1)];
+        f2 = c2/sample_size_u;
+    }
+
+    if(c1 == c2)
+    {
+        if(c1 == 0)
+        {
+            return std::make_pair(0, grids[ind][layer.front().index] + 2.0*val01*dx[ind]);
+        }
+        if(c1 == psum.back())
+        {
+            return std::make_pair(layer.size() - 1, grids[ind][layer.back().index] + 2.0*val01*dx[ind]);
+        }
+
+        T target = m;
+        auto pos = std::lower_bound(layer.begin(), layer.end(), target,
+                                    [](const trie_based::invect &l,
+                                       const T &r)
+        {
+            return l.index < r;
+        });
+        size_t index = std::distance(layer.begin(), pos);
+
+        if(index > 0)
+        {
+            int curr1 = std::abs(static_cast<int>(layer[index].index) - static_cast<int>(m));
+            int curr2 = std::abs(static_cast<int>(layer[index - 1].index) - static_cast<int>(m));
+
+            if(curr1 < curr2)
+            {
+                return std::make_pair(index, grids[ind][layer[index].index] + 2.0*val01*dx[ind]);
+            }
+            else if(curr1 == curr2)
+            {
+                if(layer[index - 1].index < layer[index].index)
+                    return std::make_pair(index - 1, grids[ind][layer[index - 1].index] + 2.0*val01*dx[ind]);
+                else
+                    return std::make_pair(index, grids[ind][layer[index].index] + 2.0*val01*dx[ind]);
+            }
+            else
+            {
+                return std::make_pair(index - 1, grids[ind][layer[index - 1].index] + 2.0*val01*dx[ind]);
+            }
+
+        }
+        return std::make_pair(index, grids[ind][layer[index].index] + 2.0*val01*dx[ind]);
+    }
+    T target = m;
+    auto pos = std::lower_bound(layer.begin(), layer.end(), target,
+                                [](const trie_based::invect &l,
+                                   const T &r)
+    {
+        return l.index < r;
+    });
+    T index = std::distance(layer.begin(), pos);
+    return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+}
+template <typename T, typename U>
+size_t GraphQuantile<T, U>::count_less_binary(const std::vector<trie_based::invect> &layer, T target) const
+{
+    auto lb = std::lower_bound(layer.begin(), layer.end(), target,
+                               [](const trie_based::invect &l,
+                                  const T &r)
+    {
+        return l.index < r;
+    });
     size_t pos = std::distance(layer.begin(), lb);
     if(lb == layer.end())
         pos = layer.size(); // to psum! which is layer->children.size() + 1

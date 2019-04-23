@@ -443,8 +443,8 @@ void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> grid
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitGraphQuantile <int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
-    quant.set_sample(sample);
+    empirical_quantile::GraphQuantile <int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    //quant.set_sample(sample);
 
     timer::Timer time_cpp11;
     time_cpp11.reset();

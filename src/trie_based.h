@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <algorithm>
 #include <memory>
 
@@ -64,6 +65,7 @@ public:
     void set_dimension(size_t dim);
     size_t get_dimension() const;
     void insert(const std::vector<I> &key);
+    void insert(const std::vector<I> &key, size_t number);
     bool search(const std::vector<I> &key) const;
     void fill_tree_count();
     bool empty() const;
@@ -152,6 +154,58 @@ void TrieBased<T,I>::insert(const std::vector<I> &key)
         dist = std::distance(last_layer.begin(), it);
     }
 
+    it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+    {
+        return obj->index == value;
+    });
+    if(it == p->children.end())
+    {
+        std::shared_ptr<T> ptr(last_layer[dist]);
+        p->children.emplace_back(ptr);
+        p->children.shrink_to_fit();
+    }
+}
+template <typename T, typename I>
+void TrieBased<T,I>::insert(const std::vector<I> &key, size_t count)
+{
+    auto p = root.get();
+    for(size_t i = 0; i != key.size() - 1; i++)
+    {
+        p->count += count;
+        auto value = key[i];
+        auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+        {
+            return obj->index == value;
+        });
+        if(it == p->children.end())
+        {
+            p->children.emplace_back(std::make_shared<T>(value));
+            p->children.shrink_to_fit();
+            p = p->children.back().get();
+        }
+        else
+        {
+            p = p->children[std::distance(p->children.begin(), it)].get();
+        }
+    }
+    auto value = key.back();
+    auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<T> &obj)
+    {
+        return obj->index == value;
+    });
+    size_t dist = 0;
+    if(it == last_layer.end())
+    {
+        last_layer.emplace_back(std::make_shared<T>(value));
+        last_layer.back()->count += count;
+        last_layer.shrink_to_fit();
+        dist = last_layer.size() - 1;
+    }
+    else
+    {
+        dist = std::distance(last_layer.begin(), it);
+    }
+    p->count += count;
     it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
     {
         return obj->index == value;
@@ -436,6 +490,131 @@ bool TrieLayer<I>::search(const std::vector<I> &key) const
         return true;
     }
 }
+
+struct invect
+{
+    char vname;
+    int index;
+    size_t count;
+    invect(char _vname, int _index, int _count)
+    {
+        vname = _vname;
+        index = _index;
+        count = _count;
+    }
+};
+
+template <typename I>
+class Graph
+{
+public:
+    std::unordered_map< char, std::vector<invect> > layers;
+    typename std::unordered_map<char, std::vector<invect>>::iterator root;
+public:
+    Graph();
+    void print() const;
+};
+
+template <typename I>
+Graph<I>::Graph()
+{
+    std::vector<invect> y, a,b,c,d,e, f,g,h,j,k,l, z;
+    y.push_back(invect('a',0,4));
+    y.push_back(invect('b',1,1));
+    y.push_back(invect('e',2,4));
+    y.push_back(invect('d',3,2));
+    y.push_back(invect('c',4,3));
+    layers.insert(std::make_pair('y',y));
+
+    a.push_back(invect('g',0,1));
+    a.push_back(invect('h',2,1));
+    a.push_back(invect('f',3,2));
+    layers.insert(std::make_pair('a',a));
+
+    b.push_back(invect('h',0,1));
+    layers.insert(std::make_pair('b',b));
+
+    c.push_back(invect('h',0,1));
+    c.push_back(invect('h',3,1));
+    c.push_back(invect('h',4,1));
+    layers.insert(std::make_pair('c',c));
+
+    d.push_back(invect('j',0,1));
+    d.push_back(invect('h',3,1));
+    layers.insert(std::make_pair('d',d));
+
+    e.push_back(invect('k',0,2));
+    e.push_back(invect('l',1,1));
+    e.push_back(invect('l',2,1));
+    layers.insert(std::make_pair('e',e));
+
+
+    f.push_back(invect('z',2,1));
+    f.push_back(invect('z',3,1));
+    layers.insert(std::make_pair('f',f));
+
+    g.push_back(invect('z',1,1));
+    layers.insert(std::make_pair('g',g));
+
+    h.push_back(invect('z',0,1));
+    layers.insert(std::make_pair('h',h));
+
+    j.push_back(invect('z',2,1));
+    layers.insert(std::make_pair('j',j));
+
+    k.push_back(invect('z',0,1));
+    k.push_back(invect('z',4,1));
+    layers.insert(std::make_pair('k',k));
+
+    l.push_back(invect('z',4,1));
+    layers.insert(std::make_pair('l',l));
+
+    layers.insert(std::make_pair('z',z));
+
+    root = layers.find('y');
+    
+    /*std::vector<invect> y, a,b,c,d,e, f,g,h,j,k,l, z;
+    y.push_back(invect('a',0,1));
+    y.push_back(invect('a',1,1));
+    y.push_back(invect('a',2,1));
+    y.push_back(invect('a',3,1));
+    y.push_back(invect('a',4,1));
+    layers.insert(std::make_pair('y',y));
+
+    a.push_back(invect('b',0,1));
+    a.push_back(invect('b',1,1));
+    a.push_back(invect('b',2,1));
+    a.push_back(invect('b',3,1));
+    a.push_back(invect('b',4,1));
+    layers.insert(std::make_pair('a',a));
+
+    b.push_back(invect('z',0,1));
+    b.push_back(invect('z',1,1));
+    b.push_back(invect('z',2,1));
+    b.push_back(invect('z',3,1));
+    b.push_back(invect('z',4,1));
+    layers.insert(std::make_pair('b',b));
+
+    layers.insert(std::make_pair('z',z));
+
+    root = layers.find('y');*/
+}
+
+
+//template <typename I>
+//void Graph<I>::print() const
+//{
+//    for(const auto & i : layers)
+//    {
+//
+//        std::cout << i.first << " => ";
+//        for(auto it = i.second.begin(); it != i.second.end(); ++it)
+//        {
+//            std::cout << it->vname << ' ' << it->index << ' ' << it->count << '\t';
+//        }
+//        std::cout << std::endl;
+//    }
+//}
 
 }
 
