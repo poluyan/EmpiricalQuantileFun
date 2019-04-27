@@ -37,6 +37,9 @@ void test_1d5();
 void test_2d1();
 void test_2d2();
 
+void test_1d_func();
+void test_2d_func();
+
 void test_3d1();
 void test_3d2();
 
