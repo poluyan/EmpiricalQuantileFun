@@ -197,14 +197,16 @@ void TrieBased<T,I>::insert(const std::vector<I> &key, size_t count)
     if(it == last_layer.end())
     {
         last_layer.emplace_back(std::make_shared<T>(value));
-        last_layer.back()->count += count;
+//        last_layer.back()->count += count;
+        last_layer.back()->count = 1;
         last_layer.shrink_to_fit();
         dist = last_layer.size() - 1;
     }
     else
     {
         dist = std::distance(last_layer.begin(), it);
-        last_layer[dist]->count += count;
+        last_layer[dist]->count = 1;
+//        last_layer[dist]->count += count;
     }
     p->count += count;
     it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)

@@ -520,8 +520,8 @@ int main()
 //    test_2d2();
 //    test_3d1();
     
-    test_1d_func();
-//    test_2d_func();
+//    test_1d_func();
+    test_2d_func();
 
 //    test_grid_10d();
 
