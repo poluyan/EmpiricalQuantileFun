@@ -997,6 +997,51 @@ size_t GraphQuantile<T, U>::count_less_binary(const std::vector<trie_based::inve
     return pos; // to psum!
 }
 
+template <typename T, typename U>
+class ImplicitTrieQuantile : public ImplicitQuantile<T, U>
+{
+protected:
+    using ImplicitQuantile<T, U>::grids;
+    using ImplicitQuantile<T, U>::dx;
+    
+    typedef trie_based::Trie<trie_based::NodeCount<T>,T> trie_type;
+    std::shared_ptr<trie_type> sample;
+    
+    using ImplicitQuantile<T, U>::count_less;
+    using ImplicitQuantile<T, U>::quantile_transform;
+public:
+    ImplicitTrieQuantile();
+    ImplicitTrieQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    void set_sample_shared(std::shared_ptr<trie_type> in_sample);
+    void transform(const std::vector<U>& in01, std::vector<U>& out) const;
+};
+template <typename T, typename U>
+ImplicitTrieQuantile<T, U>::ImplicitTrieQuantile()
+{
+}
+template <typename T, typename U>
+ImplicitTrieQuantile<T, U>::ImplicitTrieQuantile(std::vector<U> in_lb,
+        std::vector<U> in_ub,
+        std::vector<size_t> in_gridn) : ImplicitQuantile<T, U>(in_lb, in_ub, in_gridn)
+{
+}
+template <typename T, typename U>
+void ImplicitTrieQuantile<T, U>::set_sample_shared(std::shared_ptr<trie_type> in_sample)
+{
+    sample = std::move(in_sample);
+}
+
+template <typename T, typename U>
+void ImplicitTrieQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
+{
+    auto p = sample->root.get();
+    for(size_t i = 0; i != in01.size(); i++)
+    {
+        auto rez = quantile_transform(p, i, in01[i]);
+        out[i] = rez.second;
+        p = p->children[rez.first].get();
+    }
+}
 }
 
 #endif
