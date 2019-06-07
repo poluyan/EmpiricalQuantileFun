@@ -453,7 +453,7 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
     data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
 }
 
-void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)
+void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> gridn, size_t nrolls)
 {
     std::mt19937_64 generator;
     generator.seed(1);
@@ -463,7 +463,6 @@ void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> grid
     std::vector<std::vector<float> > values01;
 
     empirical_quantile::GraphQuantile <int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
-    //quant.set_sample(sample);
 
     timer::Timer time_cpp11;
     time_cpp11.reset();
@@ -702,12 +701,12 @@ void test_1d_func()
 {
     std::vector<size_t> gridn = {10};
     std::vector<std::vector<int>> sample_implicit;
-    
-    
+
+
 //    auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
 //    sample->set_dimension(gridn.size());
     std::vector<std::vector<int>> sample;
-    
+
     std::vector<double> dx(gridn.size());
     std::vector<std::vector<double>> grids(gridn.size());
     for(size_t i = 0; i != grids.size(); i++)
@@ -725,18 +724,18 @@ void test_1d_func()
     }
 
     for(size_t i = 0; i != gridn[0]; i++)
-    {        
-            //std::cout << grids[0][i] + dx[0] << '\t' << grids[1][j] + dx[1] << std::endl;
-            size_t v = size_t(100.0*threeExp1d(grids[0][i] + dx[0]));
-            if(v)
-            {
-                std::vector<int> a = {i};
-                //std::cout << "add " << i << '\t' << j << std::endl;
+    {
+        //std::cout << grids[0][i] + dx[0] << '\t' << grids[1][j] + dx[1] << std::endl;
+        size_t v = size_t(100.0*threeExp1d(grids[0][i] + dx[0]));
+        if(v)
+        {
+            std::vector<int> a = {int(i)};
+            //std::cout << "add " << i << '\t' << j << std::endl;
 //                sample->insert(a, v);
-                for(size_t k = 0; k != v; k++)
-                    sample.push_back(a);
-            }
-    }   
+            for(size_t k = 0; k != v; k++)
+                sample.push_back(a);
+        }
+    }
     /*std::vector<int> a = {5,5};
     //sample->insert(a, 4);
     sample.push_back(a);
@@ -744,40 +743,40 @@ void test_1d_func()
     sample.push_back(a);
     sample.push_back(a);
     sample.push_back(a);
-    
+
     a[0] = 4;
-    a[1] = 5;    
+    a[1] = 5;
     //sample->insert(a, 2);
     sample.push_back(a);
     sample.push_back(a);
     sample.push_back(a);
-        
+
     a[0] = 5;
-    a[1] = 4;    
-    //sample->insert(a, 2);    
+    a[1] = 4;
+    //sample->insert(a, 2);
     sample.push_back(a);*/
-    
-    
-    
+
+
+
 //    std::cout << sample->root->count << std::endl;
     std::cout << sample.size() << std::endl;
-    
-    
+
+
     size_t nrolls = 1e+5;
-    
+
     std::mt19937_64 generator;
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
-    
+
     float lb = -10.0, ub = 10.0;
-        
+
 //    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
 //    quant.set_sample_shared_and_fill_count(sample);
 //    quant.set_sample_shared(sample);
-    
+
     empirical_quantile::ExplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample(sample);
 
@@ -883,19 +882,21 @@ void test_1d_func()
 
 void test_2d_func()
 {
-    std::vector<size_t> gridn = {100, 100};    
-    
-    auto sample = std::make_shared<trie_based::Trie<trie_based::NodeCount<int>,int>>();
+    std::vector<size_t> gridn = {100, 100};
+//    std::vector<size_t> gridn = {50, 50};
+
+//    auto sample = std::make_shared<trie_based::Trie<trie_based::NodeCount<int>,int>>();
+    auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
     sample->set_dimension(gridn.size());
 //    std::vector<std::vector<int>> sample;
-    
+
     std::vector<double> dx(gridn.size());
     std::vector<std::vector<double>> grids(gridn.size());
     for(size_t i = 0; i != grids.size(); i++)
     {
         std::vector<double> grid(gridn[i] + 1);
-        double startp = -10.0;
-        double endp = 10.0;
+        double startp = -2.0;
+        double endp = 2.0;
         double es = endp - startp;
         for(size_t j = 0; j != grid.size(); j++)
         {
@@ -906,22 +907,23 @@ void test_2d_func()
     }
 
     for(size_t i = 0; i != gridn[0]; i++)
-    {        
+    {
         for(size_t j = 0; j != gridn[1]; j++)
         {
             //std::cout << grids[0][i] + dx[0] << '\t' << grids[1][j] + dx[1] << std::endl;
-            size_t v = size_t(100.0*threeExp(grids[0][i] + dx[0], grids[1][j] + dx[1]));
+            size_t v = size_t(1000.0*threeExp(grids[0][i] + dx[0], grids[1][j] + dx[1]));
             if(v)
             {
-                std::vector<int> a = {i, j};
+                std::vector<int> a = {int(i), int(j)};
                 //std::cout << "add " << i << '\t' << j << std::endl;
-                sample->insert(a, v);
+                sample->insert(a);
+//                sample->insert(a, v);
 //                for(size_t k = 0; k != v; k++)
 //                    sample.push_back(a);
             }
         }
-    }   
-    
+    }
+
     /*std::vector<int> a = {5,5};
     //sample->insert(a, 4);
     sample.push_back(a);
@@ -929,36 +931,36 @@ void test_2d_func()
     sample.push_back(a);
     sample.push_back(a);
     sample.push_back(a);
-    
+
     a[0] = 4;
-    a[1] = 5;    
+    a[1] = 5;
     //sample->insert(a, 2);
     sample.push_back(a);
     sample.push_back(a);
     sample.push_back(a);
-        
+
     a[0] = 5;
-    a[1] = 4;    
-    //sample->insert(a, 2);    
+    a[1] = 4;
+    //sample->insert(a, 2);
     sample.push_back(a);*/
-    
-    
-    size_t nrolls = 1e+4;
-    
+
+
+    size_t nrolls = 1e+5;
+
     std::mt19937_64 generator;
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
-    
-    float lb = -10.0, ub = 10.0;
-        
-//    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
-    empirical_quantile::ImplicitTrieQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
-    //quant.set_sample_shared_and_fill_count(sample);
-    quant.set_sample_shared(sample);
-    
+
+    float lb = -2.0, ub = 2.0;
+
+    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+//    empirical_quantile::ImplicitTrieQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    quant.set_sample_shared_and_fill_count(sample);
+//    quant.set_sample_shared(sample);
+
 //    empirical_quantile::ExplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
 //    quant.set_sample(sample);
 
@@ -1104,7 +1106,7 @@ void test_3d1()
     explicit_quantile(0, 5, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class(0, 5, grid_number, sample_implicit, 1e+3);
     implicit_quantile_class_sorted(0, 5, grid_number, sample_implicit, 1e+3);
-    implicit_quantile_graph_sorted(0, 5, grid_number, sample_implicit, 1e+3);
+    implicit_quantile_graph_sorted(0, 5, grid_number, 1e+3);
 }
 
 void test_3d2()
