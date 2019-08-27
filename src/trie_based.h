@@ -72,7 +72,11 @@ public:
     void remove_tree();
     size_t get_total_count() const;
     std::vector<I> get_and_remove_last();
+    size_t get_link_count() const;
+    size_t get_node_count() const;
 protected:
+    void get_link_number(T *p, size_t &count) const;
+    void get_node_number(T *p, size_t &count) const;
     void fill_tree_count(T *p);
     void get_number(T *p, size_t &count) const;
     void is_all_empty(T *p) const;
@@ -114,6 +118,42 @@ size_t TrieBased<T,I>::get_total_count() const
         count += i.use_count();
     }
     return count - last_layer.size();
+}
+template <typename T, typename I>
+void TrieBased<T,I>::get_node_number(T *p, size_t &count) const
+{
+    for(const auto &i : p->children)
+    {
+        ++count;
+        get_node_number(i.get(), count);
+    }
+}
+template <typename T, typename I>
+size_t TrieBased<T,I>::get_node_count() const
+{
+    size_t count = 0;
+    get_node_number(root.get(), count);
+    for(const auto &i : last_layer)
+        count -= i.use_count();
+    return count + 2*last_layer.size() + 1;
+}
+template <typename T, typename I>
+void TrieBased<T,I>::get_link_number(T *p, size_t &count) const
+{
+    for(const auto &i : p->children)
+    {
+        ++count;
+        get_node_number(i.get(), count);
+    }
+}
+template <typename T, typename I>
+size_t TrieBased<T,I>::get_link_count() const
+{
+    size_t count = 0;
+    get_node_number(root.get(), count);
+//    for(const auto &i : last_layer)
+//        count -= i.use_count();
+    return count;
 }
 template <typename T, typename I>
 void TrieBased<T,I>::insert(const std::vector<I> &key)
