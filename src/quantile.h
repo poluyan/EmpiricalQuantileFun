@@ -271,6 +271,8 @@ public:
     void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
     void set_sample_shared(std::shared_ptr<sample_type> in_sample);
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
+    size_t get_node_count() const;
+    size_t get_link_count() const;
 };
 
 template <typename T, typename U>
@@ -284,6 +286,18 @@ ImplicitQuantile<T, U>::ImplicitQuantile(std::vector<U> in_lb,
         std::vector<size_t> in_gridn) : Quantile<T, U>(in_lb, in_ub, in_gridn)
 {
 
+}
+
+template <typename T, typename U>
+size_t ImplicitQuantile<T, U>::get_node_count() const
+{
+    return sample->get_node_count();
+}
+
+template <typename T, typename U>
+size_t ImplicitQuantile<T, U>::get_link_count() const
+{
+    return sample->get_link_count();    
 }
 
 template <typename T, typename U>

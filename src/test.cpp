@@ -310,7 +310,7 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
 //    b = {0.0};
 //    quant.transform(a, b);
 //    sampled.push_back(b);
-
+    std::cout << "[ nodes, links ] -> [" << quant.get_node_count() << " , " << quant.get_link_count() << " ]" << std::endl;
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 //    data_io::write_default2d("maps/values01.dat", values01, 15);
@@ -446,7 +446,7 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
 //    b = {0.0};
 //    quant.transform(a, b);
 //    sampled.push_back(b);
-
+    std::cout << "[ nodes, links ] -> [" << quant.get_node_count() << " , " << quant.get_link_count() << " ]" << std::endl;
     std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
     std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 //    data_io::write_default2d("maps/values01.dat", values01, 15);
