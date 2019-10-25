@@ -162,9 +162,9 @@ void ExplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
         }
         row.resize(index);
 
-        auto rez = quantile_transform(row, i, in01[i]);
-        out[i] = rez.second;
-        m[i] = rez.first;
+        auto [k, res] = quantile_transform(row, i, in01[i]);
+        out[i] = res;
+        m[i] = k;
     }
 }
 
@@ -900,9 +900,9 @@ void GraphQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& 
             psum.back() += p->second[j-1].count;
         }
         psum.back() += p->second.back().count;
-        auto rez = quantile_transform(p->second, psum, i, in01[i]);
-        out[i] = rez.second;
-        p = sample->layers.find(p->second[rez.first].vname);
+        auto [k, res] = quantile_transform(p->second, psum, i, in01[i]);
+        out[i] = res;
+        p = sample->layers.find(p->second[k].vname);
     }
 }
 template <typename T, typename U>
@@ -1055,9 +1055,9 @@ void ImplicitTrieQuantile<T, U>::transform(const std::vector<U>& in01, std::vect
     auto p = sample->root.get();
     for(size_t i = 0; i != in01.size(); i++)
     {
-        auto rez = quantile_transform(p, i, in01[i]);
-        out[i] = rez.second;
-        p = p->children[rez.first].get();
+        auto [k, res] = quantile_transform(p, i, in01[i]);
+        out[i] = res;
+        p = p->children[k].get();
     }
 }
 }
