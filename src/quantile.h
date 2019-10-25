@@ -95,6 +95,8 @@ protected:
 public:
     ExplicitQuantile();
     ExplicitQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    ExplicitQuantile(const ExplicitQuantile&) = delete;
+    ExplicitQuantile& operator=(const ExplicitQuantile&) = delete;
     using Quantile<T, U>::set_grid_and_gridn;
     void set_sample(const std::vector<std::vector<T>> &in_sample);
     void set_sample_shared(std::shared_ptr<sample_type> in_sample);
@@ -267,6 +269,8 @@ protected:
 public:
     ImplicitQuantile();
     ImplicitQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
+    ImplicitQuantile(const ImplicitQuantile&) = delete;
+    ImplicitQuantile& operator=(const ImplicitQuantile&) = delete;
     void set_sample_and_fill_count(const std::vector<std::vector<T>> &in_sample);
     void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
     void set_sample_shared(std::shared_ptr<sample_type> in_sample);
@@ -342,9 +346,9 @@ void ImplicitQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U
     auto p = sample->root.get();
     for(size_t i = 0; i != in01.size(); i++)
     {
-        auto rez = quantile_transform(p, i, in01[i]);
-        out[i] = rez.second;
-        p = p->children[rez.first].get();
+        auto [k, res] = quantile_transform(p, i, in01[i]);
+        out[i] = res;
+        p = p->children[k].get();
     }
 }
 template <typename T, typename U>
@@ -461,13 +465,12 @@ protected:
 public:
     ImplicitQuantileSorted();
     ImplicitQuantileSorted(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn);
-
+    ImplicitQuantileSorted(const ImplicitQuantileSorted&) = delete;
+    ImplicitQuantileSorted& operator=(const ImplicitQuantileSorted&) = delete;
     void set_sample_and_fill_count(const std::vector<std::vector<T>> &in_sample);
     void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
-
     void sort();
     void transform(const std::vector<U>& in01, std::vector<U>& out) const;
-
 };
 
 template <typename T, typename U>
@@ -556,9 +559,9 @@ void ImplicitQuantileSorted<T, U>::transform(const std::vector<U>& in01, std::ve
         }
         psum[p->children.size()] = p->count;
 
-        auto rez = quantile_transform(p, psum, i, in01[i]);
-        out[i] = rez.second;
-        p = p->children[rez.first].get();
+        auto [k, res] = quantile_transform(p, psum, i, in01[i]);
+        out[i] = res;
+        p = p->children[k].get();
     }
 }
 
