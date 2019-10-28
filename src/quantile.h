@@ -830,13 +830,33 @@ std::pair<size_t, U> ImplicitQuantileSortedInterp<T, U>::quantile_transform(trie
         }
 
         T target = m;
-        auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
-                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-                                       const T &r)
+//        auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
+//                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+//                                       const T &r)
+//        {
+//            return l->index < r;
+//        });
+        int pos = -1;
+        int low = 0, high = layer->children.size() - 1, mid;
+        while(layer->children[low].index < target && layer->children[high] > target)
         {
-            return l->index < r;
-        });
-        size_t index = std::distance(layer->children.begin(), pos);
+            mid = low + ((target - layer->children[low]) * (high - low)) / (layer->children[high] - layer->children[low]);
+            if(layer->children[mid].index < target)
+                low = mid + 1;
+            else if(layer->children[mid].index > target)
+                high = mid - 1;
+            else
+            {
+                pos = mid;
+                break;
+            }
+        }
+        if(layer->children[low] == target)
+            pos = low;
+        if(layer->children[high] == target)
+            pos = high;
+        size_t index = static_cast<size_t>(pos);
+        //size_t index = std::distance(layer->children.begin(), pos);
 
         if(index > 0)
         {
@@ -863,13 +883,33 @@ std::pair<size_t, U> ImplicitQuantileSortedInterp<T, U>::quantile_transform(trie
         return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
     }
     T target = m;
-    auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
-                                [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-                                   const T &r)
+//    auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
+//                                [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+//                                   const T &r)
+//    {
+//        return l->index < r;
+//    });
+//    T index = std::distance(layer->children.begin(), pos);
+    int pos = -1;
+    int low = 0, high = layer->children.size() - 1, mid;
+    while(layer->children[low].index < target && layer->children[high] > target)
     {
-        return l->index < r;
-    });
-    T index = std::distance(layer->children.begin(), pos);
+        mid = low + ((target - layer->children[low]) * (high - low)) / (layer->children[high] - layer->children[low]);
+        if(layer->children[mid].index < target)
+            low = mid + 1;
+        else if(layer->children[mid].index > target)
+            high = mid - 1;
+        else
+        {
+            pos = mid;
+            break;
+        }
+    }
+    if(layer->children[low] == target)
+        pos = low;
+    if(layer->children[high] == target)
+        pos = high;
+    T index = static_cast<T>(pos);
     return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
 }
 
