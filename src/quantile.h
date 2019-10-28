@@ -708,7 +708,7 @@ ImplicitQuantileSortedInterp<T, U>::ImplicitQuantileSortedInterp() { }
 template <typename T, typename U>
 ImplicitQuantileSortedInterp<T, U>::ImplicitQuantileSortedInterp(std::vector<U> in_lb,
         std::vector<U> in_ub,
-        std::vector<size_t> in_gridn) : ImplicitQuantile<T, U>(in_lb, in_ub, in_gridn) { }
+        std::vector<size_t> in_gridn) : ImplicitQuantileSorted<T, U>(in_lb, in_ub, in_gridn) { }
 
 template <typename T, typename U>
 void ImplicitQuantileSortedInterp<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
@@ -749,18 +749,45 @@ inline int MyIntro(const std::vector<int> &v, const int &x)
         return high;
     return -1;
 }
-
+//template<class ForwardIt, class T>
+//inline ForwardIt interp_bound(ForwardIt first, ForwardIt last, const T& value)
+//{
+//    typename std::iterator_traits<ForwardIt>::difference_type mid, low = 0, high = std::distance(first, last) - 1;
+//    ForwardIt vlow = first, vhigh = std::next(first, high), vmid = first;
+//    while(*vlow < value && *vhigh > value)
+//    {
+//        mid = low + ((value - *vlow) * (high - low)) / (*vhigh - *vlow);
+//        vmid = std::next(first, mid);
+//        if(*vmid < value)
+//        {
+//            low = mid + 1;
+//            vlow = std::next(vmid, 1);
+//        }
+//        else if(*vmid > value)
+//        {
+//            high = mid - 1;
+//            vhigh = std::prev(vmid, 1);
+//        }
+//        else
+//            return vmid;
+//    }
+//    if(*vlow == value)
+//        return vlow;
+//    if(*vhigh == value)
+//        return vhigh;
+//    return first;
+//}
 template <typename T, typename U>
 size_t ImplicitQuantileSortedInterp<T, U>::count_less_interp(trie_based::NodeCount<T> *layer, T target) const
 {
-    int pos = -1;
+    /*int pos = -1;
     int low = 0, high = layer->children.size() - 1, mid;
-    while(layer->children[low].index < target && layer->children[high] > target)
+    while(layer->children[low]->index < target && layer->children[high]->index > target)
     {
-        mid = low + ((target - layer->children[low]) * (high - low)) / (layer->children[high] - layer->children[low]);
-        if(layer->children[mid].index < target)
+        mid = low + ((target - layer->children[low]->index) * (high - low)) / (layer->children[high]->index - layer->children[low]->index);
+        if(layer->children[mid]->index < target)
             low = mid + 1;
-        else if(layer->children[mid].index > target)
+        else if(layer->children[mid]->index > target)
             high = mid - 1;
         else
         {
@@ -768,13 +795,23 @@ size_t ImplicitQuantileSortedInterp<T, U>::count_less_interp(trie_based::NodeCou
             break;
         }
     }
-    if(layer->children[low] == target)
+    if(layer->children[low]->index == target)
         pos = low;
-    if(layer->children[high] == target)
+    if(layer->children[high]->index == target)
         pos = high;
     if(pos < 0)
         pos = layer->children.size(); // to psum! which is layer->children.size() + 1
-    return static_cast<size_t>(pos); // to psum!
+    return static_cast<size_t>(pos); // to psum!*/
+    auto lb = std::lower_bound(layer->children.begin(), layer->children.end(), target,
+                               [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                  const T &r)
+    {
+        return l->index < r;
+    });
+    size_t pos = std::distance(layer->children.begin(), lb);
+    if(lb == layer->children.end())
+        pos = layer->children.size(); // to psum! which is layer->children.size() + 1
+    return pos; // to psum!
 }
 
 template <typename T, typename U>
@@ -830,33 +867,33 @@ std::pair<size_t, U> ImplicitQuantileSortedInterp<T, U>::quantile_transform(trie
         }
 
         T target = m;
-//        auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
-//                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-//                                       const T &r)
-//        {
-//            return l->index < r;
-//        });
-        int pos = -1;
-        int low = 0, high = layer->children.size() - 1, mid;
-        while(layer->children[low].index < target && layer->children[high] > target)
+        auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
+                                    [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                       const T &r)
         {
-            mid = low + ((target - layer->children[low]) * (high - low)) / (layer->children[high] - layer->children[low]);
-            if(layer->children[mid].index < target)
-                low = mid + 1;
-            else if(layer->children[mid].index > target)
-                high = mid - 1;
-            else
-            {
-                pos = mid;
-                break;
-            }
-        }
-        if(layer->children[low] == target)
-            pos = low;
-        if(layer->children[high] == target)
-            pos = high;
-        size_t index = static_cast<size_t>(pos);
-        //size_t index = std::distance(layer->children.begin(), pos);
+            return l->index < r;
+        });
+//        int pos = -1;
+//        int low = 0, high = layer->children.size() - 1, mid;
+//        while(layer->children[low]->index < target && layer->children[high]->index > target)
+//        {
+//            mid = low + ((target - layer->children[low]->index) * (high - low)) / (layer->children[high]->index - layer->children[low]->index);
+//            if(layer->children[mid]->index < target)
+//                low = mid + 1;
+//            else if(layer->children[mid]->index > target)
+//                high = mid - 1;
+//            else
+//            {
+//                pos = mid;
+//                break;
+//            }
+//        }
+//        if(layer->children[low]->index == target)
+//            pos = low;
+//        if(layer->children[high]->index == target)
+//            pos = high;
+//        size_t index = static_cast<size_t>(pos);
+        size_t index = std::distance(layer->children.begin(), pos);
 
         if(index > 0)
         {
@@ -883,33 +920,33 @@ std::pair<size_t, U> ImplicitQuantileSortedInterp<T, U>::quantile_transform(trie
         return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
     }
     T target = m;
-//    auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
-//                                [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
-//                                   const T &r)
-//    {
-//        return l->index < r;
-//    });
-//    T index = std::distance(layer->children.begin(), pos);
-    int pos = -1;
-    int low = 0, high = layer->children.size() - 1, mid;
-    while(layer->children[low].index < target && layer->children[high] > target)
+    auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
+                                [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                   const T &r)
     {
-        mid = low + ((target - layer->children[low]) * (high - low)) / (layer->children[high] - layer->children[low]);
-        if(layer->children[mid].index < target)
-            low = mid + 1;
-        else if(layer->children[mid].index > target)
-            high = mid - 1;
-        else
-        {
-            pos = mid;
-            break;
-        }
-    }
-    if(layer->children[low] == target)
-        pos = low;
-    if(layer->children[high] == target)
-        pos = high;
-    T index = static_cast<T>(pos);
+        return l->index < r;
+    });
+    T index = std::distance(layer->children.begin(), pos);
+//    int pos = -1;
+//    int low = 0, high = layer->children.size() - 1, mid;
+//    while(layer->children[low]->index < target && layer->children[high]->index > target)
+//    {
+//        mid = low + ((target - layer->children[low]->index) * (high - low)) / (layer->children[high]->index - layer->children[low]->index);
+//        if(layer->children[mid]->index < target)
+//            low = mid + 1;
+//        else if(layer->children[mid]->index > target)
+//            high = mid - 1;
+//        else
+//        {
+//            pos = mid;
+//            break;
+//        }
+//    }
+//    if(layer->children[low]->index == target)
+//        pos = low;
+//    if(layer->children[high]->index == target)
+//        pos = high;
+//    T index = static_cast<T>(pos);
     return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
 }
 

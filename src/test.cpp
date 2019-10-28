@@ -462,7 +462,7 @@ void implicit_quantile_class_sorted_interp(float lb, float ub, std::vector<size_
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitQuantileSorted<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    empirical_quantile::ImplicitQuantileSortedInterp<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample_and_fill_count(sample);
 
     timer::Timer time_cpp11;
@@ -2014,6 +2014,27 @@ std::vector<double> test_2d_time(std::vector<size_t> gridN, std::vector<float> l
     time_all_trans.reset();
     for(size_t i = 0; i != values01.size(); i++)
         quant_impls.transform(values01[i], sampled[i]);
+    result.push_back(time_all_trans.elapsed_seconds());
+    result.push_back(result.back()/double(sampled.size()));
+    result.push_back(full_time.elapsed_seconds());
+    for(size_t i = 0; i != sampled.size(); i++)
+    {
+        for(size_t j = 0; j != sampled[i].size(); j++)
+        {
+            if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+            {
+                std::cout << "beyond bounds" << std::endl;
+                std::cout << sampled[i][j] << std::endl;
+            }
+        }
+    }
+    
+    empirical_quantile::ImplicitQuantileSortedInterp<int, float> quant_implsi(lb, ub, gridN);
+    full_time.reset();
+    quant_implsi.set_sample_shared_and_fill_count(sample);
+    time_all_trans.reset();
+    for(size_t i = 0; i != values01.size(); i++)
+        quant_implsi.transform(values01[i], sampled[i]);
     result.push_back(time_all_trans.elapsed_seconds());
     result.push_back(result.back()/double(sampled.size()));
     result.push_back(full_time.elapsed_seconds());
