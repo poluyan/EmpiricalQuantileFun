@@ -1239,10 +1239,10 @@ void test_3d1()
     };
 
     /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    explicit_quantile(0, 5, grid_number, sample_implicit, 1e+3);
-    implicit_quantile_class(0, 5, grid_number, sample_implicit, 1e+3);
-    implicit_quantile_class_sorted(0, 5, grid_number, sample_implicit, 1e+3);
-    implicit_quantile_class_sorted_interp(0, 5, grid_number, sample_implicit, 1e+3);
+    explicit_quantile(0, 5, grid_number, sample_implicit, 1e+4);
+    implicit_quantile_class(0, 5, grid_number, sample_implicit, 1e+4);
+    implicit_quantile_class_sorted(0, 5, grid_number, sample_implicit, 1e+4);
+    implicit_quantile_class_sorted_interp(0, 5, grid_number, sample_implicit, 1e+4);
 //    implicit_quantile_graph_sorted(0, 5, grid_number, 1e+3);
 }
 

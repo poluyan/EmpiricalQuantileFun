@@ -23,6 +23,8 @@
 #include "trie_based.h"
 
 #include <numeric>
+#include <iostream>
+
 
 namespace empirical_quantile
 {
@@ -690,6 +692,7 @@ protected:
 
     //size_t count_less_binary(trie_based::NodeCount<T> *layer, T target) const = delete;
     size_t count_less_interp(trie_based::NodeCount<T> *layer, T target) const;
+    int interp(trie_based::NodeCount<T> *layer, T target) const;
     std::pair<size_t, U> quantile_transform(trie_based::NodeCount<T> *layer, const std::vector<size_t> &psum, size_t ind, U val01) const;
 public:
     ImplicitQuantileSortedInterp();
@@ -730,53 +733,56 @@ void ImplicitQuantileSortedInterp<T, U>::transform(const std::vector<U>& in01, s
     }
 }
 
-inline int MyIntro(const std::vector<int> &v, const int &x)
+template <typename T, typename U>
+int ImplicitQuantileSortedInterp<T, U>::interp(trie_based::NodeCount<T> *layer, T target) const
 {
-    int low = 0, high = v.size() - 1, mid;
-    while(v[low] < x && v[high] > x)
+    int low = 0, high = layer->children.size() - 1, mid = -1;
+    while(layer->children[low]->index < target && layer->children[high]->index > target)
     {
-        mid = low + ((x - v[low]) * (high - low)) / (v[high] - v[low]);
-        if(v[mid] < x)
+        mid = low + ((target - layer->children[low]->index) * (high - low)) / (layer->children[high]->index - layer->children[low]->index);
+        if(layer->children[mid]->index < target)
             low = mid + 1;
-        else if(v[mid] > x)
+        else if(layer->children[mid]->index > target)
             high = mid - 1;
         else
-            return mid;
+        {
+//            while(layer->children[mid]->index >= target)
+//                --mid;
+//            std::cout << "here " << layer->children[mid]->index << std::endl;
+//            return mid + 1;
+
+            auto lb = std::lower_bound(layer->children.begin(), layer->children.begin() + mid, target,
+                                       [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                          const T &r)
+            {
+                return l->index < r;
+            });
+            return std::distance(layer->children.begin(), lb);
+        }
     }
-    if(v[low] == x)
-        return low;
-    if(v[high] == x)
-        return high;
-    return -1;
+    if(layer->children[low]->index == target)
+    {
+        auto lb = std::lower_bound(layer->children.begin(), layer->children.begin() + low, target,
+                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                      const T &r)
+        {
+            return l->index < r;
+        });
+        return std::distance(layer->children.begin(), lb);
+        //return low;
+    }
+    if(layer->children[high]->index == target)
+    {
+        auto lb = std::lower_bound(layer->children.begin() + low, layer->children.begin() + high, target,
+                                   [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
+                                      const T &r)
+        {
+            return l->index < r;
+        });
+        return std::distance(layer->children.begin(), lb);
+    }
+    return std::distance(layer->children.begin(), layer->children.end());
 }
-//template<class ForwardIt, class T>
-//inline ForwardIt interp_bound(ForwardIt first, ForwardIt last, const T& value)
-//{
-//    typename std::iterator_traits<ForwardIt>::difference_type mid, low = 0, high = std::distance(first, last) - 1;
-//    ForwardIt vlow = first, vhigh = std::next(first, high), vmid = first;
-//    while(*vlow < value && *vhigh > value)
-//    {
-//        mid = low + ((value - *vlow) * (high - low)) / (*vhigh - *vlow);
-//        vmid = std::next(first, mid);
-//        if(*vmid < value)
-//        {
-//            low = mid + 1;
-//            vlow = std::next(vmid, 1);
-//        }
-//        else if(*vmid > value)
-//        {
-//            high = mid - 1;
-//            vhigh = std::prev(vmid, 1);
-//        }
-//        else
-//            return vmid;
-//    }
-//    if(*vlow == value)
-//        return vlow;
-//    if(*vhigh == value)
-//        return vhigh;
-//    return first;
-//}
 template <typename T, typename U>
 size_t ImplicitQuantileSortedInterp<T, U>::count_less_interp(trie_based::NodeCount<T> *layer, T target) const
 {
@@ -802,6 +808,7 @@ size_t ImplicitQuantileSortedInterp<T, U>::count_less_interp(trie_based::NodeCou
     if(pos < 0)
         pos = layer->children.size(); // to psum! which is layer->children.size() + 1
     return static_cast<size_t>(pos); // to psum!*/
+
     auto lb = std::lower_bound(layer->children.begin(), layer->children.end(), target,
                                [](const std::shared_ptr<trie_based::NodeCount<T>> &l,
                                   const T &r)
@@ -809,8 +816,23 @@ size_t ImplicitQuantileSortedInterp<T, U>::count_less_interp(trie_based::NodeCou
         return l->index < r;
     });
     size_t pos = std::distance(layer->children.begin(), lb);
-    if(lb == layer->children.end())
-        pos = layer->children.size(); // to psum! which is layer->children.size() + 1
+//    if(lb == layer->children.end())
+//        pos = layer->children.size(); // to psum! which is layer->children.size() + 1
+//    return pos; // to psum!
+
+    int poss = interp(layer, target);
+    if(poss < 0)
+        poss = layer->children.size(); // to psum! which is layer->children.size() + 1
+    if(poss != int(pos))
+    {
+        std::cout << target << std::endl;
+        std::cout << poss << '\t' << pos << std::endl;
+
+        for(const auto & i : layer->children)
+            std::cout << i->index << ' ';
+        std::cout << std::endl;
+        std::cin.get();
+    }
     return pos; // to psum!
 }
 
