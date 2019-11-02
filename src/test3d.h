@@ -15,17 +15,12 @@
    limitations under the License.
 
 **************************************************************************/
+#ifndef TEST3D_H
+#define TEST3D_H
 
-#ifndef TEST_H
-#define TEST_H
+#include "test3d.h"
 
-#include "trie_based.h"
-#include "quantile.h"
-
-void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_class_sorted_interp(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> gridn, size_t nrolls);
+void test_3d1();
+void test_3d2();
 
 #endif

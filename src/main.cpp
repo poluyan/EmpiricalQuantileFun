@@ -27,6 +27,9 @@
 #include "trie_based.h"
 #include "quantile.h"
 #include "test.h"
+#include "test1d.h"
+#include "test2d.h"
+#include "test3d.h"
 #include "data_io.h"
 
 float empirical_cdf(std::vector<float> &sorted_sample, float val)

@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #ifndef QUANTILE_H
 #define QUANTILE_H
 

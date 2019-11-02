@@ -15,17 +15,15 @@
    limitations under the License.
 
 **************************************************************************/
+#ifndef TEST2D_H
+#define TEST2D_H
 
-#ifndef TEST_H
-#define TEST_H
+void test_2d1();
+void test_2d2();
 
-#include "trie_based.h"
-#include "quantile.h"
+void grid_test_2d();
+void test_2d_func();
 
-void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_class_sorted_interp(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
-void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> gridn, size_t nrolls);
+void worst_space_test_grid_2d();
 
 #endif
