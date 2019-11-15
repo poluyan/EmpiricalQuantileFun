@@ -74,7 +74,9 @@ public:
     std::vector<I> get_and_remove_last();
     size_t get_link_count() const;
     size_t get_node_count() const;
+    std::map<size_t,std::vector<I>> get_layer_count() const;
 protected:
+    void layer_count(size_t current_layer, T *p, std::map<size_t,std::vector<I>> &layers) const;
     void get_link_number(T *p, size_t &count) const;
     void get_node_number(T *p, size_t &count) const;
     void fill_tree_count(T *p);
@@ -380,6 +382,32 @@ void TrieBased<T,I>::get_number(T *p, size_t &count) const
         get_number(i.get(), count);
     }
 }
+template <typename T, typename I>
+void TrieBased<T,I>::layer_count(size_t current_layer, T *p, std::map<size_t, std::vector<I>> &layers) const
+{
+    auto it = layers.find(current_layer);
+    if(it != layers.end())
+    {
+        it->second.push_back(p->children.size());
+    }
+    else
+    {
+        layers.insert(std::pair<size_t, std::vector<I>>(current_layer, std::vector<I>(1, p->children.size())));
+    }
+    for(const auto &i : p->children)
+    {
+        layer_count(current_layer + 1, i.get(), layers);
+    }
+}
+template <typename T, typename I>
+std::map<size_t, std::vector<I>> TrieBased<T,I>::get_layer_count() const
+{
+    std::map<size_t, std::vector<I>> layers;
+    size_t cur_layer = 0;
+    layer_count(cur_layer, root.get(), layers);
+    layers.erase(std::prev(layers.end()));
+    return layers;
+}
 
 template <typename I>
 class TrieLayer
@@ -615,7 +643,7 @@ Graph<I>::Graph()
     layers.insert(std::make_pair('z',z));
 
     root = layers.find('y');
-    
+
     /*std::vector<invect> y, a,b,c,d,e, f,g,h,j,k,l, z;
     y.push_back(invect('a',0,1));
     y.push_back(invect('a',1,1));
