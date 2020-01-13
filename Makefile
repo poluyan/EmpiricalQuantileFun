@@ -12,6 +12,7 @@ OBJ_RELEASE = \
 	$(OBJDIR_RELEASE)/test2d.o \
 	$(OBJDIR_RELEASE)/test3d.o \
 	$(OBJDIR_RELEASE)/testNd.o \
+	$(OBJDIR_RELEASE)/kde.o 
 
 HEADERS = \
 	$(SRCPATH)/trie_based.h \
@@ -23,7 +24,8 @@ HEADERS = \
 	$(SRCPATH)/test1d.h \
 	$(SRCPATH)/test2d.h \
 	$(SRCPATH)/test3d.h \
-	$(SRCPATH)/testNd.h 
+	$(SRCPATH)/testNd.h \
+	$(SRCPATH)/kde.h 
 
 all: release
 
@@ -51,6 +53,8 @@ $(OBJDIR_RELEASE)/test3d.o: $(SRCPATH)/test3d.cpp
 	$(CPP) $(CPPFLAGS) $(SRCPATH)/test3d.cpp -o $(OBJDIR_RELEASE)/test3d.o
 $(OBJDIR_RELEASE)/testNd.o: $(SRCPATH)/testNd.cpp
 	$(CPP) $(CPPFLAGS) $(SRCPATH)/testNd.cpp -o $(OBJDIR_RELEASE)/testNd.o
+$(OBJDIR_RELEASE)/kde.o: $(SRCPATH)/kde.cpp
+	$(CPP) $(CPPFLAGS) $(SRCPATH)/kde.cpp -o $(OBJDIR_RELEASE)/kde.o
 
 clean_release:
 	rm $(OBJDIR_RELEASE)/*.o

@@ -31,6 +31,7 @@
 #include "test2d.h"
 #include "test3d.h"
 #include "data_io.h"
+#include "kde.h"
 
 float empirical_cdf(std::vector<float> &sorted_sample, float val)
 {
@@ -521,7 +522,7 @@ int main()
 
 //    test_2d1();
 //    test_2d2();
-    test_3d1();
+//    test_3d1();
 //    test_3d2();
 
 //    test_1d_func();
@@ -593,6 +594,11 @@ int main()
 
 //    worst_space_check();
     //std::vector<std::vector<double>> x(100,std::vector<double>(10));
+    
+    
+    /// kde
+    kde::test1d();
+    kde::test2d();
 }
 
 // // trie based layer test
