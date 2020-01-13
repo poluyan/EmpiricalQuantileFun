@@ -594,11 +594,13 @@ int main()
 
 //    worst_space_check();
     //std::vector<std::vector<double>> x(100,std::vector<double>(10));
-    
-    
+
+
     /// kde
-    kde::test1d();
-    kde::test2d();
+//    kde::test1d();
+//    kde::test2d();
+    
+    ///
 }
 
 // // trie based layer test
@@ -631,11 +633,11 @@ int main()
 //    sample.fill_tree_count();
 //    //sort();
 //    auto rez = sample.get_layer_count();
-//    std::cout << rez.size() << std::endl;    
-//    std::cout << sample.last_layer.size() << std::endl; 
-//    
+//    std::cout << rez.size() << std::endl;
+//    std::cout << sample.last_layer.size() << std::endl;
+//
 //    std::cout << std::endl;
-//    
+//
 //    for(const auto &i : rez)
 //    {
 //        std::cout << i.first << std::endl;

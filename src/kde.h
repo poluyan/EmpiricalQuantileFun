@@ -24,6 +24,8 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <numeric>
+#include <future>
 
 namespace kde
 {
@@ -31,10 +33,13 @@ namespace kde
 template <typename T>
 class KDE
 {
+    typedef std::vector<std::vector<T>> sample_type;
+    
 public:
-    KDE()
-    {
-    }
+    KDE(){}
+    KDE(const KDE&) = delete;
+    KDE& operator=(const KDE&) = delete;
+    
     void set_kernel_type(size_t kt)
     {
         if(kt >= 0 && kt < 5)
@@ -51,15 +56,15 @@ public:
         max = std::vector<T>(dimension, std::numeric_limits<T>::min());
         bandwidth = std::vector<T>(dimension);
     }
-    void set_sample_shared(std::shared_ptr<std::vector<std::vector<T>>> in_sample)
+    void set_sample_shared(std::shared_ptr<sample_type> in_sample)
     {
         sample = std::move(in_sample);
-        
+
         for(auto it = sample->begin(); it != sample->end(); ++it)
         {
             if((*it).size() != dimension)
                 throw std::logic_error("in_sample->front().size() != dimension");
-                
+
             for(size_t j = 0; j != dimension; j++)
             {
                 sum[j] += (*it)[j];
@@ -68,14 +73,58 @@ public:
                 max[j] = (*it)[j] > max[j] ? (*it)[j] : max[j];
             }
         }
-        
+
         count = sample->size();
         calculate_bandwidth();
     }
-    T pdf(const std::vector<T> x)
+    T pdf(const std::vector<T> x) const
+    {
+        if(sample->size() < 1e4)
+        {
+            T res = 0.0;
+            for(auto it = sample->begin(); it != sample->end(); ++it)
+            {
+                T t = 1.0;
+                for(size_t i = 0; i != dimension; i++)
+                {
+                    t *= compute_pdf(x[i], (*it)[i], bandwidth[i]);
+                }
+                res += t;
+            }
+            return res/count;
+        }
+        else
+        {
+            return parallel_pdf(sample->begin(), sample->end(), x);
+        }
+    }
+    T cdf(const std::vector<T> x) const
+    {
+        if(sample->size() < 1e4)
+        {
+            T res = 0.0;
+            for(auto it = sample->begin(); it != sample->end(); ++it)
+            {
+                T t = 1.0;
+                for(size_t j = 0; j != (*it).size(); j++)
+                {
+                    t *= compute_cdf(x[j], (*it)[j], bandwidth[j]);
+                }
+                res += t;
+            }
+            return res/count;
+        }
+        else
+        {
+            return parallel_cdf(sample->begin(), sample->end(), x);
+        }
+    }
+protected:
+    template<typename InputIt>
+    T pdf(InputIt first, InputIt last, const std::vector<T> &x) const
     {
         T res = 0.0;
-        for(auto it = sample->begin(); it != sample->end(); ++it)
+        for(auto it = first; it != last; ++it)
         {
             T t = 1.0;
             for(size_t i = 0; i != dimension; i++)
@@ -84,29 +133,101 @@ public:
             }
             res += t;
         }
-        return res/count;
+        return res;
     }
-    T cdf(const std::vector<T> x)
+    template<typename InputIt>
+    T cdf(InputIt first, InputIt last, const std::vector<T> &x) const
     {
         T res = 0.0;
-        for(auto it = sample->begin(); it != sample->end(); ++it)
+        for(auto it = first; it != last; ++it)
         {
             T t = 1.0;
-            for(size_t j = 0; j != (*it).size(); j++)
+            for(size_t i = 0; i != dimension; i++)
             {
-                t *= compute_cdf(x[j], (*it)[j], bandwidth[j]);
+                t *= compute_cdf(x[i], (*it)[i], bandwidth[i]);
             }
             res += t;
         }
+        return res;
+    }
+    template<class InputIt>
+    T parallel_pdf(InputIt first, InputIt last, const std::vector<T> &x) const
+    {
+        T res = 0.0;
+        const auto size = last - first;
+        const auto nthreads = std::thread::hardware_concurrency();
+        const auto size_per_thread = size / nthreads;
+
+        std::vector<std::future<T>> futures;
+        for(unsigned int i = 0; i < nthreads - 1; i++)
+        {
+            futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, x, this]()
+            {
+                return this->pdf(start, start + size_per_thread, x);
+            }));
+        }
+        futures.emplace_back(
+            std::async([start = first + (nthreads - 1) * size_per_thread, last, x, this]()
+        {
+            return this->pdf(start, last, x);
+        }));
+
+        for(auto &&future : futures)
+        {
+            if(future.valid())
+            {
+                res += future.get();
+            }
+            else
+            {
+                throw std::runtime_error("Something going wrong.");
+            }
+        }
         return res/count;
     }
-protected:
+    
+    template<class InputIt>
+    T parallel_cdf(InputIt first, InputIt last, const std::vector<T> &x) const
+    {
+        T res = 0.0;
+        const auto size = last - first;
+        const auto nthreads = std::thread::hardware_concurrency();
+        const auto size_per_thread = size / nthreads;
+
+        std::vector<std::future<T>> futures;
+        for(unsigned int i = 0; i < nthreads - 1; i++)
+        {
+            futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, x, this]()
+            {
+                return this->cdf(start, start + size_per_thread, x);
+            }));
+        }
+        futures.emplace_back(
+            std::async([start = first + (nthreads - 1) * size_per_thread, last, x, this]()
+        {
+            return this->cdf(start, last, x);
+        }));
+
+        for(auto &&future : futures)
+        {
+            if(future.valid())
+            {
+                res += future.get();
+            }
+            else
+            {
+                throw std::runtime_error("Something going wrong.");
+            }
+        }
+        return res/count;
+    }
+
     const T pi = std::acos(-1.0);
     size_t dimension;
     size_t kernel_type; // 0 - gaussian, 1 - epanechnikov, 2 - uniform, 3 - biweight, 4 - triweight
     size_t count;
     std::vector<T> sum, ssum, min, max, bandwidth;
-    std::shared_ptr<std::vector<std::vector<T>>> sample;
+    std::shared_ptr<sample_type> sample;
 
     void calculate_bandwidth()
     {

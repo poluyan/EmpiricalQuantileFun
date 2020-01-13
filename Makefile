@@ -1,6 +1,6 @@
 TARGET = main
 CPP = g++
-CPPFLAGS = -c -std=c++11 -Wall -Wextra -Wpedantic -O3 -MD
+CPPFLAGS = -c -std=c++17 -Wall -Wextra -Wpedantic -O3 -MD
 
 SRCPATH = ./src
 OBJDIR_RELEASE = obj/Release
@@ -37,7 +37,7 @@ before_release:
 	test -d $(OBJDIR_RELEASE) || mkdir -p $(OBJDIR_RELEASE)
 
 out_release: $(OBJ_RELEASE) $(HEADERS)
-	$(CPP) -o $(TARGET) $(OBJDIR_RELEASE)/*.o
+	$(CPP) -o $(TARGET) $(OBJDIR_RELEASE)/*.o -pthread
 
 $(OBJDIR_RELEASE)/main.o: $(SRCPATH)/main.cpp
 	$(CPP) $(CPPFLAGS) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
