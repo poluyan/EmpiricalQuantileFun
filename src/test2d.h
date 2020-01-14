@@ -26,4 +26,6 @@ void test_2d_func();
 
 void worst_space_test_grid_2d();
 
+void test_2d_uniform_vs_nonuniform();
+
 #endif

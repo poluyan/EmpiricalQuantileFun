@@ -27,4 +27,6 @@ void test_1d5();
 
 void test_1d_func();
 
+void test_1d_uniform_vs_nonuniform();
+
 #endif

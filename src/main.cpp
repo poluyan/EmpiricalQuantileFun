@@ -526,7 +526,10 @@ int main()
 //    test_3d2();
 
 //    test_1d_func();
-//    test_2d_func();
+    test_2d_func();
+
+//    test_1d_uniform_vs_nonuniform();
+//    test_2d_uniform_vs_nonuniform();
 
 //    test_grid_10d();
 
