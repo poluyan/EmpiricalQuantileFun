@@ -25,7 +25,8 @@ HEADERS = \
 	$(SRCPATH)/test2d.h \
 	$(SRCPATH)/test3d.h \
 	$(SRCPATH)/testNd.h \
-	$(SRCPATH)/kde.h 
+	$(SRCPATH)/kde.h \
+	$(SRCPATH)/mvff.h 
 
 all: release
 
