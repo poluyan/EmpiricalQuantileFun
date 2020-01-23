@@ -220,7 +220,7 @@ void test_1d_func()
 //    quant.set_sample_shared_and_fill_count(sample);
 //    quant.set_sample_shared(sample);
 
-    empirical_quantile::ExplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    mveqf::ExplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample(sample);
 
     timer::Timer time_cpp11;
@@ -357,7 +357,7 @@ void test_1d_uniform_vs_nonuniform()
     sample.push_back(std::vector<int>{9});
     sample.push_back(std::vector<int>{10});
     
-    typedef trie_based::Trie<trie_based::NodeCount<int>,int> trie_type;
+    typedef mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int> trie_type;
     std::shared_ptr<trie_type> trie_sample = std::make_shared<trie_type>();
     trie_sample->insert(std::vector<int>{1},3);
     trie_sample->insert(std::vector<int>{2},1);
@@ -389,7 +389,7 @@ void test_1d_uniform_vs_nonuniform()
 //    empirical_quantile::ExplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
 //    quant.set_sample(sample);
 
-    empirical_quantile::ImplicitTrieQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    mveqf::ImplicitTrieQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample_shared(trie_sample);
 
     timer::Timer time_cpp11;

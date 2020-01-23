@@ -20,6 +20,9 @@
 #include "data_io.h"
 #include <random>
 
+namespace mveqf
+{
+
 namespace kde
 {
 
@@ -44,7 +47,7 @@ void test1d()
 //    sample->push_back(std::vector<double>{2.0});
 
 
-    KDE<double> obj;
+    mveqf::kde::KDE<double> obj;
     obj.set_dimension(1);
     obj.set_kernel_type(0);
     obj.set_sample_shared(sample);
@@ -68,10 +71,10 @@ void test1d()
 void test2d()
 {
     auto sample = std::make_shared<std::vector<std::vector<double>>>();
-    
+
     ///first
 //    sample->push_back(std::vector<double>{0.0, 0.0});
-    
+
     /// second
     // 1125, 1126
     std::vector<std::vector<double> > dots =
@@ -158,6 +161,8 @@ void test2d()
     }
     data_io::write_default2d("maps/kde/kpdf2d.dat", pdf, 5);
     data_io::write_default2d("maps/kde/kcdf2d.dat", cdf, 5);
+}
+
 }
 
 }

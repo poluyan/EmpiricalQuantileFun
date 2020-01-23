@@ -25,8 +25,12 @@
 #include <algorithm>
 #include <memory>
 
+namespace mveqf
+{
+
 namespace trie_based
 {
+
 template <template <typename> class T, typename I>
 struct TrieNode
 {
@@ -689,4 +693,5 @@ Graph<I>::Graph()
 
 }
 
+}
 #endif

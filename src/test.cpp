@@ -32,7 +32,7 @@ void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vecto
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ExplicitQuantile<int, float> quant(
+    mveqf::ExplicitQuantile<int, float> quant(
         std::vector<float>(gridn.size(), lb),
         std::vector<float>(gridn.size(), ub),
         gridn);
@@ -172,7 +172,7 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    mveqf::ImplicitQuantile<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample_and_fill_count(sample);
 
     timer::Timer time_cpp11;
@@ -308,7 +308,7 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitQuantileSorted<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    mveqf::ImplicitQuantileSorted<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample_and_fill_count(sample);
 
     timer::Timer time_cpp11;
@@ -444,7 +444,7 @@ void implicit_quantile_class_sorted_interp(float lb, float ub, std::vector<size_
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::ImplicitQuantileSortedInterp<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    mveqf::ImplicitQuantileSortedInterp<int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
     quant.set_sample_and_fill_count(sample);
 
     timer::Timer time_cpp11;
@@ -580,7 +580,7 @@ void implicit_quantile_graph_sorted(float lb, float ub, std::vector<size_t> grid
     std::vector<std::vector<float> > sampled;
     std::vector<std::vector<float> > values01;
 
-    empirical_quantile::GraphQuantile <int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
+    mveqf::GraphQuantile <int, float> quant(std::vector<float>(gridn.size(), lb), std::vector<float>(gridn.size(), ub), gridn);
 
     timer::Timer time_cpp11;
     time_cpp11.reset();

@@ -1,6 +1,6 @@
 TARGET = main
 CPP = g++
-CPPFLAGS = -c -std=c++17 -Wall -Wextra -Wpedantic -O3 -MD
+CPPFLAGS = -c -ffast-math -std=c++17 -Wall -Wextra -Wpedantic -O3 -MD
 
 SRCPATH = ./src
 OBJDIR_RELEASE = obj/Release
@@ -25,6 +25,7 @@ HEADERS = \
 	$(SRCPATH)/test2d.h \
 	$(SRCPATH)/test3d.h \
 	$(SRCPATH)/testNd.h \
+	$(SRCPATH)/kquantile.h \
 	$(SRCPATH)/kde.h \
 	$(SRCPATH)/mvff.h 
 

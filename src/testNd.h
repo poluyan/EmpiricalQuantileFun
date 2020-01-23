@@ -74,7 +74,7 @@ std::vector<std::vector<T>> iterate(const std::vector<std::vector<T>> &v)
 }
 
 template <typename T, typename I>
-void iterate_trie(const std::vector<std::vector<T>> &v, std::shared_ptr<trie_based::TrieBased<trie_based::NodeCount<I>,I>> sample)
+void iterate_trie(const std::vector<std::vector<T>> &v, std::shared_ptr<mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<I>,I>> sample)
 {
     std::vector<size_t> it(v.size(), 0);
     do

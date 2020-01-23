@@ -19,6 +19,9 @@
 #ifndef TRIE_H
 #define TRIE_H
 
+namespace mveqf
+{
+
 namespace trie_based
 {
 
@@ -109,6 +112,8 @@ bool Trie<T,I>::search(const std::vector<I> &key) const
         }
     }
     return true;
+}
+
 }
 
 }

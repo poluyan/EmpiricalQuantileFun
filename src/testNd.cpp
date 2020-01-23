@@ -78,7 +78,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     generator.seed(1);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
     std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
     std::vector<std::vector<int> > sample_implicit;
@@ -215,7 +215,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
 
     timer::Timer time_cpp11;
 
-    empirical_quantile::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
+    mveqf::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
     quant_expl.set_sample(sample_implicit);
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
@@ -236,7 +236,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     }
     data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
 
-    empirical_quantile::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+    mveqf::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
     quant_impl.set_sample_shared_and_fill_count(sample);
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
@@ -257,7 +257,7 @@ void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float
     }
     data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
 
-    empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+    mveqf::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
     quant_impls.set_sample_shared_and_fill_count(sample);
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
@@ -287,7 +287,7 @@ std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<fl
     generator.seed(1 + gridN.size() + gridN.front());
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
     std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
     std::vector<int> temp(gridN.size());
@@ -391,7 +391,7 @@ std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<fl
 
     timer::Timer time_cpp11;
 
-    empirical_quantile::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+    mveqf::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
     quant_impl.set_sample_shared_and_fill_count(sample);
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
@@ -409,7 +409,7 @@ std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<fl
         }
     }
 
-    empirical_quantile::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+    mveqf::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
     quant_impls.set_sample_shared_and_fill_count(sample);
     time_cpp11.reset();
     for(size_t i = 0; i != values01.size(); i++)
@@ -472,7 +472,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
     generator.seed(1 + gridN.size() + gridN.front() + seed_append);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
     std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
     std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
@@ -510,7 +510,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
     timer::Timer time_all_trans, full_time;
     std::vector<double> result;
 
-    empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+    mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
     quant_expl.set_sample(sample_int);
     full_time.reset();
     time_all_trans.reset();
@@ -531,7 +531,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
         }
     }
 
-    empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+    mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
     full_time.reset();
     quant_impl.set_sample_shared_and_fill_count(sample);
     time_all_trans.reset();
@@ -552,7 +552,7 @@ std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb
         }
     }
 
-    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+    mveqf::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
     full_time.reset();
     quant_impls.set_sample_shared_and_fill_count(sample);
     time_all_trans.reset();
@@ -660,12 +660,12 @@ void worst_space_f(std::vector<size_t> gridN, std::vector<float> lb, std::vector
 
     if(impl)
     {
-        typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+        typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
         std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
         iterate_trie(variable_values, sample);
 
-        empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+        mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
         quant_impl.set_sample_shared_and_fill_count(sample);
 
         std::cout << "hit it" << std::endl;
@@ -675,7 +675,7 @@ void worst_space_f(std::vector<size_t> gridN, std::vector<float> lb, std::vector
     else
     {
         std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
-        empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+        mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
 //        quant_expl.set_sample(sample_int);
 //        sample_int.clear();
 //        sample_int.shrink_to_fit();
@@ -703,12 +703,12 @@ void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vecto
 
     if(impl)
     {
-        typedef trie_based::TrieBased<trie_based::NodeCount<int>,int> sample_type;
+        typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
         std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
         iterate_trie(variable_values, sample);
 
-        empirical_quantile::ImplicitQuantile<int, double> quant_impl(lb, ub, gridN);
+        mveqf::ImplicitQuantile<int, double> quant_impl(lb, ub, gridN);
         quant_impl.set_sample_shared_and_fill_count(sample);
 
         std::cout << "hit it" << std::endl;
@@ -718,7 +718,7 @@ void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vecto
     else
     {
         std::vector<std::vector<int>> sample_int = iterate(variable_values);
-        empirical_quantile::ExplicitQuantile<int, double> quant_expl(lb, ub, gridN);
+        mveqf::ExplicitQuantile<int, double> quant_expl(lb, ub, gridN);
 //        quant_expl.set_sample(sample_int);
 //        sample_int.clear();
 //        sample_int.shrink_to_fit();
@@ -753,7 +753,7 @@ std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector
     generator.seed(1 + gridN.size() + gridN.front() + Nsamples + seed_append);
     std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    typedef trie_based::TrieBased<trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
     std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
     std::vector<std::vector<std::uint8_t>> sample_int;
@@ -791,7 +791,7 @@ std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector
     timer::Timer time_all_trans, full_time;
     std::vector<double> result;
 
-    empirical_quantile::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+    mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
     quant_expl.set_sample(sample_int);
     full_time.reset();
     time_all_trans.reset();
@@ -812,7 +812,7 @@ std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector
         }
     }
 
-    empirical_quantile::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+    mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
     full_time.reset();
     quant_impl.set_sample_shared_and_fill_count(sample);
     time_all_trans.reset();
@@ -833,7 +833,7 @@ std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector
         }
     }
 
-    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+    mveqf::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
     full_time.reset();
     quant_impls.set_sample_shared_and_fill_count(sample);
     time_all_trans.reset();

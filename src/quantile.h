@@ -23,7 +23,7 @@
 
 #include <numeric>
 
-namespace empirical_quantile
+namespace mveqf
 {
 
 template <typename T, typename U>

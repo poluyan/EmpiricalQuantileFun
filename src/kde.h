@@ -26,228 +26,21 @@
 #include <limits>
 #include <numeric>
 #include <future>
+//#include "fmath.hpp"
+
+namespace mveqf
+{
 
 namespace kde
 {
 
 template <typename T>
-class KDE
+class Kernels
 {
-    typedef std::vector<std::vector<T>> sample_type;
-    
-public:
-    KDE(){}
-    KDE(const KDE&) = delete;
-    KDE& operator=(const KDE&) = delete;
-    
-    void set_kernel_type(size_t kt)
-    {
-        if(kt >= 0 && kt < 5)
-            kernel_type = kt;
-        else
-            throw std::logic_error("kernel type");
-    }
-    void set_dimension(size_t dim)
-    {
-        dimension = dim;
-        sum = std::vector<T>(dimension, 0);
-        ssum = std::vector<T>(dimension, 0);
-        min = std::vector<T>(dimension, std::numeric_limits<T>::max());
-        max = std::vector<T>(dimension, std::numeric_limits<T>::min());
-        bandwidth = std::vector<T>(dimension);
-    }
-    void set_sample_shared(std::shared_ptr<sample_type> in_sample)
-    {
-        sample = std::move(in_sample);
-
-        for(auto it = sample->begin(); it != sample->end(); ++it)
-        {
-            if((*it).size() != dimension)
-                throw std::logic_error("in_sample->front().size() != dimension");
-
-            for(size_t j = 0; j != dimension; j++)
-            {
-                sum[j] += (*it)[j];
-                ssum[j] += std::pow((*it)[j], 2.0);
-                min[j] = (*it)[j] < min[j] ? (*it)[j] : min[j];
-                max[j] = (*it)[j] > max[j] ? (*it)[j] : max[j];
-            }
-        }
-
-        count = sample->size();
-        calculate_bandwidth();
-    }
-    T pdf(const std::vector<T> x) const
-    {
-        if(sample->size() < 1e4)
-        {
-            T res = 0.0;
-            for(auto it = sample->begin(); it != sample->end(); ++it)
-            {
-                T t = 1.0;
-                for(size_t i = 0; i != dimension; i++)
-                {
-                    t *= compute_pdf(x[i], (*it)[i], bandwidth[i]);
-                }
-                res += t;
-            }
-            return res/count;
-        }
-        else
-        {
-            return parallel_pdf(sample->begin(), sample->end(), x);
-        }
-    }
-    T cdf(const std::vector<T> x) const
-    {
-        if(sample->size() < 1e4)
-        {
-            T res = 0.0;
-            for(auto it = sample->begin(); it != sample->end(); ++it)
-            {
-                T t = 1.0;
-                for(size_t j = 0; j != (*it).size(); j++)
-                {
-                    t *= compute_cdf(x[j], (*it)[j], bandwidth[j]);
-                }
-                res += t;
-            }
-            return res/count;
-        }
-        else
-        {
-            return parallel_cdf(sample->begin(), sample->end(), x);
-        }
-    }
 protected:
-    template<typename InputIt>
-    T pdf(InputIt first, InputIt last, const std::vector<T> &x) const
-    {
-        T res = 0.0;
-        for(auto it = first; it != last; ++it)
-        {
-            T t = 1.0;
-            for(size_t i = 0; i != dimension; i++)
-            {
-                t *= compute_pdf(x[i], (*it)[i], bandwidth[i]);
-            }
-            res += t;
-        }
-        return res;
-    }
-    template<typename InputIt>
-    T cdf(InputIt first, InputIt last, const std::vector<T> &x) const
-    {
-        T res = 0.0;
-        for(auto it = first; it != last; ++it)
-        {
-            T t = 1.0;
-            for(size_t i = 0; i != dimension; i++)
-            {
-                t *= compute_cdf(x[i], (*it)[i], bandwidth[i]);
-            }
-            res += t;
-        }
-        return res;
-    }
-    template<class InputIt>
-    T parallel_pdf(InputIt first, InputIt last, const std::vector<T> &x) const
-    {
-        T res = 0.0;
-        const auto size = last - first;
-        const auto nthreads = std::thread::hardware_concurrency();
-        const auto size_per_thread = size / nthreads;
-
-        std::vector<std::future<T>> futures;
-        for(unsigned int i = 0; i < nthreads - 1; i++)
-        {
-            futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, x, this]()
-            {
-                return this->pdf(start, start + size_per_thread, x);
-            }));
-        }
-        futures.emplace_back(
-            std::async([start = first + (nthreads - 1) * size_per_thread, last, x, this]()
-        {
-            return this->pdf(start, last, x);
-        }));
-
-        for(auto &&future : futures)
-        {
-            if(future.valid())
-            {
-                res += future.get();
-            }
-            else
-            {
-                throw std::runtime_error("Something going wrong.");
-            }
-        }
-        return res/count;
-    }
-    
-    template<class InputIt>
-    T parallel_cdf(InputIt first, InputIt last, const std::vector<T> &x) const
-    {
-        T res = 0.0;
-        const auto size = last - first;
-        const auto nthreads = std::thread::hardware_concurrency();
-        const auto size_per_thread = size / nthreads;
-
-        std::vector<std::future<T>> futures;
-        for(unsigned int i = 0; i < nthreads - 1; i++)
-        {
-            futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, x, this]()
-            {
-                return this->cdf(start, start + size_per_thread, x);
-            }));
-        }
-        futures.emplace_back(
-            std::async([start = first + (nthreads - 1) * size_per_thread, last, x, this]()
-        {
-            return this->cdf(start, last, x);
-        }));
-
-        for(auto &&future : futures)
-        {
-            if(future.valid())
-            {
-                res += future.get();
-            }
-            else
-            {
-                throw std::runtime_error("Something going wrong.");
-            }
-        }
-        return res/count;
-    }
-
     const T pi = std::acos(-1.0);
-    size_t dimension;
-    size_t kernel_type; // 0 - gaussian, 1 - epanechnikov, 2 - uniform, 3 - biweight, 4 - triweight
-    size_t count;
-    std::vector<T> sum, ssum, min, max, bandwidth;
-    std::shared_ptr<sample_type> sample;
-
-    void calculate_bandwidth()
-    {
-        for(size_t i = 0; i != dimension; i++)
-        {
-            T x = sum[i]/count;
-            T y = ssum[i]/count;
-            T sigma = std::sqrt(y - std::pow(x, 2.0));
-            bandwidth[i] = sigma*(std::pow((3.0*count/4.0), (-1.0/5.0)));
-            std::cout << std::fixed << x << '\t' << y << '\t' << bandwidth[i] << std::endl;
-        }
-        if(sample->size() == 1)
-        {
-            for(size_t i = 0; i != dimension; i++)
-            {
-                bandwidth[i] = 1.0;
-            }
-        }
-    }
-
+public:
+    Kernels() {}
     inline T gaussian_cdf(T x, T mu, T sigma) const
     {
         // 0.5*(1.0 + std::erf((x - mu)/(sigma*std::sqrt(2.0))))
@@ -301,6 +94,9 @@ protected:
     inline T gaussian_pdf(T x, T mu, T sigma) const
     {
         return std::exp(-0.5*std::pow((x - mu)/sigma, 2.0))/(sigma*std::sqrt(2.0*pi));
+
+//        T y = (x - mu)/sigma;
+//        return fmath::expd(-0.5*y*y)/(sigma*std::sqrt(2.0*pi));
     }
     inline T epanechnikov_pdf(T x, T mu, T sigma) const
     {
@@ -321,9 +117,9 @@ protected:
     {
         return (x < mu - 0.5*sigma || x > mu + 0.5*sigma) ? 0.0 : 1.0/sigma;
     }
-    inline T compute_pdf(T x, T mu, T sigma) const
+    inline T compute_pdf(size_t kt, T x, T mu, T sigma) const
     {
-        switch(kernel_type)
+        switch(kt)
         {
             case 1:
                 return epanechnikov_pdf(x, mu, sigma);
@@ -337,9 +133,9 @@ protected:
                 return gaussian_pdf(x, mu, sigma);
         }
     }
-    inline T compute_cdf(T x, T mu, T sigma) const
+    inline T compute_cdf(size_t kt, T x, T mu, T sigma) const
     {
-        switch(kernel_type)
+        switch(kt)
         {
             case 1:
                 return epanechnikov_cdf(x, mu, sigma);
@@ -355,8 +151,251 @@ protected:
     }
 };
 
+template <typename T>
+class KDE : public kde::Kernels<T>
+{
+protected:
+    using kde::Kernels<T>::compute_pdf;
+    using kde::Kernels<T>::compute_cdf;
+
+    using kde::Kernels<T>::gaussian_pdf;
+    using kde::Kernels<T>::gaussian_cdf;
+
+    using kde::Kernels<T>::epanechnikov_pdf;
+    using kde::Kernels<T>::epanechnikov_cdf;
+
+    using kde::Kernels<T>::uniform_pdf;
+    using kde::Kernels<T>::uniform_cdf;
+
+    using kde::Kernels<T>::biweight_pdf;
+    using kde::Kernels<T>::biweight_cdf;
+
+    using kde::Kernels<T>::triweight_pdf;
+    using kde::Kernels<T>::triweight_cdf;
+
+    typedef std::vector<std::vector<T>> sample_type;
+public:
+    KDE() {}
+    //KDE(const KDE&) = delete;
+    KDE(const KDE& f)
+    {
+        this->dimension = f.dimension;
+        this->kernel_type = f.dimension;
+        set_sample_shared(f.sample);
+    }
+    KDE& operator=(const KDE&) = delete;
+
+    void set_kernel_type(size_t kt)
+    {
+        if(kt >= 0 && kt < 5)
+            kernel_type = kt;
+        else
+            throw std::logic_error("kernel type");
+    }
+    void set_dimension(size_t dim)
+    {
+        dimension = dim;
+        sum = std::vector<T>(dimension, 0);
+        ssum = std::vector<T>(dimension, 0);
+        min = std::vector<T>(dimension, std::numeric_limits<T>::max());
+        max = std::vector<T>(dimension, std::numeric_limits<T>::min());
+        bandwidth = std::vector<T>(dimension);
+    }
+    void set_sample_shared(std::shared_ptr<sample_type> in_sample)
+    {
+        sample = std::move(in_sample);
+
+        for(auto it = sample->begin(); it != sample->end(); ++it)
+        {
+            if((*it).size() != dimension)
+                throw std::logic_error("in_sample->front().size() != dimension");
+
+            for(size_t j = 0; j != dimension; j++)
+            {
+                sum[j] += (*it)[j];
+                ssum[j] += std::pow((*it)[j], 2.0);
+                min[j] = (*it)[j] < min[j] ? (*it)[j] : min[j];
+                max[j] = (*it)[j] > max[j] ? (*it)[j] : max[j];
+            }
+        }
+
+        count = sample->size();
+        calculate_bandwidth();
+    }
+    T pdf(const std::vector<T> &x) const
+    {
+        if(sample->size() < 1000000)
+        {
+            T res = 0.0;
+            for(auto it = sample->begin(); it != sample->end(); ++it)
+            {
+                T t = 1.0;
+                for(size_t i = 0; i != dimension; i++)
+                {
+                    t *= compute_pdf(kernel_type, x[i], (*it)[i], bandwidth[i]);
+                }
+                res += t;
+            }
+            return res/count;
+        }
+        else
+        {
+            return parallel_pdf(sample->begin(), sample->end(), x);
+        }
+    }
+    T cdf(const std::vector<T> &x) const
+    {
+        if(sample->size() < 1000000)
+        {
+            T res = 0.0;
+            for(auto it = sample->begin(); it != sample->end(); ++it)
+            {
+                T t = 1.0;
+                for(size_t j = 0; j != (*it).size(); j++)
+                {
+                    t *= compute_cdf(kernel_type, x[j], (*it)[j], bandwidth[j]);
+                }
+                res += t;
+            }
+            return res/count;
+        }
+        else
+        {
+            return parallel_cdf(sample->begin(), sample->end(), x);
+        }
+    }
+protected:
+    template<typename InputIt>
+    T pdf_it(InputIt first, InputIt last, const std::vector<T> &x) const
+    {
+        T res = 0.0;
+        for(auto it = first; it != last; ++it)
+        {
+            T t = 1.0;
+            for(size_t i = 0; i != dimension; i++)
+            {
+                t *= compute_pdf(kernel_type, x[i], (*it)[i], bandwidth[i]);
+            }
+            res += t;
+        }
+        return res;
+    }
+    template<typename InputIt>
+    T cdf(InputIt first, InputIt last, const std::vector<T> &x) const
+    {
+        T res = 0.0;
+        for(auto it = first; it != last; ++it)
+        {
+            T t = 1.0;
+            for(size_t i = 0; i != dimension; i++)
+            {
+                t *= compute_cdf(kernel_type, x[i], (*it)[i], bandwidth[i]);
+            }
+            res += t;
+        }
+        return res;
+    }
+    template<class InputIt>
+    T parallel_pdf(InputIt first, InputIt last, const std::vector<T> &x) const
+    {
+        T res = 0.0;
+        const auto size = last - first;
+        const auto nthreads = std::thread::hardware_concurrency();
+        const auto size_per_thread = size / nthreads;
+
+        std::vector<std::future<T>> futures;
+        for(unsigned int i = 0; i < nthreads - 1; i++)
+        {
+            futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, x, this]()
+            {
+                return this->pdf_it(start, start + size_per_thread, x);
+            }));
+        }
+        futures.emplace_back(
+            std::async([start = first + (nthreads - 1) * size_per_thread, last, x, this]()
+        {
+            return this->pdf_it(start, last, x);
+        }));
+
+        for(auto &&future : futures)
+        {
+            if(future.valid())
+            {
+                res += future.get();
+            }
+            else
+            {
+                throw std::runtime_error("Something going wrong.");
+            }
+        }
+        return res/count;
+    }
+
+    template<class InputIt>
+    T parallel_cdf(InputIt first, InputIt last, const std::vector<T> &x) const
+    {
+        T res = 0.0;
+        const auto size = last - first;
+        const auto nthreads = std::thread::hardware_concurrency();
+        const auto size_per_thread = size / nthreads;
+
+        std::vector<std::future<T>> futures;
+        for(unsigned int i = 0; i < nthreads - 1; i++)
+        {
+            futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, x, this]()
+            {
+                return this->cdf(start, start + size_per_thread, x);
+            }));
+        }
+        futures.emplace_back(
+            std::async([start = first + (nthreads - 1) * size_per_thread, last, x, this]()
+        {
+            return this->cdf(start, last, x);
+        }));
+
+        for(auto &&future : futures)
+        {
+            if(future.valid())
+            {
+                res += future.get();
+            }
+            else
+            {
+                throw std::runtime_error("Something going wrong.");
+            }
+        }
+        return res/count;
+    }
+
+    size_t dimension;
+    size_t kernel_type; // 0 - gaussian, 1 - epanechnikov, 2 - uniform, 3 - biweight, 4 - triweight
+    size_t count;
+    std::vector<T> sum, ssum, min, max, bandwidth;
+    std::shared_ptr<sample_type> sample;
+
+    void calculate_bandwidth()
+    {
+        for(size_t i = 0; i != dimension; i++)
+        {
+            T x = sum[i]/count;
+            T y = ssum[i]/count;
+            T sigma = std::sqrt(y - std::pow(x, 2.0));
+            bandwidth[i] = sigma*(std::pow((3.0*count/4.0), (-1.0/5.0)));
+        }
+        if(sample->size() == 1)
+        {
+            for(size_t i = 0; i != dimension; i++)
+            {
+                bandwidth[i] = 1.0;
+            }
+        }
+    }
+};
+
 void test1d();
 void test2d();
+}
+
 }
 
 #endif
