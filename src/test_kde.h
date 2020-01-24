@@ -1,6 +1,6 @@
 /**************************************************************************
 
-   Copyright © 2018 Sergey Poluyan <svpoluyan@gmail.com>
+   Copyright © 2020 Sergey Poluyan <svpoluyan@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,20 +15,25 @@
    limitations under the License.
 
 **************************************************************************/
-#ifndef TEST1D_H
-#define TEST1D_H
+#ifndef TEST_KDE_H
+#define TEST_KDE_H
 
-void test_1d1();
-void test_1d2();
-void test_1d3();
-void test_1d4();
-void test_1d5();
+#include "kde.h"
 
-void test_1d_func();
+namespace mveqf
+{
 
-void test_1d_uniform_vs_nonuniform();
+namespace kde
+{
+    
+void test1d();
+void test1d_1();
 
-void test_1d_kquantile();
+void test2d();
+void test2d_2();
 
+}
+
+}
 
 #endif

@@ -68,6 +68,50 @@ void test1d()
     data_io::write_default1d("maps/kde/kcdf.dat", cdf, 1, 5);
 }
 
+void test1d_1()
+{
+    auto sample = std::make_shared<std::vector<std::vector<double>>>();
+
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<double> ureal01(0.0,1.0);
+    std::normal_distribution<double> norm(0.0,1.0);
+
+    /// first
+//    for(size_t i = 0; i != 1e3; i++)
+//        sample->push_back(std::vector<double> {norm(generator)});
+
+    /// second
+//    sample->push_back(std::vector<double>{1.0});
+
+    /// third
+    sample->push_back(std::vector<double>{-2.0});
+    sample->push_back(std::vector<double>{2.0});
+    auto count = std::make_shared<std::vector<size_t>>(std::vector<size_t>{2, 1});
+
+
+    mveqf::kde::KDE<double> obj;
+    obj.set_dimension(1);
+    obj.set_kernel_type(4);
+//    obj.set_sample_shared(sample);
+    obj.set_sample_shared(sample, count);
+
+    const double lb = -5;
+    const double ub = 5;
+    const double es = ub - lb;
+
+    const size_t n = 1e3;
+    std::vector<double> pdf(n), cdf(n);
+    for(size_t i = 0; i != pdf.size(); i++)
+    {
+        pdf[i] = obj.pdf(std::vector<double> {lb + i*es/(n - 1)});
+        cdf[i] = obj.cdf(std::vector<double> {lb + i*es/(n - 1)});
+    }
+    std::cout << obj.pdf(std::vector<double> {1.0}) << std::endl;
+    data_io::write_default1d("maps/kde/kpdf.dat", pdf, 1, 5);
+    data_io::write_default1d("maps/kde/kcdf.dat", cdf, 1, 5);
+}
+
 void test2d()
 {
     auto sample = std::make_shared<std::vector<std::vector<double>>>();
@@ -141,6 +185,50 @@ void test2d()
     obj.set_kernel_type(0);
     obj.set_sample_shared(sample);
 
+    double lb = -2.0;
+    double ub = 2.0;
+    double es = ub - lb;
+
+    size_t n = 1000;
+
+    std::vector<std::vector<double> > pdf(n, std::vector<double>(n));
+    auto cdf = pdf;
+    for(size_t i = 0; i != pdf.size(); i++)
+    {
+        double a = lb + i*es/(n - 1);
+        for(size_t j = 0; j != pdf[i].size(); j++)
+        {
+            std::vector<double> temp = {a, lb + j*es/(n - 1)};
+            cdf[i][j] = obj.cdf(temp);
+            pdf[i][j] = obj.pdf(temp);
+        }
+    }
+    data_io::write_default2d("maps/kde/kpdf2d.dat", pdf, 5);
+    data_io::write_default2d("maps/kde/kcdf2d.dat", cdf, 5);
+}
+
+void test2d_2()
+{
+    auto sample = std::make_shared<std::vector<std::vector<double>>>();
+
+    ///first
+//    sample->push_back(std::vector<double>{-0.5, -0.25});
+//    sample->push_back(std::vector<double>{-0.5, -0.25});
+//    sample->push_back(std::vector<double>{-0.5, -0.25});
+//    sample->push_back(std::vector<double>{0.0, 0.75});
+//    sample->push_back(std::vector<double>{0.0, 0.75});
+//    sample->push_back(std::vector<double>{0.25, 0.0});
+    
+    sample->push_back(std::vector<double>{-0.5, -0.25});
+    sample->push_back(std::vector<double>{0.0, 0.75});
+    sample->push_back(std::vector<double>{0.25, 0.0});
+    auto count = std::make_shared<std::vector<size_t>>(std::vector<size_t>{3, 2, 1});
+
+    KDE<double> obj;
+    obj.set_dimension(2);
+    obj.set_kernel_type(0);
+//    obj.set_sample_shared(sample);
+    obj.set_sample_shared(sample, count);
     double lb = -2.0;
     double ub = 2.0;
     double es = ub - lb;

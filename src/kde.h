@@ -176,13 +176,13 @@ protected:
     typedef std::vector<std::vector<T>> sample_type;
 public:
     KDE() {}
-    //KDE(const KDE&) = delete;
-    KDE(const KDE& f)
-    {
-        this->dimension = f.dimension;
-        this->kernel_type = f.dimension;
-        set_sample_shared(f.sample);
-    }
+    KDE(const KDE&) = delete;
+//    KDE(const KDE& f)
+//    {
+//        this->dimension = f.dimension;
+//        this->kernel_type = f.dimension;
+//        set_sample_shared(f.sample);
+//    }
     KDE& operator=(const KDE&) = delete;
 
     void set_kernel_type(size_t kt)
@@ -204,10 +204,11 @@ public:
     void set_sample_shared(std::shared_ptr<sample_type> in_sample)
     {
         sample = std::move(in_sample);
+        repeat_number = std::make_shared<std::vector<size_t>>();
 
         for(auto it = sample->begin(); it != sample->end(); ++it)
         {
-            if((*it).size() != dimension)
+            if(it->size() != dimension)
                 throw std::logic_error("in_sample->front().size() != dimension");
 
             for(size_t j = 0; j != dimension; j++)
@@ -222,25 +223,67 @@ public:
         count = sample->size();
         calculate_bandwidth();
     }
+    void set_sample_shared(std::shared_ptr<sample_type> in_sample, std::shared_ptr<std::vector<size_t>> repeat_count)
+    {
+        sample = std::move(in_sample);
+        repeat_number = std::move(repeat_count);
+        count = 0;
+        for(auto it = sample->begin(), k = repeat_number->begin(); it != sample->end(); ++it, ++k)
+        {
+            if(it->size() != dimension)
+                throw std::logic_error("in_sample->front().size() != dimension");
+
+            for(size_t j = 0; j != dimension; j++)
+            {
+                sum[j] += (*it)[j]*(*k);
+                ssum[j] += std::pow((*it)[j], 2.0)*(*k);
+                min[j] = (*it)[j] < min[j] ? (*it)[j] : min[j];
+                max[j] = (*it)[j] > max[j] ? (*it)[j] : max[j];
+            }
+            std::cout << *k << std::endl;
+            count += *k;
+        }
+        calculate_bandwidth();
+    }
     T pdf(const std::vector<T> &x) const
     {
-        if(sample->size() < 1000000)
+        if(repeat_number->empty())
         {
+            if(sample->size() < 1000000)
+            {
+                T res = 0.0;
+                for(auto it = sample->begin(); it != sample->end(); ++it)
+                {
+                    T t = 1.0;
+                    for(size_t i = 0; i != dimension; i++)
+                    {
+                        t *= compute_pdf(kernel_type, x[i], (*it)[i], bandwidth[i]);
+                    }
+                    res += t;
+                }
+                return res/count;
+            }
+            else
+            {
+                return parallel_pdf(sample->begin(), sample->end(), x);
+            }
+        }
+        else
+        {
+            if(repeat_number->size() != sample->size())
+                throw std::logic_error("times != sample");
+
             T res = 0.0;
-            for(auto it = sample->begin(); it != sample->end(); ++it)
+            for(auto it = sample->begin(), k = repeat_number->begin(); it != sample->end(); ++it, ++k)
             {
                 T t = 1.0;
                 for(size_t i = 0; i != dimension; i++)
                 {
                     t *= compute_pdf(kernel_type, x[i], (*it)[i], bandwidth[i]);
                 }
-                res += t;
+                res += (*k)*t;
             }
             return res/count;
-        }
-        else
-        {
-            return parallel_pdf(sample->begin(), sample->end(), x);
         }
     }
     T cdf(const std::vector<T> &x) const
@@ -372,6 +415,7 @@ protected:
     size_t count;
     std::vector<T> sum, ssum, min, max, bandwidth;
     std::shared_ptr<sample_type> sample;
+    std::shared_ptr<std::vector<size_t>> repeat_number;
 
     void calculate_bandwidth()
     {
@@ -392,8 +436,6 @@ protected:
     }
 };
 
-void test1d();
-void test2d();
 }
 
 }

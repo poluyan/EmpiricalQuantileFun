@@ -31,8 +31,133 @@
 #include "test2d.h"
 #include "test3d.h"
 #include "data_io.h"
-#include "kde.h"
+#include "test_kde.h"
 #include "kquantile.h"
+#include "mveqf.h"
+
+void test()
+{
+    std::vector<std::vector<double>> sample =
+    {
+        {-2.442222e-01, 1.137655e+00},
+        {5.242222e-01, 9.542629e-01},
+        {6.066667e-02, 8.547957e-01},
+        {-1.788889e-01, 8.454707e-01},
+        {-1.788889e-01, 5.750444e-01},
+        {4.246667e-01, 5.470693e-01},
+        {7.357778e-01, 4.849023e-01},
+        {7.171111e-01, 3.854352e-01},
+        {8.866667e-02, 3.698934e-01},
+        {5.397778e-01, 3.450266e-01},
+        {5.864444e-01, 3.201599e-01},
+        {-7.917778e-01, 3.108348e-01},
+        {-1.221111e+00, 2.828597e-01},
+        {-9.940000e-01, 2.486679e-01},
+        {-4.868889e-01, 2.082593e-01},
+        {-5.428889e-01, 2.020426e-01},
+        {-3.748889e-01, 2.020426e-01},
+        {3.997778e-01, 1.616341e-01},
+        {-2.411111e-01, 1.460924e-01},
+        {1.104444e-01, 1.398757e-01},
+        {-1.260000e-01, 1.056838e-01},
+        {-1.650444e+00, 9.635879e-02},
+        {-2.815556e-01, 9.014210e-02},
+        {4.822222e-02, 8.703375e-02},
+        {1.042222e-01, 4.351687e-02},
+        {1.088889e-02, 1.554174e-02},
+        {-2.597778e-01, -4.973357e-02},
+        {-1.099778e+00, -7.460036e-02},
+        {9.193333e-01, -9.635879e-02},
+        {1.197778e-01, -1.802842e-01},
+        {6.984444e-01, -1.865009e-01},
+        {5.802222e-01, -2.238011e-01},
+        {-1.851111e-01, -2.300178e-01},
+        {9.815556e-01, -2.517762e-01},
+        {-4.184444e-01, -2.735346e-01},
+        {7.000000e-02, -2.766430e-01},
+        {-2.131111e-01, -2.828597e-01},
+        {3.873333e-01, -2.828597e-01},
+        {7.482222e-01, -3.232682e-01},
+        {2.722222e-01, -3.761101e-01},
+        {1.011111e-01, -4.258437e-01},
+        {-7.700000e-01, -4.320604e-01},
+        {-4.200000e-02, -4.320604e-01},
+        {-4.666667e-03, -4.973357e-01},
+        {1.042222e-01, -5.222025e-01},
+        {1.944444e-01, -5.346359e-01},
+        {3.157778e-01, -5.563943e-01},
+        {5.242222e-01, -5.626110e-01},
+        {5.273333e-01, -6.993783e-01},
+        {5.397778e-01, -9.325044e-01}
+    };
+    data_io::write_default2d("maps/sample2d.dat", sample, 5);
+
+    mveqf::MVEQF<int, double> qf;
+    qf.set_sample_and_bounds(sample, std::vector<double>(2, -2), std::vector<double>(2, 2));
+
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<double> ureal01(0.0,1.0);
+    size_t nrolls = 500;
+    std::vector<std::vector<double>> sampled(nrolls, std::vector<double>(2));
+    for(size_t i = 0; i != nrolls; i++)
+    {
+        std::vector<double> t = {ureal01(generator), ureal01(generator)};
+        sampled[i] = qf.transform(t);
+    }
+    data_io::write_default2d("maps/sampled2d.dat", sampled, 5);
+
+
+    nrolls = 100000;
+    sampled = std::vector<std::vector<double>>(nrolls, std::vector<double>(2));
+    auto vals01 = sampled;
+    for(auto & i : vals01)
+    {
+        for(auto & j : i)
+        {
+            j = ureal01(generator);
+        }
+    }
+
+    const auto nthreads = std::thread::hardware_concurrency();
+    auto first = sampled.begin();
+    auto last = sampled.end();
+    const auto size = last - first;
+    const auto size_per_thread = size / nthreads;
+
+    std::vector<std::future<void>> futures;
+    for(unsigned int i = 0; i < nthreads - 1; i++)
+    {
+        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &vals01, &sampled, &qf, &ureal01, &generator]()
+        {
+            for(auto it = start; it != start + size_per_thread; ++it)
+            {
+                qf.transform(vals01[std::distance(sampled.begin(), it)], *it);
+            }
+        }));
+    }
+    futures.emplace_back(
+        std::async([start = first + (nthreads - 1) * size_per_thread, last, &vals01, &sampled, &qf, &ureal01, &generator]()
+    {
+        for(auto it = start; it != last; ++it)
+        {
+            qf.transform(vals01[std::distance(sampled.begin(), it)], *it);
+        }
+    }));
+
+    for(auto &&future : futures)
+    {
+        if(future.valid())
+        {
+            future.get();
+        }
+        else
+        {
+            throw std::runtime_error("Something going wrong.");
+        }
+    }
+    data_io::write_default2d("maps/sampled2d_1m.dat", sampled, 5);
+}
 
 int main()
 {
@@ -59,14 +184,13 @@ int main()
 //    test_2d_func();
 
 //    kquantile::test_1d_kquantile();
-    mveqf::test_2d_kquantile<double>();
+//    test_2d_kquantile<double>();
 //    mveqf::test_3d_kquantile<float>();
-    
+
 //    test_1d_uniform_vs_nonuniform();
 //    test_2d_uniform_vs_nonuniform();
 
 //    test_grid_10d();
-
 
     /// 2-dimensional test
 
@@ -135,8 +259,10 @@ int main()
 
     /// kde
 //    kde::test1d();
+//    mveqf::kde::test1d_1();
 //    kde::test2d();
-    
+    mveqf::kde::test2d_2();
+
     ///
     std::cout << time.elapsed_seconds() << std::endl;
 }

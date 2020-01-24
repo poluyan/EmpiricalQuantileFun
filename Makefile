@@ -27,7 +27,9 @@ HEADERS = \
 	$(SRCPATH)/testNd.h \
 	$(SRCPATH)/kquantile.h \
 	$(SRCPATH)/kde.h \
-	$(SRCPATH)/mvff.h 
+	$(SRCPATH)/mvff.h \
+	$(SRCPATH)/mveqf.h \
+	$(SRCPATH)/test_kde.h 
 
 all: release
 

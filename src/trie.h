@@ -19,6 +19,10 @@
 #ifndef TRIE_H
 #define TRIE_H
 
+#include <memory>
+#include <vector>
+#include <algorithm>
+
 namespace mveqf
 {
 
