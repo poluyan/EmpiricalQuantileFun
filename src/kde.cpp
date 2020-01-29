@@ -19,6 +19,7 @@
 #include "kde.h"
 #include "data_io.h"
 #include <random>
+#include <algorithm>
 
 namespace mveqf
 {
@@ -85,29 +86,45 @@ void test1d_1()
 //    sample->push_back(std::vector<double>{1.0});
 
     /// third
-    sample->push_back(std::vector<double>{-2.0});
-    sample->push_back(std::vector<double>{2.0});
-    auto count = std::make_shared<std::vector<size_t>>(std::vector<size_t>{2, 1});
+//    sample->push_back(std::vector<double>{-2.0});
+//    sample->push_back(std::vector<double>{2.0});
+//    auto count = std::make_shared<std::vector<size_t>>(std::vector<size_t>{2, 1});
 
+    /// fourth
+    sample->push_back(std::vector<double>{-1.25});
+    sample->push_back(std::vector<double>{-0.75});
+    sample->push_back(std::vector<double>{-0.25});
+    sample->push_back(std::vector<double>{1.75});
+    sample->push_back(std::vector<double>{2.25});
+    sample->push_back(std::vector<double>{2.75});
+    sample->push_back(std::vector<double>{3.25});
+//    auto count = std::make_shared<std::vector<size_t>>(std::vector<size_t>{1, 1, 1, 1, 1, 1, 1});
+    auto count = std::make_shared<std::vector<size_t>>(std::vector<size_t>{3, 1, 2, 3, 4, 2, 1});
 
     mveqf::kde::KDE<double> obj;
     obj.set_dimension(1);
-    obj.set_kernel_type(4);
+    obj.set_kernel_type(5);
 //    obj.set_sample_shared(sample);
     obj.set_sample_shared(sample, count);
 
-    const double lb = -5;
-    const double ub = 5;
+    const double lb = -2;
+    const double ub = 4;
     const double es = ub - lb;
 
-    const size_t n = 1e3;
+    const size_t n = 600;
     std::vector<double> pdf(n), cdf(n);
+    const double cmin = obj.cdf(std::vector<double> {lb}, 5.0);
+    const double cmax = obj.cdf(std::vector<double> {ub}, 5.0);
     for(size_t i = 0; i != pdf.size(); i++)
     {
-        pdf[i] = obj.pdf(std::vector<double> {lb + i*es/(n - 1)});
-        cdf[i] = obj.cdf(std::vector<double> {lb + i*es/(n - 1)});
+        pdf[i] = obj.pdf(std::vector<double> {lb + i*es/(n - 1)}, 5.0);
+        cdf[i] = (obj.cdf(std::vector<double> {lb + i*es/(n - 1)}, 5.0)  - cmin)/(cmax - cmin);;
     }
-    std::cout << obj.pdf(std::vector<double> {1.0}) << std::endl;
+//    std::cout << obj.pdf(std::vector<double> {1.0}) << std::endl;
+    const double pmin = *std::min_element(pdf.begin(), pdf.end());
+    const double pmax = *std::max_element(pdf.begin(), pdf.end());
+    for(auto & i : pdf)
+        i = (i - pmin)/(pmax - pmin);
     data_io::write_default1d("maps/kde/kpdf.dat", pdf, 1, 5);
     data_io::write_default1d("maps/kde/kcdf.dat", cdf, 1, 5);
 }

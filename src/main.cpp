@@ -93,7 +93,9 @@ void test()
     data_io::write_default2d("maps/sample2d.dat", sample, 5);
 
     mveqf::MVEQF<int, double> qf;
-    qf.set_sample_and_bounds(sample, std::vector<double>(2, -2), std::vector<double>(2, 2));
+    qf.set_kernel_type(0);
+    std::vector<size_t> empty;
+    qf.set_sample_and_bounds(sample, std::vector<double>(2, -2), std::vector<double>(2, 2), empty, 500, 1e-8, 100000);
 
     std::mt19937_64 generator;
     generator.seed(1);
@@ -108,7 +110,7 @@ void test()
     data_io::write_default2d("maps/sampled2d.dat", sampled, 5);
 
 
-    nrolls = 100000;
+    nrolls = 50000;
     sampled = std::vector<std::vector<double>>(nrolls, std::vector<double>(2));
     auto vals01 = sampled;
     for(auto & i : vals01)
@@ -128,7 +130,7 @@ void test()
     std::vector<std::future<void>> futures;
     for(unsigned int i = 0; i < nthreads - 1; i++)
     {
-        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &vals01, &sampled, &qf, &ureal01, &generator]()
+        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &vals01, &sampled, &qf]()
         {
             for(auto it = start; it != start + size_per_thread; ++it)
             {
@@ -137,7 +139,7 @@ void test()
         }));
     }
     futures.emplace_back(
-        std::async([start = first + (nthreads - 1) * size_per_thread, last, &vals01, &sampled, &qf, &ureal01, &generator]()
+        std::async([start = first + (nthreads - 1) * size_per_thread, last, &vals01, &sampled, &qf]()
     {
         for(auto it = start; it != last; ++it)
         {
@@ -185,7 +187,7 @@ int main()
 
 //    kquantile::test_1d_kquantile();
 //    test_2d_kquantile<double>();
-//    mveqf::test_3d_kquantile<float>();
+//    test_3d_kquantile<float>();
 
 //    test_1d_uniform_vs_nonuniform();
 //    test_2d_uniform_vs_nonuniform();
@@ -260,8 +262,10 @@ int main()
     /// kde
 //    kde::test1d();
 //    mveqf::kde::test1d_1();
-//    kde::test2d();
-    mveqf::kde::test2d_2();
+//    mveqf::kde::test2d();
+//    mveqf::kde::test2d_2();
+
+    test();
 
     ///
     std::cout << time.elapsed_seconds() << std::endl;

@@ -224,7 +224,7 @@ void test_2d_kquantile()
         std::cout << std::scientific << t.front() << '\t' << t.back() << std::endl;
         kdesample->push_back(t);
     }*/
-    
+
     std::ifstream gridIn;
     gridIn.open("maps/Rpics/sampled_implicit.dat");
     if(!gridIn.is_open())
@@ -253,7 +253,7 @@ void test_2d_kquantile()
             break;
     }
     gridIn.close();
-    
+
 
     const T lb = -2, ub = 2;
 
@@ -291,13 +291,20 @@ void test_2d_kquantile()
         std::vector<int> startdot(dim);
         for(size_t i = 0; i != startdot.size(); i++)
         {
-            std::vector<T> val(grids[i].size());
-            for(size_t j = 0; j != val.size(); j++)
-            {
-                val[j] = grids[i][j] + dx[i];
-            }
-            auto pos1 = std::lower_bound(val.begin(), val.end(), (*it)[i]);
-            startdot[i] = std::distance(val.begin(), pos1) - 1;
+//            std::vector<T> val(grids[i].size());
+//            for(size_t j = 0; j != val.size(); j++)
+//            {
+//                val[j] = grids[i][j] + dx[i];
+//            }
+//            auto pos1 = std::lower_bound(val.begin(), val.end(), (*it)[i]);
+//            startdot[i] = std::distance(val.begin(), pos1) - 1;
+            auto pos1 = std::lower_bound(grids[i].begin(), grids[i].end(), (*it)[i]);
+            if(pos1 == grids[i].end())
+                startdot[i] = grids[i].size() - 2;
+            else if(pos1 == grids[i].begin())
+                startdot[i] = 0;
+            else
+                startdot[i] = std::distance(grids[i].begin(), pos1) - 1;
         }
 //        std::cout << startdot.front() << '\t' << startdot.back() << std::endl;
 //        std::cin.get();

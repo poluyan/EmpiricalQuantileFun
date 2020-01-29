@@ -62,7 +62,7 @@ void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &
 
     bool multithread = true;
     const auto nthreads = std::thread::hardware_concurrency();
-    std::cout << "std::thread::hardware_concurrency " << nthreads << std::endl;
+//    std::cout << "std::thread::hardware_concurrency " << nthreads << std::endl;
 
     std::vector<T> fvalues;
     std::vector<T> dot(grids.size());
@@ -79,7 +79,12 @@ void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &
     ss.set_dimension(grids.size());
 
     for(const auto &start : pp)
+    {
         points.insert(start);
+//        std::cout << "init points " << '\t' << start.front() << '\t' << start.back() << std::endl;
+    }
+//    std::cout << std::endl;
+//    std::cin.get();
     ++fe_count;
 
     T min = std::numeric_limits<T>::max();
@@ -102,11 +107,15 @@ void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &
                 point = init_point;
                 point[i] = point[i] + 1;
 
-                if(point[i] < 0 || point[i] > static_cast<int>(grids[i].size() - 1))
+                if(point[i] < 0 || point[i] > static_cast<int>(grids[i].size() - 2))
+                {
+//                    std::cout << "here " << point[i] << std::endl;
                     continue;
+                }
 
                 if(!visited.search(point) && !samples->search(point))
                 {
+//                    std::cout << "insert " << point.front() << '\t' << point.back() << std::endl;
                     not_coumputed.insert(point);
                 }
             }
@@ -115,11 +124,15 @@ void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &
                 point = init_point;
                 point[i] = point[i] - 1;
 
-                if(point[i] < 0 || point[i] > static_cast<int>(grids[i].size() - 1))
+                if(point[i] < 0 || point[i] > static_cast<int>(grids[i].size() - 2))
+                {
+//                    std::cout << "here " << point[i] << std::endl;
                     continue;
+                }
 
                 if(!visited.search(point) && !ss.search(point))
                 {
+//                    std::cout << "insert " << point.front() << '\t' << point.back() << std::endl;
                     not_coumputed.insert(point);
                 }
             }
@@ -327,8 +340,8 @@ void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &
             samples->insert(to_compute[i].dot, 1000*to_compute[i].value + 1);
         }
     }*/
-    std::cout << ss.get_total_count() << std::endl;
-    std::cout << fmap.size() << std::endl;
+//    std::cout << ss.get_total_count() << std::endl;
+//    std::cout << fmap.size() << std::endl;
     size_t count = 0;
 //    for(const auto & i : fmap)
 //    {
@@ -343,14 +356,52 @@ void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &
     {
         auto point = ss.get_and_remove_last();
         auto it = fmap.find(point);
+
+//        for(size_t i = 0; i != point.size(); i++)
+//        {
+//            if(point[i] < 0 || point[i] > static_cast<int>(grids[i].size() - 2))
+//            {
+//                std::cout << "what??" << std::endl;
+//            }
+//        }
+//        std::vector<T> values(point.size());
+//        for(size_t j = 0; j != values.size(); j++)
+//        {
+//            values[j] = grids[j][point[j]] + dx[j];
+//            if(values[j] > grids[j].back())
+//            {
+//                std::cout << "wow!! " << values[j] << std::endl;
+//            }
+//        }
+
+
+
         if(it != fmap.end())
         {
             T val = (it->second - min)/(max - min);
-            samples->insert(it->first, multi*val + 1);
-            ++count;
+            if(!samples->search(point))
+            {
+                samples->insert(it->first, multi*val + 1);
+                ++count;
+            }
+
+//            for(size_t i = 0; i != point.size(); i++)
+//            {
+//                std::cout << point[i] << '\t';
+//            }
+//            std::cout << std::endl;
         }
     }
-    std::cout << count << std::endl;
+//    std::cout << count << '\t' << grids.front().size() << '\t' << grids.back().size() << std::endl;
+
+
+    if(!count)
+    {
+        for(size_t i = 0; i != pp.size(); i++)
+            if(!samples->search(pp[i]))
+                samples->insert(pp[i], 1);
+    }
+
 }
 
 }

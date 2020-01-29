@@ -39,21 +39,6 @@ protected:
     using kde::Kernels<U>::compute_pdf;
     using kde::Kernels<U>::compute_cdf;
 
-    using kde::Kernels<U>::gaussian_pdf;
-    using kde::Kernels<U>::gaussian_cdf;
-
-    using kde::Kernels<U>::epanechnikov_pdf;
-    using kde::Kernels<U>::epanechnikov_cdf;
-
-    using kde::Kernels<U>::uniform_pdf;
-    using kde::Kernels<U>::uniform_cdf;
-
-    using kde::Kernels<U>::biweight_pdf;
-    using kde::Kernels<U>::biweight_cdf;
-
-    using kde::Kernels<U>::triweight_pdf;
-    using kde::Kernels<U>::triweight_cdf;
-
     size_t count;
     U sum, ssum, min, max, bandwidth;
 
@@ -74,10 +59,10 @@ public:
     Qkde():sum(0), ssum(0), min(std::numeric_limits<U>::max()), max(std::numeric_limits<U>::min()) {}
     void set_kernel_type(size_t kt)
     {
-        if(kt >= 0 && kt < 5)
-            kernel_type = kt;
-        else
-            throw std::logic_error("kernel type");
+//        if(kt >= 0 && kt < 5)
+        kernel_type = kt;
+//        else
+//            throw std::logic_error("kernel type");
     }
     void set_sample(trie_based::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx)
     {
@@ -99,14 +84,14 @@ public:
         count = layer->count;
         calculate_bandwidth(layer);
     }
-    U cdf(U x, trie_based::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx) const
+    U cdf(U x, trie_based::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, const U lambda = 1.0) const
     {
 //        if(layer->children.size() < 100)
 //        {
         U d = 0;
         for(size_t i = 0; i != layer->children.size(); i++)
         {
-            d += compute_cdf(kernel_type, x, grids[ind][layer->children[i]->index] + dx[ind], bandwidth)*layer->children[i]->count;
+            d += compute_cdf(kernel_type, x, grids[ind][layer->children[i]->index] + dx[ind], bandwidth, lambda)*layer->children[i]->count;
         }
         return d/layer->count;
 //        }
@@ -201,14 +186,14 @@ protected:
 
     size_t kernel_type;
 
-    U kquantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const;
+    U kquantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01, const U lambda) const;
 public:
     ImplicitTrieKQuantile();
     ImplicitTrieKQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn, size_t kt);
     void set_kernel_type(size_t kt);
     void set_sample_shared(std::shared_ptr<trie_type> in_sample);
-    void transform(const std::vector<U>& in01, std::vector<U>& out) const;
-    std::vector<U> transform(const std::vector<U>& in01) const;
+    void transform(const std::vector<U>& in01, std::vector<U>& out, const U lambda = 1.0) const;
+    std::vector<U> transform(const std::vector<U>& in01, const U lambda = 1.0) const;
     std::vector<std::vector<U>> get_grid() const;
     std::vector<U> get_dx() const;
 };
@@ -235,27 +220,27 @@ void ImplicitTrieKQuantile<T, U>::set_kernel_type(size_t kt)
 }
 
 template <typename T, typename U>
-void ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out) const
+void ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out, const U lambda) const
 {
     auto p = sample->root.get();
     for(size_t i = 0, k; i != in01.size(); i++)
     {
-        out[i] = kquantile_transform(p, i, in01[i]);
+        out[i] = kquantile_transform(p, i, in01[i], lambda);
         k = quantile_transform(p, i, in01[i]).first;
         p = p->children[k].get();
     }
 }
 
 template <typename T, typename U>
-std::vector<U> ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01) const
+std::vector<U> ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, const U lambda) const
 {
     std::vector<U> out(grids.size());
-    transform(in01, out);
+    transform(in01, out, lambda);
     return out;
 }
 
 template <typename T, typename U>
-U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01) const
+U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01, const U lambda) const
 {
 
 //    timer::Timer time;
@@ -272,8 +257,8 @@ U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *lay
     const U upper_bound = grids[ind].back();
 
     const U es = upper_bound - lower_bound;
-    const U min = obj.cdf(lower_bound, layer, ind, grids, dx);
-    const U max = obj.cdf(upper_bound, layer, ind, grids, dx);
+    const U min = obj.cdf(lower_bound, layer, ind, grids, dx, lambda);
+    const U max = obj.cdf(upper_bound, layer, ind, grids, dx, lambda);
 
     const size_t n = 100000;
     size_t c = n - 1, step;
@@ -286,7 +271,7 @@ U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *lay
         i = i + step;
 
         p1 = lower_bound + es * i / (n - 1);
-        f1 = (obj.cdf(p1, layer, ind, grids, dx) - min)/(max - min);
+        f1 = (obj.cdf(p1, layer, ind, grids, dx, lambda) - min)/(max - min);
         if(f1 < val01)
         {
             ++i;
@@ -298,7 +283,7 @@ U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *lay
     }
 
     p2 = lower_bound + es * (i + 1) / (n - 1);
-    f2 = (obj.cdf(p2, layer, ind, grids, dx) - min)/(max - min);
+    f2 = (obj.cdf(p2, layer, ind, grids, dx, lambda) - min)/(max - min);
 
     U check = p1 + (val01 - f1)*(p2 - p1)/(f2 - f1);
     if(!std::isfinite(check))
@@ -307,13 +292,13 @@ U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *lay
         for(size_t j = 0; j != n - 1; j++)
         {
             p2 = lower_bound + es * (j + 1) / (n - 1);
-            f2 = (obj.cdf(p2, layer, ind, grids, dx) - min)/(max - min);
+            f2 = (obj.cdf(p2, layer, ind, grids, dx, lambda) - min)/(max - min);
             if(f2 < 1.0)
                 max_ind = j;
             if(f2 > val01)
             {
                 p1 = lower_bound + es * j / (n - 1);
-                f1 = (obj.cdf(p1, layer, ind, grids, dx) - min)/(max - min);
+                f1 = (obj.cdf(p1, layer, ind, grids, dx, lambda) - min)/(max - min);
                 return p1 + (val01 - f1)*(p2 - p1)/(f2 - f1);
             }
         }
@@ -327,6 +312,52 @@ U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *lay
 
 //        std::cin.get();
         return lower_bound + es * max_ind / (n - 1);
+    }
+    if(!std::isnormal(check))
+    {
+//        std::cout << check << std::endl;
+
+        std::cout.precision(20);
+//        std::cout << std::scientific << std::numeric_limits<float>::denorm_min() << std::endl;
+//        std::cout << std::scientific << std::numeric_limits<float>::lowest() << std::endl;
+//        std::cout << std::scientific << p1 << " + (" << val01 << " - " << f1 << " )*( " << p2 << " - " << p1 << " )/( " << f2 << " - " << f1 << " ) " << std::endl;
+//        std::cout << "fff" << std::endl;
+
+//        U t1 = (val01 - f1)*(p2 - p1);
+//        U t2 = t1/(f2 - f1);
+//        U check = p1 + t2;
+//        if(!std::isnormal(check))
+//            std::cout << "ff" << std::endl;
+
+
+
+
+        size_t max_ind = 0;
+        for(size_t j = 0; j != n - 1; j++)
+        {
+            p2 = lower_bound + es * (j + 1) / (n - 1);
+            f2 = (obj.cdf(p2, layer, ind, grids, dx, lambda) - min)/(max - min);
+            if(f2 < 1.0)
+                max_ind = j;
+            if(f2 > val01)
+            {
+                p1 = lower_bound + es * j / (n - 1);
+                f1 = (obj.cdf(p1, layer, ind, grids, dx, lambda) - min)/(max - min);
+                return p1 + (val01 - f1)*(p2 - p1)/(f2 - f1);
+            }
+        }
+        check = lower_bound + es * max_ind / (n - 1);
+        if(std::isnormal(check))
+        {
+            return check;
+        }
+        else
+        {
+            if(max_ind > 0)
+                return lower_bound + es * (max_ind - 1) / (n - 1);
+            else
+                return lower_bound + es * (max_ind + 1) / (n - 1);
+        }
     }
 
 //    std::cout << std::fixed << '\t' << time.elapsed_seconds() << std::endl;

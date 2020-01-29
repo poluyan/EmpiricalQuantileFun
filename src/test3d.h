@@ -29,9 +29,9 @@ void test_3d2();
 template <typename T>
 void test_3d_kquantile()
 {
-    const size_t kt = 3;
+    const size_t kt = 0;
     const size_t dim = 3;
-    const size_t N = 200;
+    const size_t N = 50;
     const size_t nrolls = 10000;
     const T threshold = 1e-8;
     const size_t multi = 10000;
@@ -149,20 +149,27 @@ void test_3d_kquantile()
         std::vector<int> startdot(dim);
         for(size_t i = 0; i != startdot.size(); i++)
         {
-            std::vector<T> val(grids[i].size());
-            for(size_t j = 0; j != val.size(); j++)
-            {
-                val[j] = grids[i][j] + dx[i];
-            }
-            auto pos1 = std::lower_bound(val.begin(), val.end(), (*it)[i]);
-            startdot[i] = std::distance(val.begin(), pos1) - 1;
+//            std::vector<T> val(grids[i].size());
+//            for(size_t j = 0; j != val.size(); j++)
+//            {
+//                val[j] = grids[i][j] + dx[i];
+//            }
+//            auto pos1 = std::lower_bound(val.begin(), val.end(), (*it)[i]);
+//            startdot[i] = std::distance(val.begin(), pos1) - 1;
+            auto pos1 = std::lower_bound(grids[i].begin(), grids[i].end(), (*it)[i]);
+            if(pos1 == grids[i].end())
+                startdot[i] = grids[i].size() - 2;
+            else if(pos1 == grids[i].begin())
+                startdot[i] = 0;
+            else
+                startdot[i] = std::distance(grids[i].begin(), pos1) - 1;
         }
         points.push_back(startdot);
     }
 
     std::set<std::vector<int>> visited;
 
-    std::function<T(const std::vector<T> &)> pdffunc = std::bind(&mveqf::kde::KDE<T>::pdf, std::ref(obj), std::placeholders::_1);
+    std::function<T(const std::vector<T> &)> pdffunc = std::bind(&mveqf::kde::KDE<T>::pdf, std::ref(obj), std::placeholders::_1, 1.0);
 
     auto triess = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
     triess->set_dimension(gridn.size());
@@ -304,7 +311,8 @@ void test_3d_kquantile()
     for(size_t i = 0; i != sampled.size(); i++)
     {
         auto t = sampled[i];
-        sampled[i].push_back(obj2.pdf(t));
+        T res = obj2.pdf(t);
+        sampled[i].push_back(res);
     }
     data_io::write_default2d("maps/Trie/3d/sampled3d.dat", sampled, 5);
 
