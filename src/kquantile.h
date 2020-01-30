@@ -317,7 +317,7 @@ U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *lay
     {
 //        std::cout << check << std::endl;
 
-        std::cout.precision(20);
+//        std::cout.precision(20);
 //        std::cout << std::scientific << std::numeric_limits<float>::denorm_min() << std::endl;
 //        std::cout << std::scientific << std::numeric_limits<float>::lowest() << std::endl;
 //        std::cout << std::scientific << p1 << " + (" << val01 << " - " << f1 << " )*( " << p2 << " - " << p1 << " )/( " << f2 << " - " << f1 << " ) " << std::endl;

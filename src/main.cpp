@@ -187,7 +187,7 @@ int main()
 
 //    kquantile::test_1d_kquantile();
 //    test_2d_kquantile<double>();
-//    test_3d_kquantile<float>();
+//    test_3d_kquantile<double>();
 
 //    test_1d_uniform_vs_nonuniform();
 //    test_2d_uniform_vs_nonuniform();

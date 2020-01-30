@@ -29,12 +29,14 @@ void test_3d2();
 template <typename T>
 void test_3d_kquantile()
 {
-    const size_t kt = 0;
+    
+    const size_t kt = 4;//4
     const size_t dim = 3;
-    const size_t N = 50;
+    const size_t N = 500;
     const size_t nrolls = 10000;
-    const T threshold = 1e-8;
-    const size_t multi = 10000;
+    const T threshold = 1e-11;
+    const size_t multi = 1e+9;
+
 
     std::vector<size_t> gridn(dim, N);
 
@@ -128,7 +130,7 @@ void test_3d_kquantile()
     std::vector<std::vector<T>> grids(gridn.size());
     std::vector<T> dx(gridn.size());
 
-    const T lb = -31, ub = 31;
+    const T lb = -15, ub = 15;
     for(size_t i = 0; i != grids.size(); i++)
     {
         size_t num_points = gridn[i];

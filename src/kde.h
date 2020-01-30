@@ -103,8 +103,7 @@ protected:
     {
         return std::exp(-0.5*std::pow((x - mu)/sigma, 2.0))/(sigma*std::sqrt(2.0*pi));
 
-//        T y = (x - mu)/sigma;
-//        return fmath::expd(-0.5*y*y)/(sigma*std::sqrt(2.0*pi));
+//        return fmath::exp(-0.5*std::pow((x - mu)/sigma, 2.0))/(sigma*std::sqrt(2.0*pi));
     }
     inline T laplacian_pdf(T x, T mu, T sigma, T lambda) const
     {
