@@ -15,10 +15,10 @@
    limitations under the License.
 
 **************************************************************************/
-#include "test.h"
-#include "../data_io.h"
-#include "../timer.h"
-#include "testNd.h"
+#include <test/test.h>
+#include <data_io.h>
+#include <timer.h>
+#include <test/testNd.h>
 #include <vector>
 #include <random>
 #include <chrono>

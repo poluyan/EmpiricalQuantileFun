@@ -16,9 +16,9 @@
 
 **************************************************************************/
 
-#include "test.h"
-#include "../timer.h"
-#include "../data_io.h"
+#include <test/test.h>
+#include <timer.h>
+#include <data_io.h>
 #include <random>
 #include <chrono>
 #include <thread>

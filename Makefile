@@ -44,21 +44,21 @@ out_release: $(OBJ_RELEASE) $(HEADERS)
 	$(CPP) -o $(TARGET) $(OBJDIR_RELEASE)/*.o -pthread
 
 $(OBJDIR_RELEASE)/main.o: $(SRCPATH)/main.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
 $(OBJDIR_RELEASE)/timer.o: $(SRCPATH)/timer.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
 $(OBJDIR_RELEASE)/test.o: $(SRCPATH)/test/test.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/test/test.cpp -o $(OBJDIR_RELEASE)/test.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test.cpp -o $(OBJDIR_RELEASE)/test.o
 $(OBJDIR_RELEASE)/test1d.o: $(SRCPATH)/test/test.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/test/test1d.cpp -o $(OBJDIR_RELEASE)/test1d.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test1d.cpp -o $(OBJDIR_RELEASE)/test1d.o
 $(OBJDIR_RELEASE)/test2d.o: $(SRCPATH)/test/test2d.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/test/test2d.cpp -o $(OBJDIR_RELEASE)/test2d.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test2d.cpp -o $(OBJDIR_RELEASE)/test2d.o
 $(OBJDIR_RELEASE)/test3d.o: $(SRCPATH)/test/test3d.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/test/test3d.cpp -o $(OBJDIR_RELEASE)/test3d.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test3d.cpp -o $(OBJDIR_RELEASE)/test3d.o
 $(OBJDIR_RELEASE)/testNd.o: $(SRCPATH)/test/testNd.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/test/testNd.cpp -o $(OBJDIR_RELEASE)/testNd.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/testNd.cpp -o $(OBJDIR_RELEASE)/testNd.o
 $(OBJDIR_RELEASE)/kde.o: $(SRCPATH)/test/kde.cpp
-	$(CPP) $(CPPFLAGS) $(SRCPATH)/test/kde.cpp -o $(OBJDIR_RELEASE)/kde.o
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/kde.cpp -o $(OBJDIR_RELEASE)/kde.o
 
 clean_release:
 	rm $(OBJDIR_RELEASE)/*.o

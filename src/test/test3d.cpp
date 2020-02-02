@@ -15,8 +15,8 @@
    limitations under the License.
 
 **************************************************************************/
-#include "test.h"
-#include "test3d.h"
+#include <test/test.h>
+#include <test/test3d.h>
 #include <vector>
 
 void test_3d1()

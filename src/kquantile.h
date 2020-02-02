@@ -18,11 +18,11 @@
 #ifndef KQUANTILE_H
 #define KQUANTILE_H
 
-#include "quantile.h"
-#include "kde.h"
-#include "mvff.h"
-#include "timer.h"
-#include "data_io.h"
+#include <quantile.h>
+#include <kde.h>
+#include <mvff.h>
+#include <timer.h>
+#include <data_io.h>
 #include <random>
 #include <ctime>
 

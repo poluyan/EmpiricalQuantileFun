@@ -19,7 +19,7 @@
 #ifndef MVFF_H
 #define MVFF_H
 
-#include "trie.h"
+#include <trie.h>
 #include <vector>
 #include <set>
 

@@ -18,8 +18,8 @@
 #ifndef QUANTILE_H
 #define QUANTILE_H
 
-#include "trie.h"
-#include "trie_based.h"
+#include <trie.h>
+#include <trie_based.h>
 
 #include <numeric>
 

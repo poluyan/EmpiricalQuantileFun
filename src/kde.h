@@ -26,7 +26,6 @@
 #include <limits>
 #include <numeric>
 #include <future>
-//#include "fmath.hpp"
 
 namespace mveqf
 {

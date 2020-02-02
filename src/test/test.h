@@ -19,8 +19,8 @@
 #ifndef TEST_H
 #define TEST_H
 
-#include "../trie_based.h"
-#include "../quantile.h"
+#include <trie_based.h>
+#include <quantile.h>
 
 void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
 void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls);
