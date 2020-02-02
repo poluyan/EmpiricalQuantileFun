@@ -16,9 +16,9 @@
 
 **************************************************************************/
 #include "test2d.h"
-#include "data_io.h"
-#include "test.h"
-#include "timer.h"
+#include "../data_io.h"
+#include "./test.h"
+#include "../timer.h"
 #include <vector>
 #include <cmath>
 #include <iostream>

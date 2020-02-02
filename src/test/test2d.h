@@ -18,9 +18,9 @@
 #ifndef TEST2D_H
 #define TEST2D_H
 
-#include "kquantile.h"
-#include "trie.h"
-#include "trie_based.h"
+#include "../kquantile.h"
+#include "../trie.h"
+#include "../trie_based.h"
 
 void test_2d1();
 void test_2d2();

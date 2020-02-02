@@ -19,8 +19,7 @@
 #define TEST3D_H
 
 
-#include "kquantile.h"
-
+#include "../kquantile.h"
 
 void test_3d1();
 void test_3d2();

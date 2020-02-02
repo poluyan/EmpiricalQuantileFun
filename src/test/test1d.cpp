@@ -17,12 +17,12 @@
 **************************************************************************/
 #include "test.h"
 #include "test1d.h"
-#include "timer.h"
-#include "data_io.h"
+#include "../timer.h"
+#include "../data_io.h"
 #include <vector>
 #include <iostream>
 #include <random>
-#include "kquantile.h"
+#include "../kquantile.h"
 
 void test_1d1()
 {

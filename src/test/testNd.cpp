@@ -16,8 +16,8 @@
 
 **************************************************************************/
 #include "test.h"
-#include "data_io.h"
-#include "timer.h"
+#include "../data_io.h"
+#include "../timer.h"
 #include "testNd.h"
 #include <vector>
 #include <random>

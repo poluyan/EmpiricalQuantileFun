@@ -18,7 +18,7 @@
 #ifndef TEST_KDE_H
 #define TEST_KDE_H
 
-#include "kde.h"
+#include "../kde.h"
 
 namespace mveqf
 {
