@@ -35,7 +35,7 @@
 #include "kquantile.h"
 #include "mveqf.h"
 
-void test()
+void test_mveqf()
 {
     std::vector<std::vector<double>> sample =
     {
@@ -96,6 +96,102 @@ void test()
     qf.set_kernel_type(0);
     std::vector<size_t> empty;
     qf.set_sample_and_bounds(sample, std::vector<double>(2, -2), std::vector<double>(2, 2), empty, 500, 1e-8, 100000);
+
+    std::mt19937_64 generator;
+    generator.seed(1);
+    std::uniform_real_distribution<double> ureal01(0.0,1.0);
+    size_t nrolls = 500;
+    std::vector<std::vector<double>> sampled(nrolls, std::vector<double>(2));
+    for(size_t i = 0; i != nrolls; i++)
+    {
+        std::vector<double> t = {ureal01(generator), ureal01(generator)};
+        sampled[i] = qf.transform(t);
+    }
+    data_io::write_default2d("maps/sampled2d.dat", sampled, 5);
+
+
+    nrolls = 50000;
+    sampled = std::vector<std::vector<double>>(nrolls, std::vector<double>(2));
+    auto vals01 = sampled;
+    for(auto & i : vals01)
+    {
+        for(auto & j : i)
+        {
+            j = ureal01(generator);
+        }
+    }
+
+    const auto nthreads = std::thread::hardware_concurrency();
+    auto first = sampled.begin();
+    auto last = sampled.end();
+    const auto size = last - first;
+    const auto size_per_thread = size / nthreads;
+
+    std::vector<std::future<void>> futures;
+    for(unsigned int i = 0; i < nthreads - 1; i++)
+    {
+        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &vals01, &sampled, &qf]()
+        {
+            for(auto it = start; it != start + size_per_thread; ++it)
+            {
+                qf.transform(vals01[std::distance(sampled.begin(), it)], *it);
+            }
+        }));
+    }
+    futures.emplace_back(
+        std::async([start = first + (nthreads - 1) * size_per_thread, last, &vals01, &sampled, &qf]()
+    {
+        for(auto it = start; it != last; ++it)
+        {
+            qf.transform(vals01[std::distance(sampled.begin(), it)], *it);
+        }
+    }));
+
+    for(auto &&future : futures)
+    {
+        if(future.valid())
+        {
+            future.get();
+        }
+        else
+        {
+            throw std::runtime_error("Something going wrong.");
+        }
+    }
+    data_io::write_default2d("maps/sampled2d_1m.dat", sampled, 5);
+}
+
+
+void test_mveqf2()
+{
+    std::vector<std::vector<double>> sample =
+    {
+        {5.000000e+01,	5.000000e+01},
+        {-5.000000e+01,	5.000000e+01},
+        {5.000000e+01,	-5.000000e+01},
+        {-5.000000e+01,	-5.000000e+01},
+        {-3.603057e+01,	7.704624e+01},
+        {-3.210936e+01,	-3.876422e+01},
+        {-5.673265e+00,	-6.626629e+01},
+        {-9.162707e+01,	1.064726e+01},
+        {-5.508124e+01,	-9.601210e+01},
+        {-9.279164e+01,	-2.018437e-01}
+    };
+    data_io::write_default2d("maps/sample2d.dat", sample, 5);
+
+//    std::vector<size_t> count = {1, 25, 84, 35, 101, 36, 77, 54, 76, 62};
+//    for(size_t i = 0; i != count.size(); i++)
+//    {
+//        for(size_t j = 0; j < count[i] - 1; j++)
+//        {
+//            sample.push_back(sample[i]);
+//        }
+//    }
+
+    mveqf::MVEQF<int, double> qf;
+    qf.set_kernel_type(0);
+    std::vector<size_t> empty;// = {1, 25, 84, 35, 101, 36, 77, 54, 76, 62};
+    qf.set_sample_and_bounds(sample, std::vector<double>(2, -100), std::vector<double>(2, 100), empty, 500, 1e-8, 100000);
 
     std::mt19937_64 generator;
     generator.seed(1);
@@ -260,12 +356,12 @@ int main()
 
 
     /// kde
-//    kde::test1d();
+//    mveqf::kde::test1d();
 //    mveqf::kde::test1d_1();
 //    mveqf::kde::test2d();
 //    mveqf::kde::test2d_2();
 
-    test();
+    test_mveqf();
 
     ///
     std::cout << time.elapsed_seconds() << std::endl;

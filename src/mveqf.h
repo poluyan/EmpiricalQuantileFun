@@ -21,75 +21,75 @@
 #include "kquantile.h"
 #include "mvff.h"
 
-//#include "data_io.h"
-//template<class InputIt, class T>
-//void parallel_pdff(InputIt first,
-//                  InputIt last,
-//                  std::vector<std::vector<T>> &pdf,
-//                  const T lb,
-//                  const T ub,
-//                  std::function<T(const std::vector<T> &)> f)
-//{
-//    const auto size = last - first;
-//    const auto nthreads = std::thread::hardware_concurrency();
-//    const auto size_per_thread = size / nthreads;
-//
-//    std::vector<std::future<void>> futures;
-//    for(unsigned int i = 0; i < nthreads - 1; i++)
-//    {
-//        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &pdf, lb, ub, f]()
-//        {
-//            T es = ub - lb;
-//            for(auto it = start; it != start + size_per_thread; ++it)
-//            {
-//                size_t i = std::distance(pdf.begin(), it);
-//                T a = lb + i*es/(pdf.size() - 1);
-//                for(size_t j = 0; j != it->size(); j++)
-//                {
-//                    std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
-//                    pdf[i][j] = f(temp);
-//                }
-//            }
-//        }));
-//    }
-//    futures.emplace_back(
-//        std::async([start = first + (nthreads - 1) * size_per_thread, last, &pdf, lb, ub, f]()
-//    {
-//        T es = ub - lb;
-//        for(auto it = start; it != last; ++it)
-//        {
-//            size_t i = std::distance(pdf.begin(), it);
-//            T a = lb + i*es/(pdf.size() - 1);
-//            for(size_t j = 0; j != it->size(); j++)
-//            {
-//                std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
-//                pdf[i][j] = f(temp);
-//            }
-//        }
-//
-//    }));
-//
-//    for(auto &&future : futures)
-//    {
-//        if(future.valid())
-//        {
-//            future.get();
-//        }
-//        else
-//        {
-//            throw std::runtime_error("Something going wrong.");
-//        }
-//    }
-//}
-//
-//template <typename T>
-//void print_pdfff(std::string fname, std::function<T(const std::vector<T> &)> f, const T lb, const T ub, const size_t n)
-//{
-//    std::vector<std::vector<T> > pdf(n, std::vector<T>(n));
-//    //parallel_step(pdf.begin(), pdf.end(), pdf, lb, ub, f);
-//    parallel_pdff(pdf.begin(), pdf.end(), pdf, lb, ub, f);
-//    data_io::write_default2d(fname, pdf, 5);
-//}
+#include "data_io.h"
+template<class InputIt, class T>
+void parallel_pdff(InputIt first,
+                   InputIt last,
+                   std::vector<std::vector<T>> &pdf,
+                   const T lb,
+                   const T ub,
+                   std::function<T(const std::vector<T> &)> f)
+{
+    const auto size = last - first;
+    const auto nthreads = std::thread::hardware_concurrency();
+    const auto size_per_thread = size / nthreads;
+
+    std::vector<std::future<void>> futures;
+    for(unsigned int i = 0; i < nthreads - 1; i++)
+    {
+        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &pdf, lb, ub, f]()
+        {
+            T es = ub - lb;
+            for(auto it = start; it != start + size_per_thread; ++it)
+            {
+                size_t i = std::distance(pdf.begin(), it);
+                T a = lb + i*es/(pdf.size() - 1);
+                for(size_t j = 0; j != it->size(); j++)
+                {
+                    std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
+                    pdf[i][j] = f(temp);
+                }
+            }
+        }));
+    }
+    futures.emplace_back(
+        std::async([start = first + (nthreads - 1) * size_per_thread, last, &pdf, lb, ub, f]()
+    {
+        T es = ub - lb;
+        for(auto it = start; it != last; ++it)
+        {
+            size_t i = std::distance(pdf.begin(), it);
+            T a = lb + i*es/(pdf.size() - 1);
+            for(size_t j = 0; j != it->size(); j++)
+            {
+                std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
+                pdf[i][j] = f(temp);
+            }
+        }
+
+    }));
+
+    for(auto &&future : futures)
+    {
+        if(future.valid())
+        {
+            future.get();
+        }
+        else
+        {
+            throw std::runtime_error("Something going wrong.");
+        }
+    }
+}
+
+template <typename T>
+void print_pdfff(std::string fname, std::function<T(const std::vector<T> &)> f, const T lb, const T ub, const size_t n)
+{
+    std::vector<std::vector<T> > pdf(n, std::vector<T>(n));
+    //parallel_step(pdf.begin(), pdf.end(), pdf, lb, ub, f);
+    parallel_pdff(pdf.begin(), pdf.end(), pdf, lb, ub, f);
+    data_io::write_default2d(fname, pdf, 5);
+}
 
 namespace mveqf
 {
@@ -114,7 +114,7 @@ public:
                                const std::vector<size_t> &number = std::vector<size_t>(),
                                const size_t N = 100,
                                const U threshold = 1e-8,
-                               const size_t multi = 100000, 
+                               const size_t multi = 100000,
                                const U lambda = 1.0)
     {
         const size_t dimension = lb.size();
@@ -189,13 +189,13 @@ public:
 //            std::cout << std::fixed << k << std::endl;
 //        }
         std::set<std::vector<T>> visited;
-        
+
         std::function<U(const std::vector<U> &)> pdffunc = std::bind(&mveqf::kde::KDE<U>::pdf, std::ref(init_pdf), std::placeholders::_1, lambda);
 
         ///
 
-//         print_pdfff<U>("maps/kpdf2d.dat", pdffunc, lb.front(), ub.front(), 1000);
-
+        //print_pdfff<U>("maps/kpdf2d.dat", pdffunc, lb.front(), ub.front(), 100);
+        //std::cin.get();
 
 
         ///

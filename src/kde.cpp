@@ -37,24 +37,24 @@ void test1d()
     std::normal_distribution<double> norm(0.0,1.0);
 
     /// first
-    for(size_t i = 0; i != 1e3; i++)
-        sample->push_back(std::vector<double> {norm(generator)});
+//    for(size_t i = 0; i != 1e3; i++)
+//        sample->push_back(std::vector<double> {norm(generator)});
 
     /// second
 //    sample->push_back(std::vector<double>{1.0});
 
     /// third
-//    sample->push_back(std::vector<double>{-2.0});
-//    sample->push_back(std::vector<double>{2.0});
+    sample->push_back(std::vector<double>{-50.0});
+    sample->push_back(std::vector<double>{50.0});
 
 
     mveqf::kde::KDE<double> obj;
     obj.set_dimension(1);
-    obj.set_kernel_type(0);
+    obj.set_kernel_type(5);
     obj.set_sample_shared(sample);
 
-    const double lb = -5;
-    const double ub = 5;
+    const double lb = -100;
+    const double ub = 100;
     const double es = ub - lb;
 
     const size_t n = 1e3;
@@ -64,7 +64,7 @@ void test1d()
         pdf[i] = obj.pdf(std::vector<double> {lb + i*es/(n - 1)});
         cdf[i] = obj.cdf(std::vector<double> {lb + i*es/(n - 1)});
     }
-    std::cout << obj.pdf(std::vector<double> {1.0}) << std::endl;
+//    std::cout << obj.pdf(std::vector<double> {1.0}) << std::endl;
     data_io::write_default1d("maps/kde/kpdf.dat", pdf, 1, 5);
     data_io::write_default1d("maps/kde/kcdf.dat", cdf, 1, 5);
 }
