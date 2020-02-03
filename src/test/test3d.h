@@ -21,6 +21,9 @@
 
 #include <kquantile.h>
 
+#include <utility/data_io.h>
+#include <utility/timer.h>
+
 void test_3d1();
 void test_3d2();
 

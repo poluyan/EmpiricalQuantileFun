@@ -17,8 +17,8 @@ OBJ_RELEASE = \
 HEADERS = \
 	$(SRCPATH)/trie_based.h \
 	$(SRCPATH)/trie.h \
-	$(SRCPATH)/timer.h \
-	$(SRCPATH)/data_io.h \
+	$(SRCPATH)/utility/timer.h \
+	$(SRCPATH)/utility/data_io.h \
 	$(SRCPATH)/quantile.h \
 	$(SRCPATH)/test/test.h \
 	$(SRCPATH)/test/test1d.h \
@@ -45,8 +45,8 @@ out_release: $(OBJ_RELEASE) $(HEADERS)
 
 $(OBJDIR_RELEASE)/main.o: $(SRCPATH)/main.cpp
 	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
-$(OBJDIR_RELEASE)/timer.o: $(SRCPATH)/timer.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
+$(OBJDIR_RELEASE)/timer.o: $(SRCPATH)/utility/timer.cpp
+	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/utility/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
 $(OBJDIR_RELEASE)/test.o: $(SRCPATH)/test/test.cpp
 	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test.cpp -o $(OBJDIR_RELEASE)/test.o
 $(OBJDIR_RELEASE)/test1d.o: $(SRCPATH)/test/test.cpp

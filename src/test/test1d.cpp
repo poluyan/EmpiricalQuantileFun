@@ -17,8 +17,8 @@
 **************************************************************************/
 #include <test/test.h>
 #include <test/test1d.h>
-#include <timer.h>
-#include <data_io.h>
+#include <utility/timer.h>
+#include <utility/data_io.h>
 #include <vector>
 #include <iostream>
 #include <random>

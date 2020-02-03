@@ -19,14 +19,14 @@
 #define RUN_TEST_H
 
 
-#include <timer.h>
+#include <utility/timer.h>
 #include <trie_based.h>
 #include <quantile.h>
 #include <test/test.h>
 #include <test/test1d.h>
 #include <test/test2d.h>
 #include <test/test3d.h>
-#include <data_io.h>
+#include <utility/data_io.h>
 #include <test/test_kde.h>
 #include <kquantile.h>
 #include <mveqf.h>

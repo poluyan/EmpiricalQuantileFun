@@ -17,8 +17,8 @@
 **************************************************************************/
 
 #include <test/test.h>
-#include <timer.h>
-#include <data_io.h>
+#include <utility/timer.h>
+#include <utility/data_io.h>
 #include <random>
 #include <chrono>
 #include <thread>

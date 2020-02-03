@@ -16,8 +16,8 @@
 
 **************************************************************************/
 
-#ifndef TIME_H
-#define TIME_H
+#ifndef TIMER_H
+#define TIMER_H
 
 #include <ctime>
 #include <chrono>

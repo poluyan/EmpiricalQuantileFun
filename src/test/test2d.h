@@ -22,6 +22,9 @@
 #include <trie.h>
 #include <trie_based.h>
 
+#include <utility/data_io.h>
+#include <utility/timer.h>
+
 void test_2d1();
 void test_2d2();
 
