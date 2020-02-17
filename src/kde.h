@@ -223,7 +223,7 @@ public:
         calculate_bandwidth();
 //        for(size_t j = 0; j != dimension; j++)
 //        {
-//            
+//            std::cout << j << std::endl;
 //            std::cout << std::fixed << sum[j] << '\t' << ssum[j] << '\t' << min[j] << '\t' << max[j] << '\t' << count << std::endl;
 //        }
     }

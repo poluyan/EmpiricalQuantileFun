@@ -21,75 +21,119 @@
 #include <kquantile.h>
 #include <mvff.h>
 
-#include <utility/data_io.h>
-template<class InputIt, class T>
-void parallel_pdff(InputIt first,
-                   InputIt last,
-                   std::vector<std::vector<T>> &pdf,
-                   const T lb,
-                   const T ub,
-                   std::function<T(const std::vector<T> &)> f)
-{
-    const auto size = last - first;
-    const auto nthreads = std::thread::hardware_concurrency();
-    const auto size_per_thread = size / nthreads;
-
-    std::vector<std::future<void>> futures;
-    for(unsigned int i = 0; i < nthreads - 1; i++)
-    {
-        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &pdf, lb, ub, f]()
-        {
-            T es = ub - lb;
-            for(auto it = start; it != start + size_per_thread; ++it)
-            {
-                size_t i = std::distance(pdf.begin(), it);
-                T a = lb + i*es/(pdf.size() - 1);
-                for(size_t j = 0; j != it->size(); j++)
-                {
-                    std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
-                    pdf[i][j] = f(temp);
-                }
-            }
-        }));
-    }
-    futures.emplace_back(
-        std::async([start = first + (nthreads - 1) * size_per_thread, last, &pdf, lb, ub, f]()
-    {
-        T es = ub - lb;
-        for(auto it = start; it != last; ++it)
-        {
-            size_t i = std::distance(pdf.begin(), it);
-            T a = lb + i*es/(pdf.size() - 1);
-            for(size_t j = 0; j != it->size(); j++)
-            {
-                std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
-                pdf[i][j] = f(temp);
-            }
-        }
-
-    }));
-
-    for(auto &&future : futures)
-    {
-        if(future.valid())
-        {
-            future.get();
-        }
-        else
-        {
-            throw std::runtime_error("Something going wrong.");
-        }
-    }
-}
-
-template <typename T>
-void print_pdfff(std::string fname, std::function<T(const std::vector<T> &)> f, const T lb, const T ub, const size_t n)
-{
-    std::vector<std::vector<T> > pdf(n, std::vector<T>(n));
-    //parallel_step(pdf.begin(), pdf.end(), pdf, lb, ub, f);
-    parallel_pdff(pdf.begin(), pdf.end(), pdf, lb, ub, f);
-    data_io::write_default2d(fname, pdf, 5);
-}
+//#include <utility/data_io.h>
+//template<class InputIt, class T>
+//void parallel_pdff(InputIt first,
+//                   InputIt last,
+//                   std::vector<std::vector<T>> &pdf,
+//                   const T lb,
+//                   const T ub,
+//                   std::function<T(const std::vector<T> &)> f)
+//{
+//    const auto size = last - first;
+//    const auto nthreads = std::thread::hardware_concurrency();
+//    const auto size_per_thread = size / nthreads;
+//
+//    std::vector<std::future<void>> futures;
+//    for(unsigned int i = 0; i < nthreads - 1; i++)
+//    {
+//        futures.emplace_back(std::async([start = first + i * size_per_thread, size_per_thread, &pdf, lb, ub, f]()
+//        {
+//            T es = ub - lb;
+//            for(auto it = start; it != start + size_per_thread; ++it)
+//            {
+//                size_t i = std::distance(pdf.begin(), it);
+//                T a = lb + i*es/(pdf.size() - 1);
+//                for(size_t j = 0; j != it->size(); j++)
+//                {
+//                    std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
+//                    pdf[i][j] = f(temp);
+//                }
+//            }
+//        }));
+//    }
+//    futures.emplace_back(
+//        std::async([start = first + (nthreads - 1) * size_per_thread, last, &pdf, lb, ub, f]()
+//    {
+//        T es = ub - lb;
+//        for(auto it = start; it != last; ++it)
+//        {
+//            size_t i = std::distance(pdf.begin(), it);
+//            T a = lb + i*es/(pdf.size() - 1);
+//            for(size_t j = 0; j != it->size(); j++)
+//            {
+//                std::vector<T> temp = {a, lb + j*es/(pdf.size() - 1)};
+//                pdf[i][j] = f(temp);
+//            }
+//        }
+//
+//    }));
+//
+//    for(auto &&future : futures)
+//    {
+//        if(future.valid())
+//        {
+//            future.get();
+//        }
+//        else
+//        {
+//            throw std::runtime_error("Something going wrong.");
+//        }
+//    }
+//}
+//
+//template <typename T>
+//void print_pdfff(std::string fname, std::function<T(const std::vector<T> &)> f, const T lb, const T ub, const size_t n)
+//{
+//    std::vector<std::vector<T> > pdf(n, std::vector<T>(n));
+//    //parallel_step(pdf.begin(), pdf.end(), pdf, lb, ub, f);
+//    parallel_pdff(pdf.begin(), pdf.end(), pdf, lb, ub, f);
+//    data_io::write_default2d(fname, pdf, 9);
+//        
+//    std::vector<std::vector<T> > pdf2;
+//    T es = ub - lb;
+//    T min = std::numeric_limits<T>::max();
+//    T max = std::numeric_limits<T>::min();
+//    for(auto it = pdf.begin(); it != pdf.end(); ++it)
+//    {
+//        size_t i = std::distance(pdf.begin(), it);
+//        T a = lb + i*es/(n - 1);
+//        for(size_t j = 0; j != it->size(); j++)
+//        {
+//            min = min > pdf[i][j] ? pdf[i][j] : min;
+//            max = max < pdf[i][j] ? pdf[i][j] : max;
+//            std::vector<T> temp = {a, lb + j*es/(n - 1), pdf[i][j]};
+//            pdf2.push_back(temp);
+//        }
+//    }
+//    for(auto & i : pdf2)
+//    {
+//        i.back() = (i.back() - min)/(max - min);
+//    }
+//    data_io::write_default2d(fname + "2", pdf2, 9);
+//    
+//    /*std::random_device rd;
+//    std::mt19937_64 g(rd());
+//    std::shuffle(pdf2.begin(), pdf2.end(), g);
+//    
+//    std::vector<std::vector<T> > pdf3;
+//    T delta = 0.02;
+//    std::vector<T> vals = {0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95};
+//    size_t kk = 100;
+//    std::vector<size_t> kkk(vals.size()) 
+//    for(const auto & i : pdf2)
+//    {
+//        for(size_t j = 0; j != vals.size(); j++)
+//        {
+//            if((i.back() > vals[j] - delta) && (i.back() < vals[j] + delta))
+//            {
+//                pdf3.push_back(i);
+//            }
+//        }
+//    }
+//    std::sort(pdf3.begin(), pdf3.end(), [](const auto &a, const auto &b){return a.back() < b.back();});
+//    data_io::write_default2d(fname + "3", pdf3, 5);*/
+//}
 
 namespace mveqf
 {
@@ -194,8 +238,11 @@ public:
 
         ///
 
-        //print_pdfff<U>("maps/kpdf2d.dat", pdffunc, lb.front(), ub.front(), 100);
-        //std::cin.get();
+        //print_pdfff<U>("maps/kpdf2d.dat", pdffunc, lb.front(), ub.front(), 1000);
+        
+//        data_io::write_default2d("init.dat", init_points, 9);
+//        print_pdfff<U>("kpdf2d.dat", pdffunc, lb.front(), ub.front(), 200);
+//        std::cin.get();
 
 
         ///
