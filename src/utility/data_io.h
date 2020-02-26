@@ -28,7 +28,7 @@ namespace data_io
 {
 
 template<template<typename, typename...> class Container, class T, typename... Params>
-void write_default1d(std::string fname, Container<T, Params...> const& u, size_t step, size_t prec)
+void write_default1d(std::string fname, Container<T, Params...> const& u, size_t step = 1, size_t prec = 10)
 {
     std::ofstream fOut;
     fOut.open(fname.c_str());

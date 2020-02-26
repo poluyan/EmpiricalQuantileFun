@@ -75,13 +75,13 @@ public:
 //                ssum += std::pow(sample, 2.0);
 //            }
 
-            sum += sample*layer->children[i]->count;
-            ssum += std::pow(sample, 2.0)*layer->children[i]->count;
+            sum += sample;//*layer->children[i]->count;
+            ssum += std::pow(sample, 2.0);//*layer->children[i]->count;
 
             min = sample < min ? sample : min;
             max = sample > max ? sample : max;
         }
-        count = layer->count;
+        count = layer->children.size();//layer->count;
         calculate_bandwidth(layer);
     }
     U cdf(U x, trie_based::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, const U lambda = 1.0) const
