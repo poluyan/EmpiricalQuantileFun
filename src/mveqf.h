@@ -213,14 +213,20 @@ public:
             std::vector<int> startdot(dimension);
             for(size_t i = 0; i != startdot.size(); i++)
             {
-                auto it = std::lower_bound(grid[i].begin(), grid[i].end(), k[i]);
+                auto currnet_grid_points = grid[i];
+                currnet_grid_points.pop_back();
+                for(auto &j : currnet_grid_points)
+                {
+                    j += dx[i];
+                }
+                auto it = std::lower_bound(currnet_grid_points.begin(), currnet_grid_points.end(), k[i]);
 
-                if(it == grid[i].end())
-                    startdot[i] = grid[i].size() - 2;
-                else if(it == grid[i].begin())
+                if(it == currnet_grid_points.end())
+                    startdot[i] = currnet_grid_points.size() - 1;
+                else if(it == currnet_grid_points.begin())
                     startdot[i] = 0;
                 else
-                    startdot[i] = std::distance(grid[i].begin(), it) - 1;
+                    startdot[i] = std::distance(currnet_grid_points.begin(), it);
             }
             points.push_back(startdot);
         }

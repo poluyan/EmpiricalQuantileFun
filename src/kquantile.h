@@ -50,6 +50,7 @@ protected:
         U y = ssum/count;
         U sigma = std::sqrt(y - std::pow(x, 2.0));
         bandwidth = sigma*(std::pow((3.0*count/4.0), (-1.0/5.0)));
+//        std::cout << bandwidth << std::endl;
         if(layer->children.size() == 1)
         {
             bandwidth = 1.0;
@@ -75,13 +76,27 @@ public:
 //                ssum += std::pow(sample, 2.0);
 //            }
 
-            sum += sample;//*layer->children[i]->count;
-            ssum += std::pow(sample, 2.0);//*layer->children[i]->count;
+//            U startp = grids[ind][layer->children[i]->index];
+//            U endp = grids[ind][layer->children[i]->index + 1];
+//            U es = endp - startp;
+//
+//            for(size_t j = 1; j != layer->children[i]->count + 1; j++)
+//            {
+//                U temp = startp + j*es/U(layer->children[i]->count + 1);
+//                sum += temp;
+//                ssum += std::pow(temp, 2.0);
+//
+//                min = temp < min ? temp : min;
+//                max = temp > max ? temp : max;
+//            }
+
+            sum += sample*layer->children[i]->count;
+            ssum += std::pow(sample, 2.0)*layer->children[i]->count;
 
             min = sample < min ? sample : min;
             max = sample > max ? sample : max;
         }
-        count = layer->children.size();//layer->count;
+        count = layer->count;
         calculate_bandwidth(layer);
     }
     U cdf(U x, trie_based::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, const U lambda = 1.0) const
@@ -226,7 +241,19 @@ void ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, std::vec
     for(size_t i = 0, k; i != in01.size(); i++)
     {
         out[i] = kquantile_transform(p, i, in01[i], lambda);
-        k = quantile_transform(p, i, in01[i]).first;
+        //k = quantile_transform(p, i, in01[i]).first;
+
+        k = 0;
+        U min_distance = std::abs(out[i] - grids[i][p->children.front()->index] + dx[i]);
+        for(size_t j = 1; j < p->children.size(); j++)
+        {
+            U temp = std::abs(out[i] - grids[i][p->children[j]->index] + dx[i]);
+            if(temp < min_distance)
+            {
+                k = j;
+                min_distance = temp;
+            }
+        }
         p = p->children[k].get();
     }
 }
