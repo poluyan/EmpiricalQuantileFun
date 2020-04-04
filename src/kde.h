@@ -313,6 +313,10 @@ public:
             return parallel_cdf(sample->begin(), sample->end(), x, lambda);
         }
     }
+    std::vector<T> get_bandwidth() const
+    {
+        return bandwidth;
+    }
 protected:
     template<typename InputIt>
     T pdf_it(InputIt first, InputIt last, const std::vector<T> &x, T lambda) const

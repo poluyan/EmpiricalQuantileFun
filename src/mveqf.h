@@ -213,6 +213,7 @@ public:
             std::vector<int> startdot(dimension);
             for(size_t i = 0; i != startdot.size(); i++)
             {
+                // over node points, not grid
                 auto currnet_grid_points = grid[i];
                 currnet_grid_points.pop_back();
                 for(auto &j : currnet_grid_points)
@@ -263,6 +264,7 @@ public:
 //        std::cout << "FloodFill" << std::endl;
 
         qf->set_sample_shared(sample);
+        qf->set_bandwidth(init_pdf.get_bandwidth());
     }
     void transform(const std::vector<U>& in01, std::vector<U>& out) const
     {
