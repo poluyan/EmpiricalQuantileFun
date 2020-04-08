@@ -17,31 +17,31 @@ Here is an example of two sample points and generated kernel density estimation 
 
 int main()
 {
-	// 0 - Gaussian (default), 1 - Epanechnikov, 2 - Uniform, 
-	// 3 - Biweight, 4 - Triweight, 5 - Laplacian
-	size_t kernel_type = 0; 
+  // 0 - Gaussian (default), 1 - Epanechnikov, 2 - Uniform, 
+  // 3 - Biweight, 4 - Triweight, 5 - Laplacian
+  size_t kernel_type = 0; 
 
-	// 2 points example
-	std::vector<std::vector<double>> sample = { {-1.13, -1.08}, {1.11, 1.27} };
+  // 2 points example
+  std::vector<std::vector<double>> sample = { {-1.13, -1.08}, {1.11, 1.27} };
 
-	std::vector<double> lower_bound = {-3, -3};
-	std::vector<double> upper_bound = {3, 3};
+  std::vector<double> lower_bound = {-3, -3};
+  std::vector<double> upper_bound = {3, 3};
 
-	mveqf::MVEQF<int, double> qf;
-	qf.set_kernel_type(kernel_type);
-	qf.set_sample_and_bounds(sample, lower_bound, upper_bound);
+  mveqf::MVEQF<int, double> qf;
+  qf.set_kernel_type(kernel_type);
+  qf.set_sample_and_bounds(sample, lower_bound, upper_bound);
 
-	// for generating points from [0,1]^n
-	std::mt19937_64 generator;
-	generator.seed(1);
-	std::uniform_real_distribution<double> ureal01(0,1);
+  // for generating points from [0,1]^n
+  std::mt19937_64 generator;
+  generator.seed(1);
+  std::uniform_real_distribution<double> ureal01(0,1);
 
-	for(size_t i = 0; i != 1000; i++) 
-	{
-		auto t = {ureal01(generator), ureal01(generator)};
-		auto sampled = qf.transform(t);
-		std::cout << std::scientific << sampled.front() << '\t' << sampled.back() << std::endl;
-	}
+  for(size_t i = 0; i != 1000; i++) 
+  {
+    auto t = {ureal01(generator), ureal01(generator)};
+    auto sampled = qf.transform(t);
+    std::cout << std::scientific << sampled.front() << '\t' << sampled.back() << std::endl;
+  }
 }
 ```
 To build this example specify a directory to search for include files and thread support library, e.g. for `g++`
