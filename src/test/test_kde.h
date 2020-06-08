@@ -22,14 +22,14 @@
 
 namespace mveqf
 {
-  namespace kde
-  {
-    void test1d();
-    void test1d_1();
+	namespace kde
+	{
+		void test1d();
+		void test1d_1();
 
-    void test2d();
-    void test2d_2();
-  }
+		void test2d();
+		void test2d_2();
+	}
 }
 
 #endif

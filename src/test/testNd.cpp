@@ -26,159 +26,159 @@
 
 namespace testNd
 {
-  void test_grid_10d()
-  {
-    std::vector<size_t> grid_number;
-    std::vector<std::vector<int>> sample_implicit;
-    //400 temp1 = {0.99935, 0.546268, 0.140131, 0.692333, 0.441771, 0.890283, 0.0597646, 0.607688, 0.566813, 0.61283};
-    data_io::load_grid_and_sample("input/grid_test/10000/grid.dat", "input/grid_test/10000/sample.dat", grid_number, sample_implicit);
+	void test_grid_10d()
+	{
+		std::vector<size_t> grid_number;
+		std::vector<std::vector<int>> sample_implicit;
+		//400 temp1 = {0.99935, 0.546268, 0.140131, 0.692333, 0.441771, 0.890283, 0.0597646, 0.607688, 0.566813, 0.61283};
+		data_io::load_grid_and_sample("input/grid_test/10000/grid.dat", "input/grid_test/10000/sample.dat", grid_number, sample_implicit);
 
-    /// multivariate quantile function [0,1]^n -> [-3,3]^n
-    timer::Timer time_cpp11;
-    time_cpp11.reset();
-    explicit_quantile(-3, 3, grid_number, sample_implicit, 1e+2);
-    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    time_cpp11.reset();
-    implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
-    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
-    time_cpp11.reset();
-    implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+5);
-    std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
-  }
-
-
+		/// multivariate quantile function [0,1]^n -> [-3,3]^n
+		timer::Timer time_cpp11;
+		time_cpp11.reset();
+		explicit_quantile(-3, 3, grid_number, sample_implicit, 1e+2);
+		std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+		time_cpp11.reset();
+		implicit_quantile_class(-3, 3, grid_number, sample_implicit, 1e+5);
+		std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+		time_cpp11.reset();
+		implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 1e+5);
+		std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
+	}
 
 
 
 
-  void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
-  {
-    size_t max_sample_size = gridN.front();
-    for(size_t i = 1; i != gridN.size(); i++)
-    {
-      max_sample_size *= gridN[i];
-      if(max_sample_size > Nsamples)
-        break;
-    }
-    if(Nsamples > max_sample_size)
-    {
-      std::cout << "Nsamples > max_sample_size" << std::endl;
-      std::cout << Nsamples << " > " << max_sample_size << std::endl;
-      return;
-    }
-    for(size_t i = 0; i != lb.size(); i++)
-    {
-      if(lb[i] > ub[i])
-        return;
-    }
 
-    std::mt19937_64 generator;
-    generator.seed(1);
-    std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
-    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+	void test_Nd(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
+	{
+		size_t max_sample_size = gridN.front();
+		for(size_t i = 1; i != gridN.size(); i++)
+		{
+			max_sample_size *= gridN[i];
+			if(max_sample_size > Nsamples)
+				break;
+		}
+		if(Nsamples > max_sample_size)
+		{
+			std::cout << "Nsamples > max_sample_size" << std::endl;
+			std::cout << Nsamples << " > " << max_sample_size << std::endl;
+			return;
+		}
+		for(size_t i = 0; i != lb.size(); i++)
+		{
+			if(lb[i] > ub[i])
+				return;
+		}
 
-    std::vector<std::vector<int> > sample_implicit;
+		std::mt19937_64 generator;
+		generator.seed(1);
+		std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-    std::vector<int> temp(gridN.size());
-    for(size_t i = 0; i != Nsamples;)
-    {
-      for(size_t j = 0; j != gridN.size(); j++)
-      {
-        temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
-      }
-      if(!sample->search(temp))
-      {
-        sample->insert(temp);
-        sample_implicit.push_back(temp);
-        i++;
-      }
-    }
+		typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
+		std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
-    std::vector<std::vector<float> > values01;
+		std::vector<std::vector<int> > sample_implicit;
 
-    std::vector<float> temp1(gridN.size());
-    std::vector<float> temp2(temp1.size());
+		std::vector<int> temp(gridN.size());
+		for(size_t i = 0; i != Nsamples;)
+		{
+			for(size_t j = 0; j != gridN.size(); j++)
+			{
+				temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
+			}
+			if(!sample->search(temp))
+			{
+				sample->insert(temp);
+				sample_implicit.push_back(temp);
+				i++;
+			}
+		}
 
-    for(size_t i = 0; i != Nrolls; ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
+		std::vector<std::vector<float> > values01;
 
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      temp1[i] = 0.0;
-      values01.push_back(temp1);
-    }
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      temp1[i] = 1.0;
-      values01.push_back(temp1);
-    }
+		std::vector<float> temp1(gridN.size());
+		std::vector<float> temp2(temp1.size());
 
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = 0.0;
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = 1.0;
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
+		for(size_t i = 0; i != Nrolls; ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
 
-    for(size_t i = 0; i != temp1.size() - 1; ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = 0.0;
-      }
-      values01.push_back(temp1);
-    }
-    for(size_t i = 0; i != temp1.size() - 1; ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = 1.0;
-      }
-      values01.push_back(temp1);
-    }
-    data_io::write_default2d("maps/values01.dat", values01, 15);
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			temp1[i] = 0.0;
+			values01.push_back(temp1);
+		}
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			temp1[i] = 1.0;
+			values01.push_back(temp1);
+		}
+
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = 0.0;
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = 1.0;
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+
+		for(size_t i = 0; i != temp1.size() - 1; ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = 0.0;
+			}
+			values01.push_back(temp1);
+		}
+		for(size_t i = 0; i != temp1.size() - 1; ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = 1.0;
+			}
+			values01.push_back(temp1);
+		}
+		data_io::write_default2d("maps/values01.dat", values01, 15);
 
 
 //    values01.clear();
@@ -209,680 +209,680 @@ namespace testNd
 //    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,
 //    1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00,	1.000000000000000e+00});
 
-    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+		std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
 
-    timer::Timer time_cpp11;
+		timer::Timer time_cpp11;
 
-    mveqf::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
-    quant_expl.set_sample(sample_implicit);
-    time_cpp11.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_expl.transform(values01[i], sampled[i]);
-    std::cout << "\ntotal time explicit       : " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+		mveqf::ExplicitQuantile<int, float> quant_expl(lb, ub, gridN);
+		quant_expl.set_sample(sample_implicit);
+		time_cpp11.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_expl.transform(values01[i], sampled[i]);
+		std::cout << "\ntotal time explicit       : " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
+		std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-    data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+		data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
 
-    mveqf::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
-    quant_impl.set_sample_shared_and_fill_count(sample);
-    time_cpp11.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impl.transform(values01[i], sampled[i]);
-    std::cout << "\ntotal time implicit       : " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+		mveqf::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+		quant_impl.set_sample_shared_and_fill_count(sample);
+		time_cpp11.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impl.transform(values01[i], sampled[i]);
+		std::cout << "\ntotal time implicit       : " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
+		std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-    data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+		data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
 
-    mveqf::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
-    quant_impls.set_sample_shared_and_fill_count(sample);
-    time_cpp11.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impls.transform(values01[i], sampled[i]);
-    std::cout << "\ntotal time implicit sorted: " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
-    std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
+		mveqf::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+		quant_impls.set_sample_shared_and_fill_count(sample);
+		time_cpp11.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impls.transform(values01[i], sampled[i]);
+		std::cout << "\ntotal time implicit sorted: " << std::scientific << time_cpp11.elapsed_seconds() << std::endl;
+		std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-    data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
-  }
-
-
-
-  std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
-  {
-    std::mt19937_64 generator;
-    generator.seed(1 + gridN.size() + gridN.front());
-    std::uniform_real_distribution<float> ureal01(0.0,1.0);
-
-    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
-    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-
-    std::vector<int> temp(gridN.size());
-    for(size_t i = 0; i != Nsamples;)
-    {
-      for(size_t j = 0; j != gridN.size(); j++)
-      {
-        temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
-      }
-      if(!sample->search(temp))
-      {
-        sample->insert(temp);
-        i++;
-      }
-    }
-
-    std::vector<std::vector<float> > values01;
-
-    std::vector<float> temp1(gridN.size());
-    std::vector<float> temp2(temp1.size());
-
-    for(size_t i = 0; i != Nrolls; ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
-
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      temp1[i] = 0.0;
-      values01.push_back(temp1);
-    }
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      temp1[i] = 1.0;
-      values01.push_back(temp1);
-    }
-
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = 0.0;
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
-    for(size_t i = 0; i != temp1.size(); ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = 1.0;
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
-
-    for(size_t i = 0; i != temp1.size() - 1; ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = 0.0;
-      }
-      values01.push_back(temp1);
-    }
-    for(size_t i = 0; i != temp1.size() - 1; ++i)
-    {
-      for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      for(size_t j = i + 1; j < temp1.size(); j++)
-      {
-        temp1[j] = 1.0;
-      }
-      values01.push_back(temp1);
-    }
-
-    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
-
-    timer::Timer time_cpp11;
-
-    mveqf::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
-    quant_impl.set_sample_shared_and_fill_count(sample);
-    time_cpp11.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impl.transform(values01[i], sampled[i]);
-    double first = time_cpp11.elapsed_seconds()/double(sampled.size());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-
-    mveqf::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
-    quant_impls.set_sample_shared_and_fill_count(sample);
-    time_cpp11.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impls.transform(values01[i], sampled[i]);
-    double second = time_cpp11.elapsed_seconds()/double(sampled.size());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-    return std::make_pair(first, second);
-  }
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+		data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
+	}
 
 
 
+	std::pair<double, double> test_Nd_time(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
+	{
+		std::mt19937_64 generator;
+		generator.seed(1 + gridN.size() + gridN.front());
+		std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-  void grid_test_Nd()
-  {
-    for(size_t g_size = 1000; g_size < 10000 + 1; g_size+=1000)
-    {
+		typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
+		std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+
+		std::vector<int> temp(gridN.size());
+		for(size_t i = 0; i != Nsamples;)
+		{
+			for(size_t j = 0; j != gridN.size(); j++)
+			{
+				temp[j] = static_cast<int>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
+			}
+			if(!sample->search(temp))
+			{
+				sample->insert(temp);
+				i++;
+			}
+		}
+
+		std::vector<std::vector<float> > values01;
+
+		std::vector<float> temp1(gridN.size());
+		std::vector<float> temp2(temp1.size());
+
+		for(size_t i = 0; i != Nrolls; ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			temp1[i] = 0.0;
+			values01.push_back(temp1);
+		}
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			temp1[i] = 1.0;
+			values01.push_back(temp1);
+		}
+
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = 0.0;
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+		for(size_t i = 0; i != temp1.size(); ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = 1.0;
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+
+		for(size_t i = 0; i != temp1.size() - 1; ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = 0.0;
+			}
+			values01.push_back(temp1);
+		}
+		for(size_t i = 0; i != temp1.size() - 1; ++i)
+		{
+			for(size_t j = 0; j != i + 1 && j < temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			for(size_t j = i + 1; j < temp1.size(); j++)
+			{
+				temp1[j] = 1.0;
+			}
+			values01.push_back(temp1);
+		}
+
+		std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+
+		timer::Timer time_cpp11;
+
+		mveqf::ImplicitQuantile<int, float> quant_impl(lb, ub, gridN);
+		quant_impl.set_sample_shared_and_fill_count(sample);
+		time_cpp11.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impl.transform(values01[i], sampled[i]);
+		double first = time_cpp11.elapsed_seconds()/double(sampled.size());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+
+		mveqf::ImplicitQuantileSorted<int, float> quant_impls(lb, ub, gridN);
+		quant_impls.set_sample_shared_and_fill_count(sample);
+		time_cpp11.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impls.transform(values01[i], sampled[i]);
+		double second = time_cpp11.elapsed_seconds()/double(sampled.size());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+		return std::make_pair(first, second);
+	}
+
+
+
+
+	void grid_test_Nd()
+	{
+		for(size_t g_size = 1000; g_size < 10000 + 1; g_size+=1000)
+		{
 //        std::cout << g_size << std::endl;
 
-      size_t N = 100;
-      std::vector<size_t> g(N);
-      for(size_t i = 0; i != N; i++)
-      {
-        g[i] = g_size;
-      }
-      std::vector<float> lb(N, -10);
-      std::vector<float> ub(N, 10);
-      auto rez = test_Nd_time(g, lb, ub, 500000, 1e5);
-      std::cout << g_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
-    }
-  }
+			size_t N = 100;
+			std::vector<size_t> g(N);
+			for(size_t i = 0; i != N; i++)
+			{
+				g[i] = g_size;
+			}
+			std::vector<float> lb(N, -10);
+			std::vector<float> ub(N, 10);
+			auto rez = test_Nd_time(g, lb, ub, 500000, 1e5);
+			std::cout << g_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
+		}
+	}
 
-  void dim_test_Nd()
-  {
-    for(size_t dim_size = 10; dim_size < 500 + 1; dim_size+=10)
-    {
-      size_t N = dim_size;
-      std::vector<size_t> g(N, 1000);
-      std::vector<float> lb(N, -10);
-      std::vector<float> ub(N, 10);
-      auto rez = test_Nd_time(g, lb, ub, 100000, 1e3);
-      std::cout << dim_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
-    }
-  }
-
-
-
-  std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nrolls, size_t seed_append)
-  {
-    std::mt19937_64 generator;
-    generator.seed(1 + gridN.size() + gridN.front() + seed_append);
-    std::uniform_real_distribution<float> ureal01(0.0,1.0);
-
-    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
-    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-
-    std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
-    for(size_t i = 0; i != gridN.size(); i++)
-    {
-      variable_values[i].resize(gridN[i]);
-      for(size_t j = 0; j != gridN[i]; j++)
-      {
-        variable_values[i][j] = j;
-      }
-    }
-    std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
-
-    for(size_t i = 0; i != sample_int.size(); i++)
-    {
-      sample->insert(sample_int[i]);
-    }
-
-    std::vector<std::vector<float> > values01;
-
-    std::vector<float> temp1(gridN.size());
-    std::vector<float> temp2(temp1.size());
-
-    for(size_t i = 0; i != Nrolls; ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
-
-    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
-
-    timer::Timer time_all_trans, full_time;
-    std::vector<double> result;
-
-    mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
-    quant_expl.set_sample(sample_int);
-    full_time.reset();
-    time_all_trans.reset();
-    for(size_t i = 0; i != 10; i++)
-      quant_expl.transform(values01[i], sampled[i]);
-    result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(10));
-    result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-
-    mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
-    full_time.reset();
-    quant_impl.set_sample_shared_and_fill_count(sample);
-    time_all_trans.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impl.transform(values01[i], sampled[i]);
-    result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(sampled.size()));
-    result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-
-    mveqf::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
-    full_time.reset();
-    quant_impls.set_sample_shared_and_fill_count(sample);
-    time_all_trans.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impls.transform(values01[i], sampled[i]);
-    result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(sampled.size()));
-    result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-    return result;
-  }
+	void dim_test_Nd()
+	{
+		for(size_t dim_size = 10; dim_size < 500 + 1; dim_size+=10)
+		{
+			size_t N = dim_size;
+			std::vector<size_t> g(N, 1000);
+			std::vector<float> lb(N, -10);
+			std::vector<float> ub(N, 10);
+			auto rez = test_Nd_time(g, lb, ub, 100000, 1e3);
+			std::cout << dim_size << '\t' << std::scientific << rez.first << '\t' << rez.second << std::endl;
+		}
+	}
 
 
-  void worst_space_test_dim()
-  {
-    size_t tries = 50, nrolls = 1e5, grid_size = 10;
-    for(size_t dim = 1; dim != 7; dim++)
-    {
-      std::cout << dim << '\t';
-      std::vector<double> times;
-      for(size_t i = 0; i != tries; i++)
-      {
-        std::vector<size_t> g(dim, grid_size);
-        std::vector<float> lb(dim, -1.0);
-        std::vector<float> ub(dim, 1.0);
-        auto rez = worst_space(g, lb, ub, nrolls, i);
 
-        times.resize(rez.size());
-        for(size_t j = 0; j != times.size(); j++)
-        {
-          times[j] += rez[j];
-        }
-      }
-      for(size_t j = 0; j != times.size(); j++)
-      {
-        times[j] /= double(tries);
-      }
-      for(const auto &i : times)
-        std::cout << std::scientific << i << '\t';
-      std::vector<size_t> g(dim, grid_size);
-      std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
-      std::cout << '\t' << grid_size << '^' << dim << std::endl;
-    }
-  }
+	std::vector<double> worst_space(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nrolls, size_t seed_append)
+	{
+		std::mt19937_64 generator;
+		generator.seed(1 + gridN.size() + gridN.front() + seed_append);
+		std::uniform_real_distribution<float> ureal01(0.0,1.0);
 
-  void worst_space_test_grid()
-  {
-    size_t dim = 4, tries = 50, nrolls = 1e5;
-    for(size_t grid_size = 1; grid_size != 33; grid_size++)
-    {
-      std::cout << grid_size << '\t';
-      std::vector<double> times;
-      for(size_t i = 0; i != tries; i++)
-      {
-        std::vector<size_t> g(dim, grid_size);
-        std::vector<float> lb(dim, -1.0);
-        std::vector<float> ub(dim, 1.0);
-        auto rez = worst_space(g, lb, ub, nrolls, i);
+		typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+		std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
-        times.resize(rez.size());
-        for(size_t j = 0; j != times.size(); j++)
-        {
-          times[j] += rez[j];
-        }
-      }
-      for(size_t j = 0; j != times.size(); j++)
-      {
-        times[j] /= double(tries);
-      }
-      for(const auto &i : times)
-        std::cout << std::scientific << i << '\t';
-      std::vector<size_t> g(dim, grid_size);
-      std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
-      std::cout << '\t' << grid_size << '^' << dim << std::endl;
-    }
-  }
+		std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
+		for(size_t i = 0; i != gridN.size(); i++)
+		{
+			variable_values[i].resize(gridN[i]);
+			for(size_t j = 0; j != gridN[i]; j++)
+			{
+				variable_values[i][j] = j;
+			}
+		}
+		std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
+
+		for(size_t i = 0; i != sample_int.size(); i++)
+		{
+			sample->insert(sample_int[i]);
+		}
+
+		std::vector<std::vector<float> > values01;
+
+		std::vector<float> temp1(gridN.size());
+		std::vector<float> temp2(temp1.size());
+
+		for(size_t i = 0; i != Nrolls; ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+
+		std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+
+		timer::Timer time_all_trans, full_time;
+		std::vector<double> result;
+
+		mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+		quant_expl.set_sample(sample_int);
+		full_time.reset();
+		time_all_trans.reset();
+		for(size_t i = 0; i != 10; i++)
+			quant_expl.transform(values01[i], sampled[i]);
+		result.push_back(time_all_trans.elapsed_seconds());
+		result.push_back(result.back()/double(10));
+		result.push_back(full_time.elapsed_seconds());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+
+		mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+		full_time.reset();
+		quant_impl.set_sample_shared_and_fill_count(sample);
+		time_all_trans.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impl.transform(values01[i], sampled[i]);
+		result.push_back(time_all_trans.elapsed_seconds());
+		result.push_back(result.back()/double(sampled.size()));
+		result.push_back(full_time.elapsed_seconds());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+
+		mveqf::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+		full_time.reset();
+		quant_impls.set_sample_shared_and_fill_count(sample);
+		time_all_trans.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impls.transform(values01[i], sampled[i]);
+		result.push_back(time_all_trans.elapsed_seconds());
+		result.push_back(result.back()/double(sampled.size()));
+		result.push_back(full_time.elapsed_seconds());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+		return result;
+	}
 
 
+	void worst_space_test_dim()
+	{
+		size_t tries = 50, nrolls = 1e5, grid_size = 10;
+		for(size_t dim = 1; dim != 7; dim++)
+		{
+			std::cout << dim << '\t';
+			std::vector<double> times;
+			for(size_t i = 0; i != tries; i++)
+			{
+				std::vector<size_t> g(dim, grid_size);
+				std::vector<float> lb(dim, -1.0);
+				std::vector<float> ub(dim, 1.0);
+				auto rez = worst_space(g, lb, ub, nrolls, i);
+
+				times.resize(rez.size());
+				for(size_t j = 0; j != times.size(); j++)
+				{
+					times[j] += rez[j];
+				}
+			}
+			for(size_t j = 0; j != times.size(); j++)
+			{
+				times[j] /= double(tries);
+			}
+			for(const auto &i : times)
+				std::cout << std::scientific << i << '\t';
+			std::vector<size_t> g(dim, grid_size);
+			std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
+			std::cout << '\t' << grid_size << '^' << dim << std::endl;
+		}
+	}
+
+	void worst_space_test_grid()
+	{
+		size_t dim = 4, tries = 50, nrolls = 1e5;
+		for(size_t grid_size = 1; grid_size != 33; grid_size++)
+		{
+			std::cout << grid_size << '\t';
+			std::vector<double> times;
+			for(size_t i = 0; i != tries; i++)
+			{
+				std::vector<size_t> g(dim, grid_size);
+				std::vector<float> lb(dim, -1.0);
+				std::vector<float> ub(dim, 1.0);
+				auto rez = worst_space(g, lb, ub, nrolls, i);
+
+				times.resize(rez.size());
+				for(size_t j = 0; j != times.size(); j++)
+				{
+					times[j] += rez[j];
+				}
+			}
+			for(size_t j = 0; j != times.size(); j++)
+			{
+				times[j] /= double(tries);
+			}
+			for(const auto &i : times)
+				std::cout << std::scientific << i << '\t';
+			std::vector<size_t> g(dim, grid_size);
+			std::cout << std::accumulate(g.begin(), g.end(), 1, std::multiplies<size_t>());
+			std::cout << '\t' << grid_size << '^' << dim << std::endl;
+		}
+	}
 
 
 
 
 
-  void worst_space_f(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, bool impl)
-  {
-    std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
-    for(size_t i = 0; i != gridN.size(); i++)
-    {
-      variable_values[i].resize(gridN[i]);
-      for(size_t j = 0; j != gridN[i]; j++)
-      {
-        variable_values[i][j] = j;
-      }
-    }
 
-    if(impl)
-    {
-      typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
-      std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
-      iterate_trie(variable_values, sample);
+	void worst_space_f(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, bool impl)
+	{
+		std::vector<std::vector<std::uint8_t>> variable_values(gridN.size());
+		for(size_t i = 0; i != gridN.size(); i++)
+		{
+			variable_values[i].resize(gridN[i]);
+			for(size_t j = 0; j != gridN[i]; j++)
+			{
+				variable_values[i][j] = j;
+			}
+		}
 
-      mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
-      quant_impl.set_sample_shared_and_fill_count(sample);
+		if(impl)
+		{
+			typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+			std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
-      std::cout << "hit it" << std::endl;
-      std::chrono::seconds dura(1000);
-      std::this_thread::sleep_for(dura);
-    }
-    else
-    {
-      std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
-      mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+			iterate_trie(variable_values, sample);
+
+			mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+			quant_impl.set_sample_shared_and_fill_count(sample);
+
+			std::cout << "hit it" << std::endl;
+			std::chrono::seconds dura(1000);
+			std::this_thread::sleep_for(dura);
+		}
+		else
+		{
+			std::vector<std::vector<std::uint8_t>> sample_int = iterate(variable_values);
+			mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
 //        quant_expl.set_sample(sample_int);
 //        sample_int.clear();
 //        sample_int.shrink_to_fit();
 
-      std::cout << "hit it" << std::endl;
-      std::chrono::seconds dura(1000);
-      std::this_thread::sleep_for(dura);
-    }
+			std::cout << "hit it" << std::endl;
+			std::chrono::seconds dura(1000);
+			std::this_thread::sleep_for(dura);
+		}
 
 //    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
 //    quant_impls.set_sample_shared(sample);
-  }
+	}
 
-  void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vector<double> ub, bool impl)
-  {
-    std::vector<std::vector<int>> variable_values(gridN.size());
-    for(size_t i = 0; i != gridN.size(); i++)
-    {
-      variable_values[i].resize(gridN[i]);
-      for(size_t j = 0; j != gridN[i]; j++)
-      {
-        variable_values[i][j] = j;
-      }
-    }
+	void worst_space_d(std::vector<size_t> gridN, std::vector<double> lb, std::vector<double> ub, bool impl)
+	{
+		std::vector<std::vector<int>> variable_values(gridN.size());
+		for(size_t i = 0; i != gridN.size(); i++)
+		{
+			variable_values[i].resize(gridN[i]);
+			for(size_t j = 0; j != gridN[i]; j++)
+			{
+				variable_values[i][j] = j;
+			}
+		}
 
-    if(impl)
-    {
-      typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
-      std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+		if(impl)
+		{
+			typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> sample_type;
+			std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
 
-      iterate_trie(variable_values, sample);
+			iterate_trie(variable_values, sample);
 
-      mveqf::ImplicitQuantile<int, double> quant_impl(lb, ub, gridN);
-      quant_impl.set_sample_shared_and_fill_count(sample);
+			mveqf::ImplicitQuantile<int, double> quant_impl(lb, ub, gridN);
+			quant_impl.set_sample_shared_and_fill_count(sample);
 
-      std::cout << "hit it" << std::endl;
-      std::chrono::seconds dura(1000);
-      std::this_thread::sleep_for(dura);
-    }
-    else
-    {
-      std::vector<std::vector<int>> sample_int = iterate(variable_values);
-      mveqf::ExplicitQuantile<int, double> quant_expl(lb, ub, gridN);
+			std::cout << "hit it" << std::endl;
+			std::chrono::seconds dura(1000);
+			std::this_thread::sleep_for(dura);
+		}
+		else
+		{
+			std::vector<std::vector<int>> sample_int = iterate(variable_values);
+			mveqf::ExplicitQuantile<int, double> quant_expl(lb, ub, gridN);
 //        quant_expl.set_sample(sample_int);
 //        sample_int.clear();
 //        sample_int.shrink_to_fit();
 
-      std::cout << "hit it" << std::endl;
-      std::chrono::seconds dura(1000);
-      std::this_thread::sleep_for(dura);
-    }
+			std::cout << "hit it" << std::endl;
+			std::chrono::seconds dura(1000);
+			std::this_thread::sleep_for(dura);
+		}
 
 //    empirical_quantile::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
 //    quant_impls.set_sample_shared(sample);
-  }
+	}
 
 
-  void worst_space_check()
-  {
-    size_t dim = 8, grid_size = 8;
+	void worst_space_check()
+	{
+		size_t dim = 8, grid_size = 8;
 
-    std::vector<size_t> g(dim, grid_size);
-    std::vector<double> lb(dim, -1.0);
-    std::vector<double> ub(dim, 1.0);
-    worst_space_d(g, lb, ub, true);
-  }
-
-
+		std::vector<size_t> g(dim, grid_size);
+		std::vector<double> lb(dim, -1.0);
+		std::vector<double> ub(dim, 1.0);
+		worst_space_d(g, lb, ub, true);
+	}
 
 
 
-  std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls, size_t seed_append)
-  {
-    std::mt19937_64 generator;
-    generator.seed(1 + gridN.size() + gridN.front() + Nsamples + seed_append);
-    std::uniform_real_distribution<float> ureal01(0.0,1.0);
-
-    typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
-    std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-
-    std::vector<std::vector<std::uint8_t>> sample_int;
-    std::vector<std::uint8_t> temp(gridN.size());
-    for(size_t i = 0; i != Nsamples;)
-    {
-      for(size_t j = 0; j != gridN.size(); j++)
-      {
-        temp[j] = static_cast<std::uint8_t>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
-      }
-      if(!sample->search(temp))
-      {
-        sample->insert(temp);
-        sample_int.push_back(temp);
-        i++;
-      }
-    }
-
-    std::vector<std::vector<float> > values01;
-
-    std::vector<float> temp1(gridN.size());
-    std::vector<float> temp2(temp1.size());
-
-    for(size_t i = 0; i != Nrolls; ++i)
-    {
-      for(size_t j = 0; j != temp1.size(); j++)
-      {
-        temp1[j] = ureal01(generator);
-      }
-      values01.push_back(temp1);
-    }
-
-    std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
-
-    timer::Timer time_all_trans, full_time;
-    std::vector<double> result;
-
-    mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
-    quant_expl.set_sample(sample_int);
-    full_time.reset();
-    time_all_trans.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_expl.transform(values01[i], sampled[i]);
-    result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(sampled.size()));
-    result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-
-    mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
-    full_time.reset();
-    quant_impl.set_sample_shared_and_fill_count(sample);
-    time_all_trans.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impl.transform(values01[i], sampled[i]);
-    result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(sampled.size()));
-    result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-
-    mveqf::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
-    full_time.reset();
-    quant_impls.set_sample_shared_and_fill_count(sample);
-    time_all_trans.reset();
-    for(size_t i = 0; i != values01.size(); i++)
-      quant_impls.transform(values01[i], sampled[i]);
-    result.push_back(time_all_trans.elapsed_seconds());
-    result.push_back(result.back()/double(sampled.size()));
-    result.push_back(full_time.elapsed_seconds());
-    for(size_t i = 0; i != sampled.size(); i++)
-    {
-      for(size_t j = 0; j != sampled[i].size(); j++)
-      {
-        if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
-        {
-          std::cout << "beyond bounds" << std::endl;
-          std::cout << sampled[i][j] << std::endl;
-        }
-      }
-    }
-    return result;
-  }
 
 
-  void sample_size_test(size_t dim)
-  {
-    size_t tries = 30;
-    for(size_t sample_size = 1e5; sample_size < 1e6 + 1; sample_size+=1e5)
-    {
-      std::cout << sample_size << '\t';
-      std::vector<double> times;
-      for(size_t i = 0; i != tries; i++)
-      {
-        std::vector<size_t> g(dim, 100);
-        std::vector<float> lb(dim, -1.0);
-        std::vector<float> ub(dim, 1.0);
-        auto rez = sample_size_procedure(g, lb, ub, sample_size, 1e1, i);
-        times.resize(rez.size());
-        for(size_t j = 0; j != times.size(); j++)
-        {
-          times[j] += rez[j];
-        }
-      }
-      for(size_t j = 0; j != times.size(); j++)
-      {
-        times[j] /= double(tries);
-      }
-      for(const auto &i : times)
-        std::cout << std::scientific << i << '\t';
-      std::cout << std::endl;
-    }
-  }
+	std::vector<double> sample_size_procedure(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls, size_t seed_append)
+	{
+		std::mt19937_64 generator;
+		generator.seed(1 + gridN.size() + gridN.front() + Nsamples + seed_append);
+		std::uniform_real_distribution<float> ureal01(0.0,1.0);
+
+		typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t> sample_type;
+		std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+
+		std::vector<std::vector<std::uint8_t>> sample_int;
+		std::vector<std::uint8_t> temp(gridN.size());
+		for(size_t i = 0; i != Nsamples;)
+		{
+			for(size_t j = 0; j != gridN.size(); j++)
+			{
+				temp[j] = static_cast<std::uint8_t>(std::round(ureal01(generator)*(gridN[j] - 1.0)));
+			}
+			if(!sample->search(temp))
+			{
+				sample->insert(temp);
+				sample_int.push_back(temp);
+				i++;
+			}
+		}
+
+		std::vector<std::vector<float> > values01;
+
+		std::vector<float> temp1(gridN.size());
+		std::vector<float> temp2(temp1.size());
+
+		for(size_t i = 0; i != Nrolls; ++i)
+		{
+			for(size_t j = 0; j != temp1.size(); j++)
+			{
+				temp1[j] = ureal01(generator);
+			}
+			values01.push_back(temp1);
+		}
+
+		std::vector<std::vector<float> > sampled(values01.size(), std::vector<float>(values01.front().size()));
+
+		timer::Timer time_all_trans, full_time;
+		std::vector<double> result;
+
+		mveqf::ExplicitQuantile<std::uint8_t, float> quant_expl(lb, ub, gridN);
+		quant_expl.set_sample(sample_int);
+		full_time.reset();
+		time_all_trans.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_expl.transform(values01[i], sampled[i]);
+		result.push_back(time_all_trans.elapsed_seconds());
+		result.push_back(result.back()/double(sampled.size()));
+		result.push_back(full_time.elapsed_seconds());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+
+		mveqf::ImplicitQuantile<std::uint8_t, float> quant_impl(lb, ub, gridN);
+		full_time.reset();
+		quant_impl.set_sample_shared_and_fill_count(sample);
+		time_all_trans.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impl.transform(values01[i], sampled[i]);
+		result.push_back(time_all_trans.elapsed_seconds());
+		result.push_back(result.back()/double(sampled.size()));
+		result.push_back(full_time.elapsed_seconds());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+
+		mveqf::ImplicitQuantileSorted<std::uint8_t, float> quant_impls(lb, ub, gridN);
+		full_time.reset();
+		quant_impls.set_sample_shared_and_fill_count(sample);
+		time_all_trans.reset();
+		for(size_t i = 0; i != values01.size(); i++)
+			quant_impls.transform(values01[i], sampled[i]);
+		result.push_back(time_all_trans.elapsed_seconds());
+		result.push_back(result.back()/double(sampled.size()));
+		result.push_back(full_time.elapsed_seconds());
+		for(size_t i = 0; i != sampled.size(); i++)
+		{
+			for(size_t j = 0; j != sampled[i].size(); j++)
+			{
+				if(sampled[i][j] < (lb[j] - 0.001) || sampled[i][j] > (ub[j] + 0.001))
+				{
+					std::cout << "beyond bounds" << std::endl;
+					std::cout << sampled[i][j] << std::endl;
+				}
+			}
+		}
+		return result;
+	}
+
+
+	void sample_size_test(size_t dim)
+	{
+		size_t tries = 30;
+		for(size_t sample_size = 1e5; sample_size < 1e6 + 1; sample_size+=1e5)
+		{
+			std::cout << sample_size << '\t';
+			std::vector<double> times;
+			for(size_t i = 0; i != tries; i++)
+			{
+				std::vector<size_t> g(dim, 100);
+				std::vector<float> lb(dim, -1.0);
+				std::vector<float> ub(dim, 1.0);
+				auto rez = sample_size_procedure(g, lb, ub, sample_size, 1e1, i);
+				times.resize(rez.size());
+				for(size_t j = 0; j != times.size(); j++)
+				{
+					times[j] += rez[j];
+				}
+			}
+			for(size_t j = 0; j != times.size(); j++)
+			{
+				times[j] /= double(tries);
+			}
+			for(const auto &i : times)
+				std::cout << std::scientific << i << '\t';
+			std::cout << std::endl;
+		}
+	}
 
 
 

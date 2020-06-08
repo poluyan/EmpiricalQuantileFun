@@ -138,58 +138,58 @@
 namespace mveqf
 {
 
-  template <typename T, typename U>
-  class MVEQF
-  {
-  protected:
-    size_t kernel_type;
-    U lambda;
-    std::shared_ptr<trie_based::Trie<trie_based::NodeCount<T>,T>> sample;
-    std::shared_ptr<ImplicitTrieKQuantile<T, U>> qf;
-  public:
-    MVEQF(): kernel_type(0), lambda(1.0) {}
-    void set_kernel_type(size_t kt)
-    {
-      kernel_type = kt;
-    }
-    void set_sample_and_bounds(const std::vector<std::vector<U>> &init_points,
-                               const std::vector<U> &lb,
-                               const std::vector<U> &ub,
-                               const std::vector<size_t> &number = std::vector<size_t>(),
-                               const size_t N = 100,
-                               const U threshold = 1e-8,
-                               const size_t multi = 100000,
-                               const U lambda = 1.0)
-    {
-      const size_t dimension = lb.size();
+	template <typename T, typename U>
+	class MVEQF
+	{
+	protected:
+		size_t kernel_type;
+		U lambda;
+		std::shared_ptr<trie_based::Trie<trie_based::NodeCount<T>,T>> sample;
+		std::shared_ptr<ImplicitTrieKQuantile<T, U>> qf;
+	public:
+		MVEQF(): kernel_type(0), lambda(1.0) {}
+		void set_kernel_type(size_t kt)
+		{
+			kernel_type = kt;
+		}
+		void set_sample_and_bounds(const std::vector<std::vector<U>> &init_points,
+		                           const std::vector<U> &lb,
+		                           const std::vector<U> &ub,
+		                           const std::vector<size_t> &number = std::vector<size_t>(),
+		                           const size_t N = 100,
+		                           const U threshold = 1e-8,
+		                           const size_t multi = 100000,
+		                           const U lambda = 1.0)
+		{
+			const size_t dimension = lb.size();
 
-      auto init_sample_points = std::make_shared<std::vector<std::vector<U>>>(init_points.size(), std::vector<U>(dimension));
-      for(auto it = init_sample_points->begin(); it != init_sample_points->end(); ++it)
-      {
-        size_t i = std::distance(init_sample_points->begin(), it);
-        for(size_t j = 0; j != dimension; j++)
-        {
-          (*it)[j] = init_points[i][j];
-        }
-      }
+			auto init_sample_points = std::make_shared<std::vector<std::vector<U>>>(init_points.size(), std::vector<U>(dimension));
+			for(auto it = init_sample_points->begin(); it != init_sample_points->end(); ++it)
+			{
+				size_t i = std::distance(init_sample_points->begin(), it);
+				for(size_t j = 0; j != dimension; j++)
+				{
+					(*it)[j] = init_points[i][j];
+				}
+			}
 
-      mveqf::kde::KDE<U> init_pdf;
-      init_pdf.set_dimension(dimension);
-      init_pdf.set_kernel_type(kernel_type);
-      if(number.empty())
-      {
-        init_pdf.set_sample_shared(init_sample_points);
-      }
-      else
-      {
-        auto count_number = std::make_shared<std::vector<size_t>>(number);
-        init_pdf.set_sample_shared(init_sample_points, count_number);
-      }
+			mveqf::kde::KDE<U> init_pdf;
+			init_pdf.set_dimension(dimension);
+			init_pdf.set_kernel_type(kernel_type);
+			if(number.empty())
+			{
+				init_pdf.set_sample_shared(init_sample_points);
+			}
+			else
+			{
+				auto count_number = std::make_shared<std::vector<size_t>>(number);
+				init_pdf.set_sample_shared(init_sample_points, count_number);
+			}
 
-      std::vector<size_t> gridn(lb.size(), N);
-      qf = std::make_shared<ImplicitTrieKQuantile<T, U>>(lb, ub, gridn, kernel_type);
+			std::vector<size_t> gridn(lb.size(), N);
+			qf = std::make_shared<ImplicitTrieKQuantile<T, U>>(lb, ub, gridn, kernel_type);
 
-      const auto grid = qf->get_grid();
+			const auto grid = qf->get_grid();
 //        std::cout << grid.front().size() << std::endl;
 //        std::cin.get();
 //        for(const auto & i : grid)
@@ -200,37 +200,37 @@ namespace mveqf
 //            }
 //            std::cout << std::endl;
 //        }
-      const auto dx = qf->get_dx();
+			const auto dx = qf->get_dx();
 
-      // finding start dot over created grid
-      std::vector<std::vector<T>> points;
+			// finding start dot over created grid
+			std::vector<std::vector<T>> points;
 //        for(const auto &k : init_points)
 //        {
 //            std::cout << std::fixed << k.front() << '\t' << k.back() << std::endl;
 //        }
-      for(const auto &k : init_points)
-      {
-        std::vector<int> startdot(dimension);
-        for(size_t i = 0; i != startdot.size(); i++)
-        {
-          // over node points, not grid
-          auto currnet_grid_points = grid[i];
-          currnet_grid_points.pop_back();
-          for(auto &j : currnet_grid_points)
-          {
-            j += dx[i];
-          }
-          auto it = std::lower_bound(currnet_grid_points.begin(), currnet_grid_points.end(), k[i]);
+			for(const auto &k : init_points)
+			{
+				std::vector<int> startdot(dimension);
+				for(size_t i = 0; i != startdot.size(); i++)
+				{
+					// over node points, not grid
+					auto currnet_grid_points = grid[i];
+					currnet_grid_points.pop_back();
+					for(auto &j : currnet_grid_points)
+					{
+						j += dx[i];
+					}
+					auto it = std::lower_bound(currnet_grid_points.begin(), currnet_grid_points.end(), k[i]);
 
-          if(it == currnet_grid_points.end())
-            startdot[i] = currnet_grid_points.size() - 1;
-          else if(it == currnet_grid_points.begin())
-            startdot[i] = 0;
-          else
-            startdot[i] = std::distance(currnet_grid_points.begin(), it);
-        }
-        points.push_back(startdot);
-      }
+					if(it == currnet_grid_points.end())
+						startdot[i] = currnet_grid_points.size() - 1;
+					else if(it == currnet_grid_points.begin())
+						startdot[i] = 0;
+					else
+						startdot[i] = std::distance(currnet_grid_points.begin(), it);
+				}
+				points.push_back(startdot);
+			}
 //        for(const auto &k : points)
 //        {
 //            std::cout << std::fixed << k.front() << '\t' << k.back() << std::endl;
@@ -239,42 +239,42 @@ namespace mveqf
 //        {
 //            std::cout << std::fixed << k << std::endl;
 //        }
-      std::set<std::vector<T>> visited;
+			std::set<std::vector<T>> visited;
 
-      std::function<U(const std::vector<U> &)> pdffunc = std::bind(&mveqf::kde::KDE<U>::pdf, std::ref(init_pdf), std::placeholders::_1, lambda);
+			std::function<U(const std::vector<U> &)> pdffunc = std::bind(&mveqf::kde::KDE<U>::pdf, std::ref(init_pdf), std::placeholders::_1, lambda);
 
-      ///
+			///
 
-      //print_pdfff<U>("maps/kpdf2d.dat", pdffunc, lb.front(), ub.front(), 1000);
+			//print_pdfff<U>("maps/kpdf2d.dat", pdffunc, lb.front(), ub.front(), 1000);
 
 //        data_io::write_default2d("init.dat", init_points, 9);
 //        print_pdfff<U>("kpdf2d.dat", pdffunc, lb.front(), ub.front(), 200);
 //        std::cin.get();
 
 
-      ///
+			///
 
-      sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<T>,T>>();
-      sample->set_dimension(dimension);
+			sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<T>,T>>();
+			sample->set_dimension(dimension);
 
 //
-      size_t counter = 0, fe_count = 0;
+			size_t counter = 0, fe_count = 0;
 //        std::cout << "FloodFill" << std::endl;
-      mveqf::mvff::FloodFill_MultipleGrids_VonNeumann_trie<U>(grid, points, sample, dx, counter, fe_count, pdffunc, threshold, multi);
+			mveqf::mvff::FloodFill_MultipleGrids_VonNeumann_trie<U>(grid, points, sample, dx, counter, fe_count, pdffunc, threshold, multi);
 //        std::cout << "FloodFill" << std::endl;
 
-      qf->set_sample_shared(sample);
-      qf->set_bandwidth(init_pdf.get_bandwidth());
-    }
-    void transform(const std::vector<U>& in01, std::vector<U>& out) const
-    {
-      qf->transform(in01, out, lambda);
-    }
-    std::vector<U> transform(const std::vector<U>& in01) const
-    {
-      return qf->transform(in01, lambda);
-    }
-  };
+			qf->set_sample_shared(sample);
+			qf->set_bandwidth(init_pdf.get_bandwidth());
+		}
+		void transform(const std::vector<U>& in01, std::vector<U>& out) const
+		{
+			qf->transform(in01, out, lambda);
+		}
+		std::vector<U> transform(const std::vector<U>& in01) const
+		{
+			return qf->transform(in01, lambda);
+		}
+	};
 
 }
 
