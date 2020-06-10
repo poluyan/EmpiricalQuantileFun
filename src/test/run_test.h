@@ -509,10 +509,10 @@ void run_test()
 //    test_1d5();
 
 
-//    test_2d1();
-//    test_2d2();
+	test_2d1();
+//	test_2d2();
 //    test_3d1();
-//    test_3d2();
+//	test_3d2();
 
 //    test_1d_func();
 //    test_2d_func();
@@ -525,7 +525,7 @@ void run_test()
 //    test_1d_uniform_vs_nonuniform();
 //    test_2d_uniform_vs_nonuniform();
 
-	test_2d_uniform_vs_nonuniform_trie();
+//	test_2d_uniform_vs_nonuniform_trie();
 
 //    test_grid_10d();
 

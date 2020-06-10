@@ -29,92 +29,92 @@ namespace mveqf
 {
 	namespace trie_based
 	{
-		template <template <typename> class T, typename I>
+		template <template <typename> class T, typename TIndex>
 		struct TrieNode
 		{
-			I index;
-			std::vector<std::shared_ptr<T<I>>> children;
+			TIndex index;
+			std::vector<std::shared_ptr<T<TIndex>>> children;
 			TrieNode() : index(0) { }
-			TrieNode(I ind) : index(ind) { }
+			TrieNode(TIndex ind) : index(ind) { }
 		};
 
-		template <typename I>
-		struct Node: public TrieNode<Node, I>
+		template <typename TIndex>
+		struct Node: public TrieNode<Node, TIndex>
 		{
-			Node() : TrieNode<Node, I>() {}
-			Node(I ind) : TrieNode<Node, I>(ind) {}
+			Node() : TrieNode<Node, TIndex>() {}
+			Node(TIndex ind) : TrieNode<Node, TIndex>(ind) {}
 		};
 
-		template <typename I>
-		struct NodeCount: public TrieNode<NodeCount, I>
+		template <typename TIndex>
+		struct NodeCount: public TrieNode<NodeCount, TIndex>
 		{
 			size_t count;
-			NodeCount() : TrieNode<NodeCount, I>(), count(0) {}
-			NodeCount(I ind) : TrieNode<NodeCount, I>(ind), count(0) {}
+			NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
+			NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
 		};
 
-		template <typename T, typename I>
+		template <typename TNode, typename TIndex>
 		class TrieBased
 		{
 		protected:
 			size_t dimension;
 		public:
-			std::shared_ptr<T> root;
-			std::vector<std::shared_ptr<T>> last_layer;
+			std::shared_ptr<TNode> root;
+			std::vector<std::shared_ptr<TNode>> last_layer;
 			TrieBased();
 			TrieBased(size_t dim);
 			~TrieBased();
 			void set_dimension(size_t dim);
 			size_t get_dimension() const;
-			void insert(const std::vector<I> &key);
-			void insert(const std::vector<I> &key, size_t number);
-			bool search(const std::vector<I> &key) const;
+			void insert(const std::vector<TIndex> &key);
+			void insert(const std::vector<TIndex> &key, size_t number);
+			bool search(const std::vector<TIndex> &key) const;
 			void fill_tree_count();
 			bool empty() const;
 			void remove_tree();
 			size_t get_total_count() const;
-			std::vector<I> get_and_remove_last();
+			std::vector<TIndex> get_and_remove_last();
 			size_t get_link_count() const;
 			size_t get_node_count() const;
-			std::map<size_t,std::vector<I>> get_layer_count() const;
+			std::map<size_t,std::vector<TIndex>> get_layer_count() const;
 		protected:
-			void layer_count(size_t current_layer, T *p, std::map<size_t,std::vector<I>> &layers) const;
-			void get_link_number(T *p, size_t &count) const;
-			void get_node_number(T *p, size_t &count) const;
-			void fill_tree_count(T *p);
-			void get_number(T *p, size_t &count) const;
-			void is_all_empty(T *p) const;
+			void layer_count(size_t current_layer, TNode *p, std::map<size_t,std::vector<TIndex>> &layers) const;
+			void get_link_number(TNode *p, size_t &count) const;
+			void get_node_number(TNode *p, size_t &count) const;
+			void fill_tree_count(TNode *p);
+			void get_number(TNode *p, size_t &count) const;
+			void is_all_empty(TNode *p) const;
 			void delete_last(int dim);
 		};
-		template <typename T, typename I>
-		TrieBased<T,I>::TrieBased()
+		template <typename TNode, typename TIndex>
+		TrieBased<TNode,TIndex>::TrieBased()
 		{
-			root = std::make_shared<T>();
+			root = std::make_shared<TNode>();
 		}
-		template <typename T, typename I>
-		TrieBased<T,I>::TrieBased(size_t dim) : dimension(dim)
+		template <typename TNode, typename TIndex>
+		TrieBased<TNode,TIndex>::TrieBased(size_t dim) : dimension(dim)
 		{
-			root = std::make_shared<T>();
+			root = std::make_shared<TNode>();
 		}
-		template <typename T, typename I>
-		TrieBased<T,I>::~TrieBased() {}
-		template <typename T, typename I>
-		void TrieBased<T,I>::set_dimension(size_t dim)
+		template <typename TNode, typename TIndex>
+		TrieBased<TNode,TIndex>::~TrieBased() {}
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::set_dimension(size_t dim)
 		{
 			dimension = dim;
 		}
-		template <typename T, typename I>
-		size_t TrieBased<T,I>::get_dimension() const
+		template <typename TNode, typename TIndex>
+		size_t TrieBased<TNode,TIndex>::get_dimension() const
 		{
 			return dimension;
 		}
-		template <typename T, typename I>
-		bool TrieBased<T,I>::empty() const
+		template <typename TNode, typename TIndex>
+		bool TrieBased<TNode,TIndex>::empty() const
 		{
 			return root->children.empty();
 		}
-		template <typename T, typename I>
-		size_t TrieBased<T,I>::get_total_count() const
+		template <typename TNode, typename TIndex>
+		size_t TrieBased<TNode,TIndex>::get_total_count() const
 		{
 			size_t count = 0;
 			for(auto &i : last_layer)
@@ -123,8 +123,8 @@ namespace mveqf
 			}
 			return count - last_layer.size();
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::get_node_number(T *p, size_t &count) const
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::get_node_number(TNode *p, size_t &count) const
 		{
 			for(const auto &i : p->children)
 			{
@@ -132,8 +132,8 @@ namespace mveqf
 				get_node_number(i.get(), count);
 			}
 		}
-		template <typename T, typename I>
-		size_t TrieBased<T,I>::get_node_count() const
+		template <typename TNode, typename TIndex>
+		size_t TrieBased<TNode,TIndex>::get_node_count() const
 		{
 			size_t count = 0;
 			get_node_number(root.get(), count);
@@ -141,8 +141,8 @@ namespace mveqf
 				count -= i.use_count();
 			return count + 2*last_layer.size() + 1;
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::get_link_number(T *p, size_t &count) const
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::get_link_number(TNode *p, size_t &count) const
 		{
 			for(const auto &i : p->children)
 			{
@@ -150,8 +150,8 @@ namespace mveqf
 				get_node_number(i.get(), count);
 			}
 		}
-		template <typename T, typename I>
-		size_t TrieBased<T,I>::get_link_count() const
+		template <typename TNode, typename TIndex>
+		size_t TrieBased<TNode,TIndex>::get_link_count() const
 		{
 			size_t count = 0;
 			get_node_number(root.get(), count);
@@ -159,20 +159,20 @@ namespace mveqf
 //        count -= i.use_count();
 			return count;
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::insert(const std::vector<I> &key)
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::insert(const std::vector<TIndex> &key)
 		{
 			auto p = root.get();
 			for(size_t i = 0; i != key.size() - 1; i++)
 			{
 				auto value = key[i];
-				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 				{
 					return obj->index == value;
 				});
 				if(it == p->children.end())
 				{
-					p->children.emplace_back(std::make_shared<T>(value));
+					p->children.emplace_back(std::make_shared<TNode>(value));
 					p->children.shrink_to_fit();
 					p = p->children.back().get();
 				}
@@ -182,14 +182,14 @@ namespace mveqf
 				}
 			}
 			auto value = key.back();
-			auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<T> &obj)
+			auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<TNode> &obj)
 			{
 				return obj->index == value;
 			});
 			size_t dist = 0;
 			if(it == last_layer.end())
 			{
-				last_layer.emplace_back(std::make_shared<T>(value));
+				last_layer.emplace_back(std::make_shared<TNode>(value));
 				last_layer.shrink_to_fit();
 				dist = last_layer.size() - 1;
 			}
@@ -198,32 +198,32 @@ namespace mveqf
 				dist = std::distance(last_layer.begin(), it);
 			}
 
-			it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+			it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 			{
 				return obj->index == value;
 			});
 			if(it == p->children.end())
 			{
-				std::shared_ptr<T> ptr(last_layer[dist]);
+				std::shared_ptr<TNode> ptr(last_layer[dist]);
 				p->children.emplace_back(ptr);
 				p->children.shrink_to_fit();
 			}
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::insert(const std::vector<I> &key, size_t count)
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::insert(const std::vector<TIndex> &key, size_t count)
 		{
 			auto p = root.get();
 			for(size_t i = 0; i != key.size() - 1; i++)
 			{
 				p->count += count;
 				auto value = key[i];
-				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 				{
 					return obj->index == value;
 				});
 				if(it == p->children.end())
 				{
-					p->children.emplace_back(std::make_shared<T>(value));
+					p->children.emplace_back(std::make_shared<TNode>(value));
 					p->children.shrink_to_fit();
 					p = p->children.back().get();
 				}
@@ -233,14 +233,14 @@ namespace mveqf
 				}
 			}
 			auto value = key.back();
-			auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<T> &obj)
+			auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<TNode> &obj)
 			{
 				return obj->index == value;
 			});
 			size_t dist = 0;
 			if(it == last_layer.end())
 			{
-				last_layer.emplace_back(std::make_shared<T>(value));
+				last_layer.emplace_back(std::make_shared<TNode>(value));
 //        last_layer.back()->count += count;
 				last_layer.back()->count = 1;
 				last_layer.shrink_to_fit();
@@ -253,25 +253,25 @@ namespace mveqf
 //        last_layer[dist]->count += count;
 			}
 			p->count += count;
-			it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+			it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 			{
 				return obj->index == value;
 			});
 			if(it == p->children.end())
 			{
-				std::shared_ptr<T> ptr(last_layer[dist]);
+				std::shared_ptr<TNode> ptr(last_layer[dist]);
 				p->children.emplace_back(ptr);
 				p->children.shrink_to_fit();
 			}
 		}
-		template <typename T, typename I>
-		bool TrieBased<T,I>::search(const std::vector<I> &key) const
+		template <typename TNode, typename TIndex>
+		bool TrieBased<TNode,TIndex>::search(const std::vector<TIndex> &key) const
 		{
 			auto p = root.get();
 			for(size_t i = 0; i != key.size(); i++)
 			{
 				auto value = key[i];
-				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<T> &obj)
+				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 				{
 					return obj->index == value;
 				});
@@ -286,10 +286,10 @@ namespace mveqf
 			}
 			return true;
 		}
-		template <typename T, typename I>
-		std::vector<I> TrieBased<T,I>::get_and_remove_last()
+		template <typename TNode, typename TIndex>
+		std::vector<TIndex> TrieBased<TNode,TIndex>::get_and_remove_last()
 		{
-			std::vector<I> sample;
+			std::vector<TIndex> sample;
 
 			auto p = root.get();
 			if(p->children.empty())
@@ -308,7 +308,7 @@ namespace mveqf
 
 			last_layer.erase(
 			  std::remove_if(last_layer.begin(), last_layer.end(),
-			                 [&sample](const std::shared_ptr<T> &obj)
+			                 [&sample](const std::shared_ptr<TNode> &obj)
 			{
 				if(obj->index != sample.back())
 					return false;
@@ -321,8 +321,8 @@ namespace mveqf
 
 			return sample;
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::remove_tree()
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::remove_tree()
 		{
 			auto p = root.get();
 			while(!p->children.empty())
@@ -330,8 +330,8 @@ namespace mveqf
 				auto t = get_and_remove_last();
 			}
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::delete_last(int dim)
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::delete_last(int dim)
 		{
 			if(dim < 0)
 				return;
@@ -352,8 +352,8 @@ namespace mveqf
 				delete_last(dim);
 			}
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::fill_tree_count()
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::fill_tree_count()
 		{
 			fill_tree_count(root.get());
 			size_t count = 0;
@@ -363,8 +363,8 @@ namespace mveqf
 			}
 			root->count = count;
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::fill_tree_count(T *p)
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::fill_tree_count(TNode *p)
 		{
 			for(auto &i : p->children)
 			{
@@ -374,8 +374,8 @@ namespace mveqf
 				fill_tree_count(i.get());
 			}
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::get_number(T *p, size_t &count) const
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::get_number(TNode *p, size_t &count) const
 		{
 			for(auto &i : p->children)
 			{
@@ -384,8 +384,8 @@ namespace mveqf
 				get_number(i.get(), count);
 			}
 		}
-		template <typename T, typename I>
-		void TrieBased<T,I>::layer_count(size_t current_layer, T *p, std::map<size_t, std::vector<I>> &layers) const
+		template <typename TNode, typename TIndex>
+		void TrieBased<TNode,TIndex>::layer_count(size_t current_layer, TNode *p, std::map<size_t, std::vector<TIndex>> &layers) const
 		{
 			auto it = layers.find(current_layer);
 			if(it != layers.end())
@@ -394,17 +394,17 @@ namespace mveqf
 			}
 			else
 			{
-				layers.insert(std::pair<size_t, std::vector<I>>(current_layer, std::vector<I>(1, p->children.size())));
+				layers.insert(std::pair<size_t, std::vector<TIndex>>(current_layer, std::vector<TIndex>(1, p->children.size())));
 			}
 			for(const auto &i : p->children)
 			{
 				layer_count(current_layer + 1, i.get(), layers);
 			}
 		}
-		template <typename T, typename I>
-		std::map<size_t, std::vector<I>> TrieBased<T,I>::get_layer_count() const
+		template <typename TNode, typename TIndex>
+		std::map<size_t, std::vector<TIndex>> TrieBased<TNode,TIndex>::get_layer_count() const
 		{
-			std::map<size_t, std::vector<I>> layers;
+			std::map<size_t, std::vector<TIndex>> layers;
 			size_t cur_layer = 0;
 			layer_count(cur_layer, root.get(), layers);
 			layers.erase(std::prev(layers.end()));
