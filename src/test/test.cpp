@@ -158,7 +158,7 @@ void explicit_quantile(float lb, float ub, std::vector<size_t> gridn, std::vecto
 
 	std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
 	std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
-	data_io::write_default2d("maps/sampled_explicit.dat", sampled, 5);
+	data_io::write_default2d("maps/sampled_explicit.dat", sampled, 10);
 	//data_io::write_default2d("maps/z.dat", values01, 15);
 }
 
@@ -296,7 +296,7 @@ void implicit_quantile_class(float lb, float ub, std::vector<size_t> gridn,std::
 	std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
 	std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 //    data_io::write_default2d("maps/values01.dat", values01, 15);
-	data_io::write_default2d("maps/sampled_implicit.dat", sampled, 5);
+	data_io::write_default2d("maps/sampled_implicit.dat", sampled, 10);
 }
 
 void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)
@@ -432,7 +432,7 @@ void implicit_quantile_class_sorted(float lb, float ub, std::vector<size_t> grid
 	std::cout << "total time: " << time_cpp11.elapsed_seconds() << std::endl;
 	std::cout << "time per transform: " << std::scientific << time_cpp11.elapsed_seconds()/double(sampled.size()) << std::endl;
 //    data_io::write_default2d("maps/values01.dat", values01, 15);
-	data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 5);
+	data_io::write_default2d("maps/sampled_implicit_sorted.dat", sampled, 10);
 }
 
 void implicit_quantile_class_sorted_interp(float lb, float ub, std::vector<size_t> gridn, std::vector<std::vector<int> > &sample, size_t nrolls)

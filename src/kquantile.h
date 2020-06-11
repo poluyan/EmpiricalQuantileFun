@@ -346,8 +346,12 @@ namespace mveqf
 	class ImplicitTrieKQuantile : public mveqf::ImplicitQuantile<T, U>
 	{
 	protected:
-		using mveqf::ImplicitQuantile<T, U>::grids;
+//		using mveqf::ImplicitQuantile<T, U>::grids;
+		std::vector<std::vector<U>> grids;
+		using mveqf::ImplicitQuantile<T, U>::grid_number;
 		using mveqf::ImplicitQuantile<T, U>::dx;
+		using mveqf::ImplicitQuantile<T, U>::lb;
+		using mveqf::ImplicitQuantile<T, U>::ub;
 
 		typedef trie_based::Trie<trie_based::NodeCount<T>,T> trie_type;
 		std::shared_ptr<trie_type> sample;
@@ -373,6 +377,19 @@ namespace mveqf
 	template <typename T, typename U>
 	ImplicitTrieKQuantile<T, U>::ImplicitTrieKQuantile() : kernel_type(0)
 	{
+		grids.resize(grid_number.size());
+		for(size_t i = 0; i != grids.size(); i++)
+		{
+			std::vector<U> grid(grid_number[i] + 1);
+			U startp = lb[i];
+			U endp = ub[i];
+			U es = endp - startp;
+			for(size_t j = 0; j != grid.size(); j++)
+			{
+				grid[j] = startp + j*es/U(grid_number[i]);
+			}
+			grids[i] = grid;
+		}
 	}
 	template <typename T, typename U>
 	ImplicitTrieKQuantile<T, U>::ImplicitTrieKQuantile(std::vector<U> in_lb,
@@ -380,6 +397,19 @@ namespace mveqf
 	    std::vector<size_t> in_gridn,
 	    size_t kt) : mveqf::ImplicitQuantile<T, U>(in_lb, in_ub, in_gridn), kernel_type(kt)
 	{
+		grids.resize(grid_number.size());
+		for(size_t i = 0; i != grids.size(); i++)
+		{
+			std::vector<U> grid(grid_number[i] + 1);
+			U startp = lb[i];
+			U endp = ub[i];
+			U es = endp - startp;
+			for(size_t j = 0; j != grid.size(); j++)
+			{
+				grid[j] = startp + j*es/U(grid_number[i]);
+			}
+			grids[i] = grid;
+		}
 	}
 	template <typename T, typename U>
 	void ImplicitTrieKQuantile<T, U>::set_sample_shared(std::shared_ptr<trie_type> in_sample)
@@ -425,7 +455,7 @@ namespace mveqf
 	template <typename T, typename U>
 	std::vector<U> ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, const U lambda) const
 	{
-		std::vector<U> out(grids.size());
+		std::vector<U> out(grid_number.size());
 		transform(in01, out, lambda);
 		return out;
 	}

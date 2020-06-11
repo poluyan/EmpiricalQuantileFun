@@ -34,7 +34,7 @@ namespace mveqf
 		std::vector<TFloat> dx;
 		std::vector<size_t> grid_number;
 		std::vector<TFloat> grid_ranges;
-		std::vector<std::vector<TFloat>> grids;
+//		std::vector<std::vector<TFloat>> grids;
 	public:
 		Quantile();
 		Quantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
@@ -65,20 +65,20 @@ namespace mveqf
 
 		dx.resize(grid_number.size());
 
-		grids.resize(grid_number.size());
-		for(size_t i = 0; i != grids.size(); i++)
-		{
-			std::vector<TFloat> grid(grid_number[i] + 1);
-			TFloat startp = lb[i];
-			TFloat endp = ub[i];
-			TFloat es = endp - startp;
-			for(size_t j = 0; j != grid.size(); j++)
-			{
-				grid[j] = startp + j*es/TFloat(grid_number[i]);
-			}
-			grids[i] = grid;
-			dx[i] = es/(TFloat(grid_number[i])*2);
-		}
+//		grids.resize(grid_number.size());
+//		for(size_t i = 0; i != grids.size(); i++)
+//		{
+//			std::vector<TFloat> grid(grid_number[i] + 1);
+//			TFloat startp = lb[i];
+//			TFloat endp = ub[i];
+//			TFloat es = endp - startp;
+//			for(size_t j = 0; j != grid.size(); j++)
+//			{
+//				grid[j] = startp + j*es/TFloat(grid_number[i]);
+//			}
+//			grids[i] = grid;
+//			dx[i] = es/(TFloat(grid_number[i])*2);
+//		}
 
 		grid_ranges.resize(grid_number.size());
 		for(size_t i = 0; i != grid_number.size(); i++)
@@ -98,14 +98,19 @@ namespace mveqf
 	class ExplicitQuantile : public Quantile<TIndex, TFloat>
 	{
 	protected:
-		using Quantile<TIndex, TFloat>::grids;
+		//using Quantile<TIndex, TFloat>::grids;
+		using Quantile<TIndex, TFloat>::grid_number;
 		using Quantile<TIndex, TFloat>::dx;
+
+		using Quantile<TIndex, TFloat>::get_grid_value;
 
 		typedef std::vector<std::vector<TFloat>> sample_type;
 		std::shared_ptr<sample_type> sample;
 
 		size_t count_less(const std::vector<TFloat> &layer, TFloat target) const;
 		std::pair<size_t, TFloat> quantile_transform(const std::vector<TFloat> &layer, size_t ind, TFloat val01) const;
+
+		size_t get_lower_bound(size_t ind, const TFloat &value) const;
 	public:
 		ExplicitQuantile();
 		ExplicitQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
@@ -138,7 +143,8 @@ namespace mveqf
 			std::vector<TFloat> temp;
 			for(size_t j = 0; j != in_sample[i].size(); ++j)
 			{
-				temp.push_back(grids[j][in_sample[i][j]] + dx[j]);
+				//temp.push_back(grids[j][in_sample[i][j]] + dx[j]);
+				temp.push_back(get_grid_value(j, in_sample[i][j]) + dx[j]);
 			}
 			sample->push_back(temp);
 		}
@@ -150,9 +156,32 @@ namespace mveqf
 	}
 
 	template <typename TIndex, typename TFloat>
+	size_t ExplicitQuantile<TIndex, TFloat>::get_lower_bound(size_t ind, const TFloat &value) const
+	{
+		size_t it, first = 0;
+		int count = grid_number[ind] + 1, step;
+
+		while(count > 0)
+		{
+			it = first;
+			step = count / 2;
+			it += step;
+
+			if(get_grid_value(ind, it) < value)
+			{
+				first = ++it;
+				count -= step + 1;
+			}
+			else
+				count = step;
+		}
+		return first;
+	}
+
+	template <typename TIndex, typename TFloat>
 	void ExplicitQuantile<TIndex, TFloat>::transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const
 	{
-		std::vector<size_t> m(grids.size());
+		std::vector<size_t> m(grid_number.size());
 		for(size_t i = 0, g = in01.size(); i != g; i++)
 		{
 			std::vector<TFloat> row(sample->size());
@@ -162,7 +191,8 @@ namespace mveqf
 				bool flag = true;
 				for(size_t k = 0; k != i; k++)
 				{
-					if(!((*sample)[j][k] > grids[k][m[k]] && (*sample)[j][k] < grids[k][m[k] + 1]))
+					//if(!((*sample)[j][k] > grids[k][m[k]] && (*sample)[j][k] < grids[k][m[k] + 1]))
+					if(!((*sample)[j][k] > get_grid_value(k, m[k]) && (*sample)[j][k] < get_grid_value(k, m[k] + 1)))
 					{
 						flag = false;
 						break;
@@ -195,23 +225,26 @@ namespace mveqf
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, TFloat> ExplicitQuantile<TIndex, TFloat>::quantile_transform(const std::vector<TFloat> &layer, size_t ind, TFloat val01) const
 	{
-		size_t count = grids[ind].size() - 1, step, c1 = 0, c2 = 0, m = 0;
+		size_t count = grid_number[ind], step, c1 = 0, c2 = 0, m = 0;
 		TFloat f1 = 0.0, f2 = 0.0, n = layer.size();
-		auto first = grids[ind].begin();
-		auto it = grids[ind].begin();
+		//auto first = grids[ind].begin();
+		//auto it = grids[ind].begin();
+		size_t it = 0, first = 0;
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
-			std::advance(it, step);
-			m = std::distance(grids[ind].begin(), it);
+			it += step;
+			m = it;
+			//std::advance(it, step);
+			//m = std::distance(grids[ind].begin(), it);
 
-			c1 = count_less(layer, grids[ind][m]);
+			c1 = count_less(layer, get_grid_value(ind, m));
 			f1 = c1/n;
 
 			if(f1 < val01)
 			{
-				c2 = count_less(layer, grids[ind][m + 1]);
+				c2 = count_less(layer, get_grid_value(ind, m + 1));
 				f2 = c2/n;
 
 				if(val01 < f2)
@@ -226,7 +259,7 @@ namespace mveqf
 
 		if(count == 0)
 		{
-			c2 = count_less(layer, grids[ind][m + 1]);
+			c2 = count_less(layer, get_grid_value(ind, m + 1));
 			f2 = c2/n;
 		}
 
@@ -235,19 +268,21 @@ namespace mveqf
 			if(c1 == 0)
 			{
 				auto min_val = *std::min_element(layer.begin(), layer.end()) - 2.0*dx[ind];
-				auto lb_min = std::lower_bound(grids[ind].begin(), grids[ind].end(), min_val);
-				size_t min_ind = std::distance(grids[ind].begin(), lb_min);
-				return std::make_pair(min_ind, grids[ind][min_ind] + 2.0*val01*dx[ind]);
+				//auto lb_min = std::lower_bound(grids[ind].begin(), grids[ind].end(), min_val);
+				//size_t min_ind = std::distance(grids[ind].begin(), lb_min);
+				size_t min_ind = get_lower_bound(ind, min_val);
+				return std::make_pair(min_ind, get_grid_value(ind, min_ind) + 2.0*val01*dx[ind]);
 			}
 			if(c1 == layer.size())
 			{
 				auto max_val = *std::max_element(layer.begin(), layer.end()) - 2.0*dx[ind];
-				auto lb_max = std::lower_bound(grids[ind].begin(), grids[ind].end(), max_val);
-				size_t max_ind = std::distance(grids[ind].begin(), lb_max);
-				return std::make_pair(max_ind, grids[ind][max_ind] + 2.0*val01*dx[ind]);
+				//auto lb_max = std::lower_bound(grids[ind].begin(), grids[ind].end(), max_val);
+				//size_t max_ind = std::distance(grids[ind].begin(), lb_max);
+				size_t max_ind = get_lower_bound(ind, max_val);
+				return std::make_pair(max_ind, get_grid_value(ind, max_ind) + 2.0*val01*dx[ind]);
 			}
 
-			TFloat target = grids[ind][m];
+			TFloat target = get_grid_value(ind, m);
 			TFloat diff = std::numeric_limits<TFloat>::max();
 			size_t index = 0;
 			for(size_t i = 1; i != layer.size(); ++i)
@@ -260,11 +295,13 @@ namespace mveqf
 				}
 			}
 
-			auto lb = std::lower_bound(grids[ind].begin(), grids[ind].end(), layer[index] - 2.0*dx[ind]);
-			size_t lb_ind = std::distance(grids[ind].begin(), lb);
-			return std::make_pair(lb_ind, grids[ind][lb_ind] + 2.0*val01*dx[ind]);
+			//auto lb = std::lower_bound(grids[ind].begin(), grids[ind].end(), layer[index] - 2.0*dx[ind]);
+			//size_t lb_ind = std::distance(grids[ind].begin(), lb);
+			size_t lb_ind = get_lower_bound(ind, layer[index] - 2.0*dx[ind]);
+			return std::make_pair(lb_ind, get_grid_value(ind, lb_ind) + 2.0*val01*dx[ind]);
 		}
-		return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+		//return std::make_pair(m, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+		return std::make_pair(m, get_grid_value(ind, m) + (val01 - f1) * (get_grid_value(ind, m + 1) - get_grid_value(ind, m)) / (f2 - f1));
 	}
 
 
@@ -276,8 +313,11 @@ namespace mveqf
 		typedef trie_based::TrieBased<trie_based::NodeCount<TIndex>,TIndex> sample_type;
 		std::shared_ptr<sample_type> sample;
 
-		using Quantile<TIndex, TFloat>::grids;
+		//using Quantile<TIndex, TFloat>::grids;
+		using Quantile<TIndex, TFloat>::grid_number;
 		using Quantile<TIndex, TFloat>::dx;
+
+		using Quantile<TIndex, TFloat>::get_grid_value;
 
 		std::pair<size_t, size_t> count_less(trie_based::NodeCount<TIndex> *layer, const size_t &r) const;
 		std::pair<size_t, TFloat> quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const;
@@ -319,7 +359,7 @@ namespace mveqf
 	void ImplicitQuantile<TIndex, TFloat>::set_sample_and_fill_count(const std::vector<std::vector<TIndex>> &in_sample)
 	{
 		sample = std::make_shared<sample_type>();
-		sample->set_dimension(grids.size());
+		sample->set_dimension(grid_number.size());
 		for(const auto & i : in_sample)
 			sample->insert(i);
 		sample->fill_tree_count();
@@ -369,17 +409,20 @@ namespace mveqf
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, TFloat> ImplicitQuantile<TIndex, TFloat>::quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const
 	{
-		size_t m = 0, count = grids[ind].size() - 1, step, a = 0, b = 0;
+		size_t m = 0, count = grid_number[ind], step, a = 0, b = 0;
 		TFloat x = 0.0, y = 0.0, p = static_cast<TFloat>(layer->count);
-		auto first = grids[ind].begin();
-		auto it = grids[ind].begin();
+		//auto first = grids[ind].begin();
+		//auto it = grids[ind].begin();
+		size_t it = 0, first = 0;
 
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
-			std::advance(it, step);
-			m = std::distance(grids[ind].begin(), it);
+			it += step;
+			m = it;
+			//std::advance(it, step);
+			//m = std::distance(grids[ind].begin(), it);
 
 			std::tie(a, b) = count_less(layer, m);
 			x = a/p;
@@ -411,7 +454,8 @@ namespace mveqf
 					return l->index < r->index;
 				});
 				size_t min_ind = std::distance(layer->children.begin(), min_val_it);
-				return std::make_pair(min_ind, grids[ind][layer->children[min_ind]->index] + 2.0*val01*dx[ind]);
+				//return std::make_pair(min_ind, grids[ind][layer->children[min_ind]->index] + 2.0*val01*dx[ind]);
+				return std::make_pair(min_ind, get_grid_value(ind, layer->children[min_ind]->index) + 2.0*val01*dx[ind]);
 			}
 			if(a == layer->count)
 			{
@@ -422,7 +466,8 @@ namespace mveqf
 					return l->index < r->index;
 				});
 				size_t max_ind = std::distance(layer->children.begin(), max_val_it);
-				return std::make_pair(max_ind, grids[ind][layer->children[max_ind]->index] + 2.0*val01*dx[ind]);
+				//return std::make_pair(max_ind, grids[ind][layer->children[max_ind]->index] + 2.0*val01*dx[ind]);
+				return std::make_pair(max_ind, get_grid_value(ind, layer->children[max_ind]->index) + 2.0*val01*dx[ind]);
 			}
 			int diff = std::numeric_limits<int>::max();
 			size_t index = 0;
@@ -446,7 +491,8 @@ namespace mveqf
 					}
 				}
 			}
-			return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+			//return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+			return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 		}
 		size_t index = 0;
 		TIndex target = m;
@@ -458,16 +504,20 @@ namespace mveqf
 				break;
 			}
 		}
-		return std::make_pair(index, grids[ind][m] + (val01 - x) * (grids[ind][m + 1] - grids[ind][m]) / (y - x));
+		//return std::make_pair(index, grids[ind][m] + (val01 - x) * (grids[ind][m + 1] - grids[ind][m]) / (y - x));
+		return std::make_pair(index, get_grid_value(ind, m) + (val01 - x) * (get_grid_value(ind, m + 1) - get_grid_value(ind, m)) / (y - x));
 	}
 
 	template <typename TIndex, typename TFloat>
 	class ImplicitQuantileSorted : public ImplicitQuantile<TIndex, TFloat>
 	{
 	protected:
-		using ImplicitQuantile<TIndex, TFloat>::grids;
+//		using ImplicitQuantile<TIndex, TFloat>::grids;
+		using ImplicitQuantile<TIndex, TFloat>::grid_number;
 		using ImplicitQuantile<TIndex, TFloat>::sample;
 		using ImplicitQuantile<TIndex, TFloat>::dx;
+		
+		using ImplicitQuantile<TIndex, TFloat>::get_grid_value;
 
 		using sample_type = typename ImplicitQuantile<TIndex, TFloat>::sample_type;
 		void sort_layer(trie_based::NodeCount<TIndex> *p);
@@ -501,7 +551,7 @@ namespace mveqf
 	void ImplicitQuantileSorted<TIndex, TFloat>::set_sample_and_fill_count(const std::vector<std::vector<TIndex>> &in_sample)
 	{
 		sample = std::make_shared<sample_type>();
-		sample->set_dimension(grids.size());
+		sample->set_dimension(grid_number.size());
 		for(const auto & i : in_sample)
 			sample->insert(i);
 		sample->fill_tree_count();
@@ -596,17 +646,21 @@ namespace mveqf
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, TFloat> ImplicitQuantileSorted<TIndex, TFloat>::quantile_transform(trie_based::NodeCount<TIndex> *layer, const std::vector<size_t> &psum, size_t ind, TFloat val01) const
 	{
-		size_t m = 0, count = grids[ind].size() - 1, step, c1 = 0, c2 = 0;
+		size_t m = 0, count = grid_number[ind], step, c1 = 0, c2 = 0;
 		TFloat f1 = 0.0, f2 = 0.0, sample_size_u = static_cast<TFloat>(layer->count);
-		auto first = grids[ind].begin();
-		auto it = grids[ind].begin();
+		//auto first = grids[ind].begin();
+		//auto it = grids[ind].begin();
+		size_t it = 0, first = 0;
 
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
-			std::advance(it, step);
-			m = std::distance(grids[ind].begin(), it);
+			it += step;
+			m = it;
+			
+			//std::advance(it, step);
+			//m = std::distance(grids[ind].begin(), it);
 
 			c1 = psum[count_less_binary(layer, m)];
 			f1 = c1/sample_size_u;
@@ -638,11 +692,11 @@ namespace mveqf
 		{
 			if(c1 == 0)
 			{
-				return std::make_pair(0, grids[ind][layer->children.front()->index] + 2.0*val01*dx[ind]);
+				return std::make_pair(0, get_grid_value(ind, layer->children.front()->index) + 2.0*val01*dx[ind]);
 			}
 			if(c1 == layer->count)
 			{
-				return std::make_pair(layer->children.size() - 1, grids[ind][layer->children.back()->index] + 2.0*val01*dx[ind]);
+				return std::make_pair(layer->children.size() - 1, get_grid_value(ind, layer->children.back()->index) + 2.0*val01*dx[ind]);
 			}
 
 			TIndex target = m;
@@ -661,22 +715,22 @@ namespace mveqf
 
 				if(curr1 < curr2)
 				{
-					return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+					return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 				}
 				else if(curr1 == curr2)
 				{
 					if(layer->children[index - 1]->index < layer->children[index]->index)
-						return std::make_pair(index - 1, grids[ind][layer->children[index - 1]->index] + 2.0*val01*dx[ind]);
+						return std::make_pair(index - 1, get_grid_value(ind, layer->children[index - 1]->index) + 2.0*val01*dx[ind]);
 					else
-						return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+						return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 				}
 				else
 				{
-					return std::make_pair(index - 1, grids[ind][layer->children[index - 1]->index] + 2.0*val01*dx[ind]);
+					return std::make_pair(index - 1, get_grid_value(ind, layer->children[index - 1]->index) + 2.0*val01*dx[ind]);
 				}
 
 			}
-			return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+			return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 		}
 		TIndex target = m;
 		auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
@@ -686,7 +740,7 @@ namespace mveqf
 			return l->index < r;
 		});
 		TIndex index = std::distance(layer->children.begin(), pos);
-		return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+		return std::make_pair(index, get_grid_value(ind, m) + (val01 - f1) * (get_grid_value(ind, m + 1) - get_grid_value(ind, m)) / (f2 - f1));
 	}
 
 
@@ -694,9 +748,12 @@ namespace mveqf
 	class ImplicitQuantileSortedInterp : public ImplicitQuantile<TIndex, TFloat>
 	{
 	protected:
-		using ImplicitQuantile<TIndex, TFloat>::grids;
+//		using ImplicitQuantile<TIndex, TFloat>::grids;
+		using ImplicitQuantile<TIndex, TFloat>::grid_number;
 		using ImplicitQuantile<TIndex, TFloat>::sample;
 		using ImplicitQuantile<TIndex, TFloat>::dx;
+		
+		using ImplicitQuantile<TIndex, TFloat>::get_grid_value;
 
 		using sample_type = typename ImplicitQuantile<TIndex, TFloat>::sample_type;
 
@@ -751,17 +808,21 @@ namespace mveqf
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, TFloat> ImplicitQuantileSortedInterp<TIndex, TFloat>::quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const
 	{
-		size_t m = 0, count = grids[ind].size() - 1, step, a = 0, b = 0;
+		size_t m = 0, count = grid_number[ind], step, a = 0, b = 0;
 		TFloat f1 = 0.0, f2 = 0.0, sample_size_u = static_cast<TFloat>(layer->count);
-		auto first = grids[ind].begin();
-		auto it = grids[ind].begin();
+		//auto first = grids[ind].begin();
+		//auto it = grids[ind].begin();
+		size_t it = 0, first = 0;
 
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
-			std::advance(it, step);
-			m = std::distance(grids[ind].begin(), it);
+			it += step;
+			m = it;
+			
+			//std::advance(it, step);
+			//m = std::distance(grids[ind].begin(), it);
 
 			std::tie(a, b) = count_less(layer, m);
 			f1 = a/sample_size_u;
@@ -794,7 +855,7 @@ namespace mveqf
 					return l->index < r->index;
 				});
 				size_t min_ind = std::distance(layer->children.begin(), min_val_it);
-				return std::make_pair(min_ind, grids[ind][layer->children[min_ind]->index] + 2.0*val01*dx[ind]);
+				return std::make_pair(min_ind, get_grid_value(ind, layer->children[min_ind]->index) + 2.0*val01*dx[ind]);
 			}
 			if(a == layer->count)
 			{
@@ -805,7 +866,7 @@ namespace mveqf
 					return l->index < r->index;
 				});
 				size_t max_ind = std::distance(layer->children.begin(), max_val_it);
-				return std::make_pair(max_ind, grids[ind][layer->children[max_ind]->index] + 2.0*val01*dx[ind]);
+				return std::make_pair(max_ind, get_grid_value(ind, layer->children[max_ind]->index) + 2.0*val01*dx[ind]);
 			}
 			int diff = std::numeric_limits<int>::max();
 			size_t index = 0;
@@ -829,7 +890,7 @@ namespace mveqf
 					}
 				}
 			}
-			return std::make_pair(index, grids[ind][layer->children[index]->index] + 2.0*val01*dx[ind]);
+			return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 		}
 		size_t index = 0;
 		TIndex target = m;
@@ -841,7 +902,7 @@ namespace mveqf
 				break;
 			}
 		}
-		return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+		return std::make_pair(index, get_grid_value(ind, m) + (val01 - f1) * (get_grid_value(ind, m + 1) - get_grid_value(ind, m)) / (f2 - f1));
 	}
 
 
@@ -851,8 +912,11 @@ namespace mveqf
 	class ImplicitGraphQuantile : public Quantile<TIndex, TFloat>
 	{
 	protected:
-		using Quantile<TIndex, TFloat>::grids;
+		//using Quantile<TIndex, TFloat>::grids;
+		using Quantile<TIndex, TFloat>::grid_number;
 		using Quantile<TIndex, TFloat>::dx;
+		
+		using Quantile<TIndex, TFloat>::get_grid_value;
 
 		typedef trie_based::TrieLayer<TIndex> sample_type;
 		std::shared_ptr<sample_type> sample;
@@ -883,7 +947,7 @@ namespace mveqf
 	void ImplicitGraphQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
 	{
 		sample = std::make_shared<sample_type>();
-		sample->set_dimension(grids.size());
+		sample->set_dimension(grid_number.size());
 		for(const auto & i : in_sample)
 			sample->insert(i);
 		sample->sort();
@@ -931,17 +995,20 @@ namespace mveqf
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, TFloat> ImplicitGraphQuantile<TIndex, TFloat>::quantile_transform(const std::vector<TIndex> &layer, const std::vector<size_t> &psum, size_t ind, TFloat val01) const
 	{
-		size_t m = 0, count = grids[ind].size() - 1, step, c1 = 0, c2 = 0;
+		size_t m = 0, count = grid_number[ind], step, c1 = 0, c2 = 0;
 		TFloat f1 = 0.0, f2 = 0.0, sample_size_u = static_cast<TFloat>(layer.size());
-		auto first = grids[ind].begin();
-		auto it = grids[ind].begin();
+		//auto first = grids[ind].begin();
+		//auto it = grids[ind].begin();
+		size_t it = 0, first = 0;
 
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
-			std::advance(it, step);
-			m = std::distance(grids[ind].begin(), it);
+			it += step;
+			m = it;
+			//std::advance(it, step);
+			//m = std::distance(grids[ind].begin(), it);
 
 			c1 = psum[count_less_binary(layer, m)];
 			f1 = c1/sample_size_u;
@@ -973,11 +1040,11 @@ namespace mveqf
 		{
 			if(c1 == 0)
 			{
-				return std::make_pair(0, grids[ind][layer.front()] + 2.0*val01*dx[ind]);
+				return std::make_pair(0, get_grid_value(ind, layer.front()) + 2.0*val01*dx[ind]);
 			}
 			if(c1 == layer.size())
 			{
-				return std::make_pair(layer.size() - 1, grids[ind][layer.back()] + 2.0*val01*dx[ind]);
+				return std::make_pair(layer.size() - 1, get_grid_value(ind, layer.back()) + 2.0*val01*dx[ind]);
 			}
 
 			TIndex target = m;
@@ -991,27 +1058,27 @@ namespace mveqf
 
 				if(curr1 < curr2)
 				{
-					return std::make_pair(index, grids[ind][layer[index]] + 2.0*val01*dx[ind]);
+					return std::make_pair(index, get_grid_value(ind, layer[index]) + 2.0*val01*dx[ind]);
 				}
 				else if(curr1 == curr2)
 				{
 					if(layer[index - 1] < layer[index])
-						return std::make_pair(index - 1, grids[ind][layer[index - 1]] + 2.0*val01*dx[ind]);
+						return std::make_pair(index - 1, get_grid_value(ind, layer[index - 1]) + 2.0*val01*dx[ind]);
 					else
-						return std::make_pair(index, grids[ind][layer[index]] + 2.0*val01*dx[ind]);
+						return std::make_pair(index, get_grid_value(ind, layer[index]) + 2.0*val01*dx[ind]);
 				}
 				else
 				{
-					return std::make_pair(index - 1, grids[ind][layer[index - 1]] + 2.0*val01*dx[ind]);
+					return std::make_pair(index - 1, get_grid_value(ind, layer[index - 1]) + 2.0*val01*dx[ind]);
 				}
 
 			}
-			return std::make_pair(index, grids[ind][layer[index]] + 2.0*val01*dx[ind]);
+			return std::make_pair(index, get_grid_value(ind, layer[index]) + 2.0*val01*dx[ind]);
 		}
 		TIndex target = m;
 		auto pos = std::lower_bound(layer.begin(), layer.end(), target);
 		TIndex index = std::distance(layer.begin(), pos);
-		return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+		return std::make_pair(index, get_grid_value(ind, m) + (val01 - f1) * (get_grid_value(ind, m + 1) - get_grid_value(ind, m)) / (f2 - f1));
 	}
 	template <typename TIndex, typename TFloat>
 	size_t ImplicitGraphQuantile<TIndex, TFloat>::count_less_binary(const std::vector<TIndex> &layer, TIndex target) const
@@ -1030,8 +1097,11 @@ namespace mveqf
 	class GraphQuantile : public Quantile<TIndex, TFloat>
 	{
 	protected:
-		using Quantile<TIndex, TFloat>::grids;
+//		using Quantile<TIndex, TFloat>::grids;
+		using Quantile<TIndex, TFloat>::grid_number;
 		using Quantile<TIndex, TFloat>::dx;
+		
+		using Quantile<TIndex, TFloat>::get_grid_value;
 
 		typedef trie_based::Graph<TIndex> sample_type;
 		std::shared_ptr<sample_type> sample;
@@ -1078,17 +1148,20 @@ namespace mveqf
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, TFloat> GraphQuantile<TIndex, TFloat>::quantile_transform(const std::vector<trie_based::invect> &layer, const std::vector<size_t> &psum, size_t ind, TFloat val01) const
 	{
-		size_t m = 0, count = grids[ind].size() - 1, step, c1 = 0, c2 = 0;
+		size_t m = 0, count = grid_number[ind], step, c1 = 0, c2 = 0;
 		TFloat f1 = 0.0, f2 = 0.0, sample_size_u = static_cast<TFloat>(psum.back());
-		auto first = grids[ind].begin();
-		auto it = grids[ind].begin();
+		//auto first = grids[ind].begin();
+		//auto it = grids[ind].begin();
+		size_t it = 0, first = 0;
 
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
-			std::advance(it, step);
-			m = std::distance(grids[ind].begin(), it);
+			it += step;
+			m = it;
+//			std::advance(it, step);
+//			m = std::distance(grids[ind].begin(), it);
 
 			c1 = psum[count_less_binary(layer, m)];
 			f1 = c1/sample_size_u;
@@ -1120,11 +1193,11 @@ namespace mveqf
 		{
 			if(c1 == 0)
 			{
-				return std::make_pair(0, grids[ind][layer.front().index] + 2.0*val01*dx[ind]);
+				return std::make_pair(0, get_grid_value(ind, layer.front().index) + 2.0*val01*dx[ind]);
 			}
 			if(c1 == psum.back())
 			{
-				return std::make_pair(layer.size() - 1, grids[ind][layer.back().index] + 2.0*val01*dx[ind]);
+				return std::make_pair(layer.size() - 1, get_grid_value(ind, layer.back().index) + 2.0*val01*dx[ind]);
 			}
 
 			TIndex target = m;
@@ -1143,22 +1216,22 @@ namespace mveqf
 
 				if(curr1 < curr2)
 				{
-					return std::make_pair(index, grids[ind][layer[index].index] + 2.0*val01*dx[ind]);
+					return std::make_pair(index, get_grid_value(ind, layer[index].index) + 2.0*val01*dx[ind]);
 				}
 				else if(curr1 == curr2)
 				{
 					if(layer[index - 1].index < layer[index].index)
-						return std::make_pair(index - 1, grids[ind][layer[index - 1].index] + 2.0*val01*dx[ind]);
+						return std::make_pair(index - 1, get_grid_value(ind, layer[index - 1].index) + 2.0*val01*dx[ind]);
 					else
-						return std::make_pair(index, grids[ind][layer[index].index] + 2.0*val01*dx[ind]);
+						return std::make_pair(index, get_grid_value(ind, layer[index].index) + 2.0*val01*dx[ind]);
 				}
 				else
 				{
-					return std::make_pair(index - 1, grids[ind][layer[index - 1].index] + 2.0*val01*dx[ind]);
+					return std::make_pair(index - 1, get_grid_value(ind, layer[index - 1].index) + 2.0*val01*dx[ind]);
 				}
 
 			}
-			return std::make_pair(index, grids[ind][layer[index].index] + 2.0*val01*dx[ind]);
+			return std::make_pair(index, get_grid_value(ind, layer[index].index) + 2.0*val01*dx[ind]);
 		}
 		TIndex target = m;
 		auto pos = std::lower_bound(layer.begin(), layer.end(), target,
@@ -1168,7 +1241,7 @@ namespace mveqf
 			return l.index < r;
 		});
 		TIndex index = std::distance(layer.begin(), pos);
-		return std::make_pair(index, grids[ind][m] + (val01 - f1) * (grids[ind][m + 1] - grids[ind][m]) / (f2 - f1));
+		return std::make_pair(index, get_grid_value(ind, m) + (val01 - f1) * (get_grid_value(ind, m + 1) - get_grid_value(ind, m)) / (f2 - f1));
 	}
 	template <typename TIndex, typename TFloat>
 	size_t GraphQuantile<TIndex, TFloat>::count_less_binary(const std::vector<trie_based::invect> &layer, TIndex target) const
@@ -1189,13 +1262,13 @@ namespace mveqf
 	class ImplicitTrieQuantile : public ImplicitQuantile<TIndex, TFloat>
 	{
 	protected:
-		using ImplicitQuantile<TIndex, TFloat>::grids;
-		using ImplicitQuantile<TIndex, TFloat>::dx;
+//		using ImplicitQuantile<TIndex, TFloat>::grids;
+//		using ImplicitQuantile<TIndex, TFloat>::dx;
 
 		typedef trie_based::Trie<trie_based::NodeCount<TIndex>,TIndex> trie_type;
 		std::shared_ptr<trie_type> sample;
 
-		using ImplicitQuantile<TIndex, TFloat>::count_less;
+//		using ImplicitQuantile<TIndex, TFloat>::count_less;
 		using ImplicitQuantile<TIndex, TFloat>::quantile_transform;
 	public:
 		ImplicitTrieQuantile();
