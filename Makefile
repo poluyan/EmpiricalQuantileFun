@@ -1,6 +1,6 @@
 TARGET = main
-CPP = g++
-CPPFLAGS = -c -ffast-math -std=c++17 -Wall -Wextra -Wpedantic -O3 -MD
+CPP = clang++
+CPPFLAGS = -c -std=c++17 -stdlib=libstdc++ -Wall -Wextra -Wpedantic -O3 -MD
 
 SRCPATH = ./src
 OBJDIR_RELEASE = obj/Release

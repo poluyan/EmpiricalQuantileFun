@@ -369,8 +369,8 @@ namespace mveqf
 		void set_kernel_type(size_t kt);
 		void set_sample_shared(std::shared_ptr<trie_type> in_sample);
 		void set_bandwidth(std::vector<U> in_bandwidth);
-		void transform(const std::vector<U>& in01, std::vector<U>& out, const U lambda = 1.0) const;
-		std::vector<U> transform(const std::vector<U>& in01, const U lambda = 1.0) const;
+		void transform(const std::vector<U>& in01, std::vector<U>& out/*, const U lambda = 1.0*/) const;
+		std::vector<U> transform(const std::vector<U>& in01/*, const U lambda = 1.0*/) const;
 		std::vector<std::vector<U>> get_grid() const;
 		std::vector<U> get_dx() const;
 	};
@@ -428,7 +428,7 @@ namespace mveqf
 	}
 
 	template <typename T, typename U>
-	void ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out, const U lambda) const
+	void ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out/*, const U lambda*/) const
 	{
 		auto p = sample->root.get();
 		for(size_t i = 0, k; i != in01.size(); i++)
@@ -453,10 +453,10 @@ namespace mveqf
 	}
 
 	template <typename T, typename U>
-	std::vector<U> ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, const U lambda) const
+	std::vector<U> ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01/*, const U lambda*/) const
 	{
 		std::vector<U> out(grid_number.size());
-		transform(in01, out, lambda);
+		transform(in01, out/*, lambda*/);
 		return out;
 	}
 

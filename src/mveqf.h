@@ -268,14 +268,13 @@ namespace mveqf
 		}
 		void transform(const std::vector<U>& in01, std::vector<U>& out) const
 		{
-			qf->transform(in01, out, lambda);
+			qf->transform(in01, out/*, lambda*/);
 		}
 		std::vector<U> transform(const std::vector<U>& in01) const
 		{
-			return qf->transform(in01, lambda);
+			return qf->transform(in01/*, lambda*/);
 		}
 	};
-
 }
 
 #endif
