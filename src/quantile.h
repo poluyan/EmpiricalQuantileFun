@@ -41,6 +41,7 @@ namespace mveqf
 		void set_grid_and_gridn(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const = 0;
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const = 0;
+		virtual void set_sample(const std::vector<std::vector<TIndex>> &in_sample) = 0;
 		inline TFloat get_grid_value(size_t current_dimension, size_t index) const;
 	};
 
@@ -113,21 +114,16 @@ namespace mveqf
 
 		size_t get_lower_bound(size_t ind, const TFloat &value) const;
 	public:
-		ExplicitQuantile();
+		ExplicitQuantile() = default;
 		ExplicitQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		ExplicitQuantile(const ExplicitQuantile&) = delete;
 		ExplicitQuantile& operator=(const ExplicitQuantile&) = delete;
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
-		void set_sample(const std::vector<std::vector<TIndex>> &in_sample);
+		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 	};
-
-	template <typename TIndex, typename TFloat>
-	ExplicitQuantile<TIndex, TFloat>::ExplicitQuantile(): Quantile<TIndex, TFloat>()
-	{
-	}
 
 	template <typename TIndex, typename TFloat>
 	ExplicitQuantile<TIndex, TFloat>::ExplicitQuantile(std::vector<TFloat> in_lb,
@@ -359,10 +355,11 @@ namespace mveqf
 		std::pair<size_t, size_t> count_less(trie_based::NodeCount<TIndex> *layer, const size_t &r) const;
 		std::pair<size_t, TFloat> quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const;
 	public:
-		ImplicitQuantile();
+		ImplicitQuantile() = default;
 		ImplicitQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		ImplicitQuantile(const ImplicitQuantile&) = delete;
 		ImplicitQuantile& operator=(const ImplicitQuantile&) = delete;
+		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void set_sample_and_fill_count(const std::vector<std::vector<TIndex>> &in_sample);
 		void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
@@ -371,9 +368,6 @@ namespace mveqf
 		size_t get_node_count() const;
 		size_t get_link_count() const;
 	};
-
-	template <typename TIndex, typename TFloat>
-	ImplicitQuantile<TIndex, TFloat>::ImplicitQuantile() {}
 
 	template <typename TIndex, typename TFloat>
 	ImplicitQuantile<TIndex, TFloat>::ImplicitQuantile(std::vector<TFloat> in_lb,
@@ -401,6 +395,12 @@ namespace mveqf
 		for(const auto & i : in_sample)
 			sample->insert(i);
 		sample->fill_tree_count();
+	}
+
+	template <typename TIndex, typename TFloat>
+	void ImplicitQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
+	{
+		set_sample_and_fill_count(in_sample);
 	}
 
 	template <typename TIndex, typename TFloat>
@@ -575,21 +575,17 @@ namespace mveqf
 		size_t count_less_binary(trie_based::NodeCount<TIndex> *layer, TIndex target) const;
 		std::pair<size_t, TFloat> quantile_transform(trie_based::NodeCount<TIndex> *layer, const std::vector<size_t> &psum, size_t ind, TFloat val01) const;
 	public:
-		ImplicitQuantileSorted();
+		ImplicitQuantileSorted() = default;
 		ImplicitQuantileSorted(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		ImplicitQuantileSorted(const ImplicitQuantileSorted&) = delete;
 		ImplicitQuantileSorted& operator=(const ImplicitQuantileSorted&) = delete;
+		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void set_sample_and_fill_count(const std::vector<std::vector<TIndex>> &in_sample);
 		void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
 		void sort();
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 	};
-
-	template <typename TIndex, typename TFloat>
-	ImplicitQuantileSorted<TIndex, TFloat>::ImplicitQuantileSorted()
-	{
-	}
 
 	template <typename TIndex, typename TFloat>
 	ImplicitQuantileSorted<TIndex, TFloat>::ImplicitQuantileSorted(std::vector<TFloat> in_lb,
@@ -607,6 +603,12 @@ namespace mveqf
 			sample->insert(i);
 		sample->fill_tree_count();
 		sort();
+	}
+
+	template <typename TIndex, typename TFloat>
+	void ImplicitQuantileSorted<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
+	{
+		set_sample_and_fill_count(in_sample);
 	}
 
 
@@ -832,7 +834,7 @@ namespace mveqf
 		std::pair<size_t, size_t> count_less(trie_based::NodeCount<TIndex> *layer, const size_t &r) const;
 		std::pair<size_t, TFloat> quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const;
 	public:
-		ImplicitQuantileSortedInterp();
+		ImplicitQuantileSortedInterp() = default;
 		ImplicitQuantileSortedInterp(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		ImplicitQuantileSortedInterp(const ImplicitQuantileSortedInterp&) = delete;
 		ImplicitQuantileSortedInterp& operator=(const ImplicitQuantileSortedInterp&) = delete;
@@ -841,14 +843,9 @@ namespace mveqf
 	};
 
 	template <typename TIndex, typename TFloat>
-	ImplicitQuantileSortedInterp<TIndex, TFloat>::ImplicitQuantileSortedInterp() { }
-
-	template <typename TIndex, typename TFloat>
 	ImplicitQuantileSortedInterp<TIndex, TFloat>::ImplicitQuantileSortedInterp(std::vector<TFloat> in_lb,
 	    std::vector<TFloat> in_ub,
 	    std::vector<size_t> in_gridn) : ImplicitQuantile<TIndex, TFloat>(in_lb, in_ub, in_gridn) { }
-
-
 
 	template <typename TIndex, typename TFloat>
 	std::pair<size_t, size_t> ImplicitQuantileSortedInterp<TIndex, TFloat>::count_less(trie_based::NodeCount<TIndex> *layer, const size_t& r) const
@@ -1009,18 +1006,14 @@ namespace mveqf
 		size_t count_less_binary(const std::vector<TIndex> &layer, TIndex target) const;
 		std::pair<size_t, TFloat> quantile_transform(const std::vector<TIndex> &layer, const std::vector<size_t> &psum, size_t ind, TFloat val01) const;
 	public:
-		ImplicitGraphQuantile();
+		ImplicitGraphQuantile() = default;
 		ImplicitGraphQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
-		void set_sample(const std::vector<std::vector<TIndex>> &in_sample);
+		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void set_sample(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 	};
-	template <typename TIndex, typename TFloat>
-	ImplicitGraphQuantile<TIndex, TFloat>::ImplicitGraphQuantile()
-	{
-	}
 
 	template <typename TIndex, typename TFloat>
 	ImplicitGraphQuantile<TIndex, TFloat>::ImplicitGraphQuantile(std::vector<TFloat> in_lb,
@@ -1215,16 +1208,13 @@ namespace mveqf
 		size_t count_less_binary(const std::vector<trie_based::invect> &layer, TIndex target) const;
 		std::pair<size_t, TFloat> quantile_transform(const std::vector<trie_based::invect> &layer, const std::vector<size_t> &psum, size_t ind, TFloat val01) const;
 	public:
-		GraphQuantile();
+		GraphQuantile() = default;
 		GraphQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
+		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 	};
-	template <typename TIndex, typename TFloat>
-	GraphQuantile<TIndex, TFloat>::GraphQuantile()
-	{
-	}
 
 	template <typename TIndex, typename TFloat>
 	GraphQuantile<TIndex, TFloat>::GraphQuantile(std::vector<TFloat> in_lb,
@@ -1251,6 +1241,11 @@ namespace mveqf
 			std::tie(k, out[i]) = quantile_transform(p->second, psum, i, in01[i]);
 			p = sample->layers.find(p->second[k].vname);
 		}
+	}
+	template <typename TIndex, typename TFloat>
+	void GraphQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
+	{
+
 	}
 	template <typename TIndex, typename TFloat>
 	void GraphQuantile<TIndex, TFloat>::transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const
@@ -1397,16 +1392,13 @@ namespace mveqf
 //		using ImplicitQuantile<TIndex, TFloat>::count_less;
 		using ImplicitQuantile<TIndex, TFloat>::quantile_transform;
 	public:
-		ImplicitTrieQuantile();
+		ImplicitTrieQuantile() = default;
 		ImplicitTrieQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		void set_sample_shared(std::shared_ptr<trie_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 	};
-	template <typename TIndex, typename TFloat>
-	ImplicitTrieQuantile<TIndex, TFloat>::ImplicitTrieQuantile()
-	{
-	}
+
 	template <typename TIndex, typename TFloat>
 	ImplicitTrieQuantile<TIndex, TFloat>::ImplicitTrieQuantile(std::vector<TFloat> in_lb,
 	    std::vector<TFloat> in_ub,

@@ -28,7 +28,7 @@ void test_2d1()
 {
 	std::vector<size_t> grid_number = {9, 10};
 
-	std::vector<std::vector<int>> sample_implicit =
+	std::vector<std::vector<std::uint8_t>> sample_implicit =
 	{
 		{2,6},
 
@@ -53,9 +53,11 @@ void test_2d1()
 	};
 
 /// multivariate quantile function [0,1]^n -> [-3,3]^n nrolls = 2e3
-	explicit_quantile(-3, 3, grid_number, sample_implicit, 2e3);
-	implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e3);
-	implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e3);
+	perform_tests<double, std::uint8_t>(-3, 3, grid_number, sample_implicit, 2e3);
+
+//	explicit_quantile(-3, 3, grid_number, sample_implicit, 2e3);
+//	implicit_quantile_class(-3, 3, grid_number, sample_implicit, 2e3);
+//	implicit_quantile_class_sorted(-3, 3, grid_number, sample_implicit, 2e3);
 }
 
 void test_2d2()
