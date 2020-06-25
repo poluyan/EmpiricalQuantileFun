@@ -47,6 +47,7 @@ namespace mveqf
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const = 0;
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const = 0;
 		virtual void set_sample(const std::vector<std::vector<TIndex>> &in_sample) = 0;
+		virtual void set_sample(const std::vector<std::vector<TFloat>> &in_sample) = 0;
 		inline TFloat get_grid_value(size_t current_dimension, size_t index) const;
 		std::vector<size_t> get_grid_number() const;
 		size_t get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value);
@@ -221,7 +222,7 @@ namespace mveqf
 		ExplicitQuantile& operator=(const ExplicitQuantile&) = delete;
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
-		void set_sample(const std::vector<std::vector<TFloat>> &in_sample);
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
@@ -259,7 +260,7 @@ namespace mveqf
 			std::vector<TFloat> temp;
 			for(size_t j = 0; j != in_sample[i].size(); ++j)
 			{
-				TIndex index = get_the_closest_grid_node_to_the_value(lb[i], ub[i], grid_number[i], in_sample[i][j]);
+				TIndex index = get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j]);
 				temp.push_back(get_grid_value(j, index) + dx[j]);
 			}
 			sample->push_back(temp);
@@ -468,8 +469,12 @@ namespace mveqf
 		//using Quantile<TIndex, TFloat>::grids;
 		using Quantile<TIndex, TFloat>::grid_number;
 		using Quantile<TIndex, TFloat>::dx;
+		using Quantile<TIndex, TFloat>::lb;
+		using Quantile<TIndex, TFloat>::ub;
 
 		using Quantile<TIndex, TFloat>::get_grid_value;
+
+		using Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
 
 		std::pair<size_t, size_t> count_less(trie_based::NodeCount<TIndex> *layer, const size_t &r) const;
 		std::pair<size_t, TFloat> quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const;
@@ -479,6 +484,7 @@ namespace mveqf
 		ImplicitQuantile(const ImplicitQuantile&) = delete;
 		ImplicitQuantile& operator=(const ImplicitQuantile&) = delete;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
 		void set_sample_and_fill_count(const std::vector<std::vector<TIndex>> &in_sample);
 		void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
@@ -520,6 +526,23 @@ namespace mveqf
 	void ImplicitQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
 	{
 		set_sample_and_fill_count(in_sample);
+	}
+
+	template <typename TIndex, typename TFloat>
+	void ImplicitQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TFloat>> &in_sample)
+	{
+		sample = std::make_shared<sample_type>();
+		sample->set_dimension(grid_number.size());
+		for(size_t i = 0; i != in_sample.size(); ++i)
+		{
+			std::vector<TIndex> temp(in_sample[i].size());
+			for(size_t j = 0; j != in_sample[i].size(); ++j)
+			{
+				temp[j] = get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j]);
+			}
+			sample->insert(temp);
+		}
+		sample->fill_tree_count();
 	}
 
 	template <typename TIndex, typename TFloat>
@@ -685,8 +708,12 @@ namespace mveqf
 		using ImplicitQuantile<TIndex, TFloat>::grid_number;
 		using ImplicitQuantile<TIndex, TFloat>::sample;
 		using ImplicitQuantile<TIndex, TFloat>::dx;
+		using ImplicitQuantile<TIndex, TFloat>::lb;
+		using ImplicitQuantile<TIndex, TFloat>::ub;
 
 		using ImplicitQuantile<TIndex, TFloat>::get_grid_value;
+
+		using ImplicitQuantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
 
 		using sample_type = typename ImplicitQuantile<TIndex, TFloat>::sample_type;
 		void sort_layer(trie_based::NodeCount<TIndex> *p);
@@ -699,6 +726,7 @@ namespace mveqf
 		ImplicitQuantileSorted(const ImplicitQuantileSorted&) = delete;
 		ImplicitQuantileSorted& operator=(const ImplicitQuantileSorted&) = delete;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
 		void set_sample_and_fill_count(const std::vector<std::vector<TIndex>> &in_sample);
 		void set_sample_shared_and_fill_count(std::shared_ptr<sample_type> in_sample);
 		void sort();
@@ -728,6 +756,23 @@ namespace mveqf
 	void ImplicitQuantileSorted<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
 	{
 		set_sample_and_fill_count(in_sample);
+	}
+
+	template <typename TIndex, typename TFloat>
+	void ImplicitQuantileSorted<TIndex, TFloat>::set_sample(const std::vector<std::vector<TFloat>> &in_sample)
+	{
+		sample = std::make_shared<sample_type>();
+		sample->set_dimension(grid_number.size());
+		for(size_t i = 0; i != in_sample.size(); ++i)
+		{
+			std::vector<TIndex> temp(in_sample[i].size());
+			for(size_t j = 0; j != in_sample[i].size(); ++j)
+			{
+				temp[j] = get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j]);
+			}
+			sample->insert(temp);
+		}
+		sample->fill_tree_count();
 	}
 
 
@@ -1116,6 +1161,8 @@ namespace mveqf
 		//using Quantile<TIndex, TFloat>::grids;
 		using Quantile<TIndex, TFloat>::grid_number;
 		using Quantile<TIndex, TFloat>::dx;
+		using Quantile<TIndex, TFloat>::lb;
+		using Quantile<TIndex, TFloat>::ub;
 
 		using Quantile<TIndex, TFloat>::get_grid_value;
 
@@ -1129,6 +1176,7 @@ namespace mveqf
 		ImplicitGraphQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
 		void set_sample(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
@@ -1148,6 +1196,22 @@ namespace mveqf
 		sample->set_dimension(grid_number.size());
 		for(const auto & i : in_sample)
 			sample->insert(i);
+		sample->sort();
+	}
+	template <typename TIndex, typename TFloat>
+	void ImplicitGraphQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TFloat>> &in_sample)
+	{
+		sample = std::make_shared<sample_type>();
+		sample->set_dimension(grid_number.size());
+		for(size_t i = 0; i != in_sample.size(); ++i)
+		{
+			std::vector<TIndex> temp(in_sample[i].size());
+			for(size_t j = 0; j != in_sample[i].size(); ++j)
+			{
+				temp[j] = get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j]);
+			}
+			sample->insert(temp);
+		}
 		sample->sort();
 	}
 	template <typename TIndex, typename TFloat>
@@ -1331,6 +1395,7 @@ namespace mveqf
 		GraphQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 	};
@@ -1363,6 +1428,11 @@ namespace mveqf
 	}
 	template <typename TIndex, typename TFloat>
 	void GraphQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
+	{
+
+	}
+	template <typename TIndex, typename TFloat>
+	void GraphQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TFloat>> &in_sample)
 	{
 
 	}
