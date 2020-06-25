@@ -25,10 +25,8 @@
 
 namespace mveqf
 {
-
 	namespace mvff
 	{
-
 		template <typename T, typename V>
 		struct cell
 		{

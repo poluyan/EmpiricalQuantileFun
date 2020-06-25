@@ -38,6 +38,9 @@ void test_2d_uniform_vs_nonuniform();
 void test_2d_uniform_vs_nonuniform_trie();
 
 
+void test_2d_discrete();
+
+
 template<class InputIt, class T>
 void parallel_step(InputIt first,
                    InputIt last,

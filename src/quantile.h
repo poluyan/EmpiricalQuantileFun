@@ -35,14 +35,21 @@ namespace mveqf
 		std::vector<size_t> grid_number;
 		std::vector<TFloat> grid_ranges;
 //		std::vector<std::vector<TFloat>> grids;
+
+		size_t get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value);
+		TFloat get_min_delta_from_grid_node(TFloat lb, TFloat ub, size_t gridn, TFloat value);
+		size_t get_optimal_gridn_linear(const TFloat lb, const TFloat ub, const TFloat value, const TFloat delta);
 	public:
 		Quantile();
 		Quantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		void set_grid_and_gridn(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
+		void set_grid_from_sample(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, const std::vector<std::vector<TFloat>> &in_sample, const TFloat delta);
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const = 0;
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const = 0;
 		virtual void set_sample(const std::vector<std::vector<TIndex>> &in_sample) = 0;
 		inline TFloat get_grid_value(size_t current_dimension, size_t index) const;
+		std::vector<size_t> get_grid_number() const;
+		size_t get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value);
 	};
 
 	template <typename TIndex, typename TFloat>
@@ -90,11 +97,101 @@ namespace mveqf
 		}
 	}
 
+
+	template <typename TIndex, typename TFloat>
+	void Quantile<TIndex, TFloat>::set_grid_from_sample(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, const std::vector<std::vector<TFloat>> &in_sample, const TFloat delta)
+	{
+		lb = in_lb;
+		ub = in_ub;
+		grid_number.resize(lb.size(), 1);
+
+		for(size_t i = 0; i != in_sample.size(); i++)
+		{
+			for(size_t j = 0; j != in_sample[i].size(); j++)
+			{
+				size_t current_grid = get_optimal_gridn_linear(lb[j], ub[j], in_sample[i][j], delta);
+				if(current_grid > grid_number[j])
+					grid_number[j] = current_grid;
+			}
+		}
+
+		dx.resize(grid_number.size());
+		grid_ranges.resize(grid_number.size());
+		for(size_t i = 0; i != grid_number.size(); i++)
+		{
+			grid_ranges[i] = ub[i] - lb[i];
+			dx[i] = grid_ranges[i]/(TFloat(grid_number[i])*2);
+		}
+	}
+
+	template <typename TIndex, typename TFloat>
+	std::vector<size_t> Quantile<TIndex, TFloat>::get_grid_number() const
+	{
+		return grid_number;
+	}
+
 	template <typename TIndex, typename TFloat>
 	inline TFloat Quantile<TIndex, TFloat>::get_grid_value(size_t current_dimension, size_t index) const
 	{
 		return lb[current_dimension] + index*grid_ranges[current_dimension]/TFloat(grid_number[current_dimension]);
 	}
+
+
+	template <typename TIndex, typename TFloat>
+	size_t Quantile<TIndex, TFloat>::get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value)
+	{
+		size_t it, first = 0;
+		int count = gridn + 1, step;
+		TFloat range_normalized = (ub - lb)/TFloat(gridn);
+		while(count > 0)
+		{
+			it = first;
+			step = count / 2;
+			it += step;
+
+			if(lb + range_normalized*(it + 0.5) < value)
+			{
+				first = ++it;
+				count -= step + 1;
+			}
+			else
+				count = step;
+		}
+		return first;
+	}
+	template <typename TIndex, typename TFloat>
+	size_t Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value)
+	{
+		TFloat range_normalized = (ub - lb)/TFloat(gridn);
+		size_t it = get_lb(lb, ub, gridn, value);
+		if(it >= gridn)
+			return gridn - 1;
+		else if(it == 0)
+			return 0;
+		else
+			return std::abs(lb + range_normalized*(it - 0.5) - value) < std::abs(lb + range_normalized*(it + 0.5) - value) ? it - 1 : it;
+	}
+
+	template <typename TIndex, typename TFloat>
+	TFloat Quantile<TIndex, TFloat>::get_min_delta_from_grid_node(TFloat lb, TFloat ub, size_t gridn, TFloat value)
+	{
+		size_t ind = get_the_closest_grid_node_to_the_value(lb, ub, gridn, value);
+		TFloat range_normalized = (ub - lb)/TFloat(gridn);
+		TFloat node_value = lb + range_normalized*(ind + 0.5);
+		return std::abs(node_value - value);
+	}
+
+	template <typename TIndex, typename TFloat>
+	size_t Quantile<TIndex, TFloat>::get_optimal_gridn_linear(const TFloat lb, const TFloat ub, const TFloat value, const TFloat delta)
+	{
+		TIndex max_gridn = std::numeric_limits<TIndex>::max(), grid_size = 1;
+		while(get_min_delta_from_grid_node(lb, ub, grid_size, value) > delta)
+		{
+			++grid_size;
+		}
+		return size_t(grid_size);
+	}
+
 
 	template <typename TIndex, typename TFloat>
 	class ExplicitQuantile : public Quantile<TIndex, TFloat>
@@ -102,9 +199,13 @@ namespace mveqf
 	protected:
 		//using Quantile<TIndex, TFloat>::grids;
 		using Quantile<TIndex, TFloat>::grid_number;
+
+		using Quantile<TIndex, TFloat>::lb;
+		using Quantile<TIndex, TFloat>::ub;
 		using Quantile<TIndex, TFloat>::dx;
 
 		using Quantile<TIndex, TFloat>::get_grid_value;
+		using Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
 
 		typedef std::vector<std::vector<TFloat>> sample_type;
 		std::shared_ptr<sample_type> sample;
@@ -120,6 +221,7 @@ namespace mveqf
 		ExplicitQuantile& operator=(const ExplicitQuantile&) = delete;
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample);
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
@@ -147,6 +249,23 @@ namespace mveqf
 			sample->push_back(temp);
 		}
 	}
+
+	template <typename TIndex, typename TFloat>
+	void ExplicitQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TFloat>> &in_sample)
+	{
+		sample = std::make_shared< std::vector<std::vector<TFloat>> >();
+		for(size_t i = 0; i != in_sample.size(); ++i)
+		{
+			std::vector<TFloat> temp;
+			for(size_t j = 0; j != in_sample[i].size(); ++j)
+			{
+				TIndex index = get_the_closest_grid_node_to_the_value(lb[i], ub[i], grid_number[i], in_sample[i][j]);
+				temp.push_back(get_grid_value(j, index) + dx[j]);
+			}
+			sample->push_back(temp);
+		}
+	}
+
 	template <typename TIndex, typename TFloat>
 	void ExplicitQuantile<TIndex, TFloat>::set_sample_shared(std::shared_ptr<sample_type> in_sample)
 	{

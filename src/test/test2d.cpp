@@ -79,9 +79,6 @@ void test_2d2()
 	std::cout << "--------->   total time: " << time_cpp11.elapsed_seconds() << std::endl;
 }
 
-
-
-
 std::vector<double> test_2d_time(std::vector<size_t> gridN, std::vector<float> lb, std::vector<float> ub, size_t Nsamples, size_t Nrolls)
 {
 	std::mt19937_64 generator;

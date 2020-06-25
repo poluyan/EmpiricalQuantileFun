@@ -171,7 +171,7 @@ void perform_tests(TFloat lb, TFloat ub, const std::vector<size_t> &gridn, const
 	  gridn);
 	qims.set_sample(sample);
 	check_transform<TFloat, TIndex>(qims, gridn, "maps/sampled_implicit_sorted.dat", nrolls);
-	
+
 	mveqf::ImplicitQuantileSortedInterp<TIndex, TFloat> qimsi(
 	  std::vector<TFloat>(gridn.size(), lb),
 	  std::vector<TFloat>(gridn.size(), ub),

@@ -885,6 +885,31 @@ namespace testNd
 	}
 
 
+	void test_Nd_discrete()
+	{
 
+//	std::vector<std::vector<float>> sample =
+//	{
+//		{-0.42146,0.3123},
+//		{0.61162,0.12},
+//		{0.5366121,-0.346982}
+//	};
+
+		std::mt19937_64 generator;
+		generator.seed(1);
+		std::uniform_real_distribution<double> dist(-1.0, 1.0);
+
+		std::vector<std::vector<double>> sample(50, std::vector<double>(10));
+
+		for(auto & i : sample)
+		{
+			for(auto & j : i)
+			{
+				j = dist(generator);
+			}
+		}
+
+		explicit_quantile_descrete<int, double>(-1.0, 1.0, sample, 1e+4);
+	}
 
 }

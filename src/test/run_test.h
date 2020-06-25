@@ -26,6 +26,7 @@
 #include <test/test1d.h>
 #include <test/test2d.h>
 #include <test/test3d.h>
+#include <test/testNd.h>
 #include <utility/data_io.h>
 #include <test/test_kde.h>
 #include <kquantile.h>
@@ -509,10 +510,12 @@ void run_test()
 //    test_1d5();
 
 
-	test_2d1();
+//	test_2d1();
 //	test_2d2();
 //    test_3d1();
 //	test_3d2();
+
+	testNd::test_Nd_discrete();
 
 //    test_1d_func();
 //    test_2d_func();
