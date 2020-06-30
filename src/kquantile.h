@@ -18,7 +18,7 @@
 #ifndef KQUANTILE_H
 #define KQUANTILE_H
 
-#include <quantile.h>
+#include <implicit.h>
 #include <kde.h>
 #include <mvff.h>
 //#include <utility/timer.h>

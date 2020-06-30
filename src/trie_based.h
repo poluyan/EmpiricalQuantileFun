@@ -29,30 +29,6 @@ namespace mveqf
 {
 	namespace trie_based
 	{
-		template <template <typename> class T, typename TIndex>
-		struct TrieNode
-		{
-			TIndex index;
-			std::vector<std::shared_ptr<T<TIndex>>> children;
-			TrieNode() : index(0) { }
-			TrieNode(TIndex ind) : index(ind) { }
-		};
-
-		template <typename TIndex>
-		struct Node: public TrieNode<Node, TIndex>
-		{
-			Node() : TrieNode<Node, TIndex>() {}
-			Node(TIndex ind) : TrieNode<Node, TIndex>(ind) {}
-		};
-
-		template <typename TIndex>
-		struct NodeCount: public TrieNode<NodeCount, TIndex>
-		{
-			size_t count;
-			NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
-			NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
-		};
-
 		template <typename TNode, typename TIndex>
 		class TrieBased
 		{

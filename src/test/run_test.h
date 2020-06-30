@@ -21,7 +21,8 @@
 
 #include <utility/timer.h>
 #include <trie_based.h>
-#include <quantile.h>
+#include <explicit.h>
+#include <implicit.h>
 #include <test/test.h>
 #include <test/test1d.h>
 #include <test/test2d.h>

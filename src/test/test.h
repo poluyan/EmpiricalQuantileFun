@@ -20,7 +20,8 @@
 #define TEST_H
 
 #include <trie_based.h>
-#include <quantile.h>
+#include <explicit.h>
+#include <implicit.h>
 
 #include <utility/data_io.h>
 #include <utility/timer.h>
