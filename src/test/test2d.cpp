@@ -907,6 +907,206 @@ void test_2d_uniform_vs_nonuniform_trie()
 	}
 }
 
+
+
+void test_2d_random_area_trie()
+{
+	size_t pnumber = 50, dim = 2;
+
+//5, 3
+//18 0
+//14 24
+//18 2
+//22 17
+//3 15
+//31 5
+//16 6
+//11 21
+//18 7
+//11 20
+//18 8
+//12 3
+//4 1
+//27 17
+//31 10
+
+//	std::vector<size_t> gridn = {40, 27};
+//	auto sample = std::make_shared<mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int>>();
+//	sample->set_dimension(gridn.size());
+//	sample->insert(std::vector<int> {5,3});
+//	sample->insert(std::vector<int> {18,0});
+//	sample->insert(std::vector<int> {14,24});
+//	sample->insert(std::vector<int> {18,2});
+//	sample->insert(std::vector<int> {22,17});
+//	sample->insert(std::vector<int> {3,15});
+//	sample->insert(std::vector<int> {31,5});
+//	sample->insert(std::vector<int> {16,6});
+//	sample->insert(std::vector<int> {11,21});
+//	sample->insert(std::vector<int> {18,7});
+//	sample->insert(std::vector<int> {11,20});
+//	sample->insert(std::vector<int> {18,8});
+//	sample->insert(std::vector<int> {12,3});
+//	sample->insert(std::vector<int> {4,1});
+//	sample->insert(std::vector<int> {27,17});
+//	sample->insert(std::vector<int> {31,10});
+
+	std::mt19937_64 generator;
+	generator.seed(1);
+	std::uniform_real_distribution<double> ureal01(0.0,1.0);
+	std::vector<std::vector<double>> real_sample(pnumber, std::vector<double>(dim));
+	for(auto & i : real_sample)
+	{
+		for(auto & j : i)
+			j = -3.0 + ureal01(generator)*6.0;
+	}
+
+	std::vector<double> number(pnumber,0);
+	std::vector<std::vector<std::vector<double>>> values_n(pnumber);
+	std::vector<std::vector<std::vector<double>>> sampled_n(pnumber);
+
+	std::vector<std::vector<double> > sampled;
+	std::vector<std::vector<double> > values01;
+
+	double lb = -3.0, ub = 3.0;
+
+	mveqf::ImplicitQuantile<int, double> quant;
+	quant.set_grid_from_sample(std::vector<double>(dim, lb), std::vector<double>(dim, ub), real_sample, 0.1);
+	quant.set_sample(real_sample);
+	real_sample = quant.get_real_node_values(real_sample);
+
+//	quant.set_grid_and_gridn(std::vector<double>(dim, lb), std::vector<double>(dim, ub), gridn);
+//	quant.set_sample_shared_and_fill_count(sample);
+
+
+//	mveqf::ImplicitQuantile<int, double> quant(std::vector<double>(gridn.size(), lb), std::vector<double>(gridn.size(), ub), gridn);
+//  quant.set_sample_shared_and_fill_count(sample);
+
+//	empirical_quantile::ExplicitQuantile<int, double> quant(std::vector<double>(gridn.size(), lb), std::vector<double>(gridn.size(), ub), gridn);
+//	quant.set_sample(sample);
+
+	timer::Timer time_cpp11;
+	time_cpp11.reset();
+
+	std::vector<double> temp1(dim);
+	std::vector<double> temp2(temp1.size());
+
+//  for(size_t i = 0; i != nrolls; ++i)
+//  {
+//    for(size_t j = 0; j != temp1.size(); j++)
+//    {
+//      temp1[j] = ureal01(generator);
+//    }
+//    quant.transform(temp1,temp2);
+//    values01.push_back(temp1);
+//    sampled.push_back(temp2);
+//  }
+
+
+	size_t n = 1024;
+	for(size_t x = 0; x != n; ++x)
+	{
+		for(size_t y = 0; y != n; ++y)
+		{
+//      temp1[0] = x / static_cast<double>(n) + 1.0/(2.0*n);
+//      temp1[1] = y / static_cast<double>(n) + 1.0/(2.0*n);
+
+			temp1[0] = x / static_cast<double>(n - 1);
+			temp1[1] = y / static_cast<double>(n - 1);
+
+//      std::cout << temp1[1] << std::endl;
+//      std::cin.get();
+
+			quant.transform(temp1,temp2);
+//      values01.push_back(temp1);
+//      sampled.push_back(temp2);
+
+			size_t min_index = 0;
+			double min_distance = std::sqrt(std::pow(temp2[0] - real_sample[0][0], 2.0) + std::pow(temp2[1] - real_sample[0][1], 2.0));
+			for(size_t i = 1; i < real_sample.size(); i++)
+			{
+				double distance = std::sqrt(std::pow(temp2[0] - real_sample[i][0], 2.0) + std::pow(temp2[1] - real_sample[i][1], 2.0));
+				if(distance < min_distance)
+				{
+					min_distance = distance;
+					min_index = i;
+				}
+			}
+			++number[min_index];
+
+			sampled_n[min_index].push_back(temp2);
+			values_n[min_index].push_back(temp1);
+		}
+	}
+
+	size_t nrolls = 1000;
+	for(size_t k = 0; k != nrolls; ++k)
+	{
+
+		for(size_t j = 0; j != temp1.size(); j++)
+		{
+			temp1[j] = ureal01(generator);
+		}
+
+		quant.transform(temp1,temp2);
+//    values01.push_back(temp1);
+//    sampled.push_back(temp2);
+
+		size_t min_index = 0;
+		double min_distance = std::sqrt(std::pow(temp2[0] - real_sample[0][0], 2.0) + std::pow(temp2[1] - real_sample[0][1], 2.0));
+		for(size_t i = 1; i < real_sample.size(); i++)
+		{
+			double distance = std::sqrt(std::pow(temp2[0] - real_sample[i][0], 2.0) + std::pow(temp2[1] - real_sample[i][1], 2.0));
+			if(distance < min_distance)
+			{
+				min_distance = distance;
+				min_index = i;
+			}
+		}
+		++number[min_index];
+
+		sampled_n[min_index].push_back(temp2);
+		values_n[min_index].push_back(temp1);
+	}
+
+	for(const auto & i : number)
+	{
+		std::cout << std::fixed << i << std::endl;
+	}
+
+//  for(size_t i = 0; i != 10000; ++i)
+//  {
+//    for(size_t j = 0; j != temp1.size(); j++)
+//    {
+//      temp1[j] = ureal01(generator);
+//    }
+//    quant.transform(temp1,temp2);
+//    values01.push_back(temp1);
+//    sampled.push_back(temp2);
+//  }
+	data_io::write_default2d("maps/sampled_implicit.dat", sampled, 10);
+
+	for(size_t i = 0; i != sampled_n.size(); i++)
+	{
+		std::vector<std::vector<double>> hull;
+		convexHull(sampled_n[i], hull);
+		sampled_n[i].clear();
+		sampled_n[i].shrink_to_fit();
+		data_io::write_default2d("maps/sampled_lines" + std::to_string(i) + ".dat", hull, 10);
+
+		//data_io::write_default2d("maps/sampled_lines" + std::to_string(i) + ".dat", sampled_n[i], 10);
+	}
+	for(size_t i = 0; i != values_n.size(); i++)
+	{
+		std::vector<std::vector<double>> hull;
+		convexHull(values_n[i], hull);
+		values_n[i].clear();
+		values_n[i].shrink_to_fit();
+		data_io::write_default2d("maps/value_lines" + std::to_string(i) + ".dat", hull, 10);
+
+		//data_io::write_default2d("maps/sampled_lines" + std::to_string(i) + ".dat", sampled_n[i], 10);
+	}
+}
+
 //
 
 

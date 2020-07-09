@@ -1,6 +1,6 @@
 TARGET = main
 CPP = clang++
-CPPFLAGS = -c -std=c++17 -stdlib=libstdc++ -Wall -Wextra -Wpedantic -O3 -MD
+CPPFLAGS = -c -std=c++17 -stdlib=libstdc++ -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Woverloaded-virtual -Wno-unused-parameter -O3 -MD
 
 SRCPATH = ./src
 OBJDIR_RELEASE = obj/Release

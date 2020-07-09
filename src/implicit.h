@@ -38,8 +38,6 @@ namespace mveqf
 
 		using Quantile<TIndex, TFloat>::get_grid_value;
 
-		using Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
-
 		std::pair<size_t, size_t> count_less(trie_based::NodeCount<TIndex> *layer, const size_t &r) const;
 		std::pair<size_t, TFloat> quantile_transform(trie_based::NodeCount<TIndex> *layer, size_t ind, TFloat val01) const;
 	public:
@@ -56,12 +54,19 @@ namespace mveqf
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
 		size_t get_node_count() const;
 		size_t get_link_count() const;
+		using Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
+		using Quantile<TIndex, TFloat>::get_real_node_values;
+		~ImplicitQuantile();
 	};
 
 	template <typename TIndex, typename TFloat>
 	ImplicitQuantile<TIndex, TFloat>::ImplicitQuantile(std::vector<TFloat> in_lb,
 	    std::vector<TFloat> in_ub,
 	    std::vector<size_t> in_gridn) : Quantile<TIndex, TFloat>(in_lb, in_ub, in_gridn)
+	{}
+	
+	template <typename TIndex, typename TFloat>
+	ImplicitQuantile<TIndex, TFloat>::~ImplicitQuantile()
 	{}
 
 	template <typename TIndex, typename TFloat>
@@ -104,6 +109,11 @@ namespace mveqf
 			{
 				temp[j] = get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j]);
 			}
+//			for(size_t j = 0; j != temp.size(); j++)
+//			{
+//				std::cout << temp[j] << ' ';
+//			}
+//			std::cout << std::endl;
 			sample->insert(temp);
 		}
 		sample->fill_tree_count();

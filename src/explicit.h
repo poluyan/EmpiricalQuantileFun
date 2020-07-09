@@ -54,12 +54,18 @@ namespace mveqf
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
+		~ExplicitQuantile();
 	};
 
 	template <typename TIndex, typename TFloat>
 	ExplicitQuantile<TIndex, TFloat>::ExplicitQuantile(std::vector<TFloat> in_lb,
 	    std::vector<TFloat> in_ub,
 	    std::vector<size_t> in_gridn): Quantile<TIndex, TFloat>(in_lb, in_ub, in_gridn)
+	{
+	}
+	
+	template <typename TIndex, typename TFloat>
+	ExplicitQuantile<TIndex, TFloat>::~ExplicitQuantile()
 	{
 	}
 

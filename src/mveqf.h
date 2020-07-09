@@ -272,7 +272,10 @@ namespace mveqf
 		}
 		std::vector<U> transform(const std::vector<U>& in01) const
 		{
-			return qf->transform(in01/*, lambda*/);
+			std::vector<U> res(in01.size());
+			//qf->transform(in01/*, lambda*/);
+			qf->transform(in01, res);
+			return res;
 		}
 	};
 }

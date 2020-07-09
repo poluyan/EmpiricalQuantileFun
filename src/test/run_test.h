@@ -516,7 +516,7 @@ void run_test()
 //    test_3d1();
 //	test_3d2();
 
-	testNd::test_Nd_discrete();
+	//testNd::test_Nd_discrete();
 
 //    test_1d_func();
 //    test_2d_func();
@@ -530,6 +530,7 @@ void run_test()
 //    test_2d_uniform_vs_nonuniform();
 
 //	test_2d_uniform_vs_nonuniform_trie();
+	test_2d_random_area_trie();
 
 //    test_grid_10d();
 

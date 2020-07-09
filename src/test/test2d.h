@@ -36,6 +36,7 @@ void worst_space_test_grid_2d();
 void test_2d_uniform_vs_nonuniform();
 
 void test_2d_uniform_vs_nonuniform_trie();
+void test_2d_random_area_trie();
 
 
 void test_2d_discrete();

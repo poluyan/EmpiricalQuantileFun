@@ -20,11 +20,88 @@
 
 #include <trie.h>
 #include <trie_based.h>
+#include <trie_node.h>
+
+#include <iostream>
 
 #include <numeric>
 
 namespace mveqf
 {
+//	template <typename T>
+//	bool increase(const std::vector<std::vector<T>>& v, std::vector<std::size_t>& it)
+//	{
+//		for(std::size_t i = 0, size = it.size(); i != size; ++i)
+//		{
+//			const std::size_t index = size - 1 - i;
+//			++it[index];
+//			if(it[index] == v[index].size())
+//				it[index] = 0;
+//			else
+//				return true;
+//		}
+//		return false;
+//	}
+//	template <typename T>
+//	std::vector<T> do_job(const std::vector<std::vector<T>>& v, std::vector<std::size_t>& it)
+//	{
+//		std::vector<T> rez(v.size());
+//		for(std::size_t i = 0, size = v.size(); i != size; ++i)
+//			rez[i] = v[i][it[i]];
+//		return rez;
+//	}
+
+	template <typename T>
+	bool recur_one(size_t n,
+	               size_t places_left,
+	               bool hit_max,
+	               std::vector<T> &sequnce,
+	               std::vector<T> &result,
+	               size_t& c,
+	               const size_t count)
+	{
+		if(c == count)
+			return false;
+		if(places_left == 0)
+		{
+			++c;
+			if(c == count)
+			{
+				result = sequnce;
+				return true;
+			}
+			return false;
+		}
+		if(places_left == 1 && !hit_max)
+		{
+			sequnce.push_back(n);
+			recur_one(n, 0, true, sequnce, result, c, count);
+			sequnce.pop_back();
+			return false;
+		}
+		for(size_t i = 0; i < n + 1; i++)
+		{
+			sequnce.push_back(i);
+			recur_one(n, places_left - 1, i < n ? hit_max : true, sequnce, result, c, count);
+			sequnce.pop_back();
+		}
+		return false;
+	}
+
+	template <typename T>
+	std::vector<T> return_permutation(size_t n, size_t k, size_t count)
+	{
+		std::vector<T> result;
+		size_t c = 0;
+		for(size_t i = 0; i != n; i++)
+		{
+			std::vector<T> t;
+			if(recur_one(i, k, false, t, result, c, count))
+				break;
+		}
+		return result;
+	}
+
 	template <typename TIndex, typename TFloat>
 	class Quantile
 	{
@@ -36,7 +113,7 @@ namespace mveqf
 		std::vector<TFloat> grid_ranges;
 //		std::vector<std::vector<TFloat>> grids;
 
-		size_t get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value);
+		size_t get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value) const;
 		TFloat get_min_delta_from_grid_node(TFloat lb, TFloat ub, size_t gridn, TFloat value);
 		size_t get_optimal_gridn_linear(const TFloat lb, const TFloat ub, const TFloat value, const TFloat delta);
 	public:
@@ -50,11 +127,18 @@ namespace mveqf
 		virtual void set_sample(const std::vector<std::vector<TFloat>> &in_sample) = 0;
 		inline TFloat get_grid_value(size_t current_dimension, size_t index) const;
 		std::vector<size_t> get_grid_number() const;
-		size_t get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value);
+		std::vector<std::vector<TFloat>> get_real_node_values(const std::vector<std::vector<TFloat>> &in_sample) const;
+		size_t get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value) const;
+		virtual ~Quantile() = 0;
 	};
 
 	template <typename TIndex, typename TFloat>
 	Quantile<TIndex, TFloat>::Quantile()
+	{
+	}
+	
+	template <typename TIndex, typename TFloat>
+	Quantile<TIndex, TFloat>::~Quantile()
 	{
 	}
 
@@ -64,6 +148,20 @@ namespace mveqf
 	                                   std::vector<size_t> in_gridn)
 	{
 		set_grid_and_gridn(in_lb, in_ub, in_gridn);
+	}
+
+	template <typename TIndex, typename TFloat>
+	std::vector<std::vector<TFloat>> Quantile<TIndex, TFloat>::get_real_node_values(const std::vector<std::vector<TFloat>> &in_sample) const
+	{
+		std::vector<std::vector<TFloat>> values = in_sample;
+		for(size_t i = 0; i != in_sample.size(); i++)
+		{
+			for(size_t j = 0; j != in_sample[i].size(); j++)
+			{
+				values[i][j] = get_grid_value(j, get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j])) + dx[j];
+			}
+		}
+		return values;
 	}
 
 	template <typename TIndex, typename TFloat>
@@ -106,15 +204,136 @@ namespace mveqf
 		ub = in_ub;
 		grid_number.resize(lb.size(), 1);
 
-		for(size_t i = 0; i != in_sample.size(); i++)
+//		for(size_t i = 0; i != in_sample.size(); i++)
+//		{
+//			for(size_t j = 0; j != in_sample[i].size(); j++)
+//			{
+//				size_t current_grid = get_optimal_gridn_linear(lb[j], ub[j], in_sample[i][j], delta);
+//				if(current_grid > grid_number[j])
+//					grid_number[j] = current_grid;
+//			}
+//		}
+
+		std::cout << "init grid" << std::endl;
+		for(size_t i = 0; i != grid_number.size(); i++)
 		{
-			for(size_t j = 0; j != in_sample[i].size(); j++)
+			std::cout << grid_number[i] << ' ';
+		}
+		std::cout << std::endl;
+
+
+//		std::vector<size_t> init_grid_number(grid_number.size());
+//		for(size_t i = 0; i != init_grid_number.size(); i++)
+//			init_grid_number[i] = 2000;//std::numeric_limits<TIndex>::max() - 1;
+//		std::vector<std::vector<int>> variable_values(init_grid_number.size());
+//		for(size_t i = 0; i != variable_values.size(); i++)
+//		{
+//			variable_values[i].resize(init_grid_number[i]);
+//			for(size_t j = 0; j != variable_values[i].size(); j++)
+//			{
+//				variable_values[i][j] = j;
+//			}
+//		}
+//		std::vector<std::size_t> it(variable_values.size(), 0);
+//		std::vector<std::vector<int>> temp;
+//
+//		do
+//		{
+//			auto val = do_job(variable_values, it);
+//			auto current_grid = grid_number;
+//			for(size_t i = 0; i != current_grid.size(); i++)
+//			{
+//				current_grid[i] += val[i];
+//				std::cout << current_grid[i] << ' ';
+//			}
+//			std::cout << std::endl;
+////			std::cin.get();
+//
+//			bool unique = true;
+//			auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
+//			sample->set_dimension(current_grid.size());
+//			for(size_t i = 0; i != in_sample.size(); ++i)
+//			{
+//				std::vector<TIndex> temp(in_sample[i].size());
+//				for(size_t j = 0; j != in_sample[i].size(); ++j)
+//				{
+//					temp[j] = get_the_closest_grid_node_to_the_value(lb[j], ub[j], current_grid[j], in_sample[i][j]);
+//				}
+//				if(!sample->search(temp))
+//					sample->insert(temp);
+//				else
+//				{
+//					unique = false;
+//					break;
+//				}
+//			}
+//			if(unique)
+//			{
+//				grid_number = current_grid;
+//
+//				std::cout << "new grid" << std::endl;
+//				for(size_t i = 0; i != grid_number.size(); i++)
+//				{
+//					std::cout << grid_number[i] << ' ';
+//				}
+//				std::cout << std::endl;
+//
+//				break;
+//			}
+//		}
+//		while(increase(variable_values, it));
+
+		std::vector<size_t> init_grid_number(grid_number.size());
+		for(size_t i = 0; i != init_grid_number.size(); i++)
+			init_grid_number[i] = std::numeric_limits<TIndex>::max() > 256 ? 1024 : 256;
+		for(size_t i = 1; i != 1e7; i++)
+		{
+			auto val = return_permutation<TIndex>(256, init_grid_number.size(), i);
+			auto current_grid = grid_number;
+			for(size_t i = 0; i != current_grid.size(); i++)
 			{
-				size_t current_grid = get_optimal_gridn_linear(lb[j], ub[j], in_sample[i][j], delta);
-				if(current_grid > grid_number[j])
-					grid_number[j] = current_grid;
+				current_grid[i] += val[i];
+				std::cout << current_grid[i] << ' ';
+			}
+			std::cout << std::endl;
+//			std::cin.get();
+
+			bool unique = true;
+			auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
+			sample->set_dimension(current_grid.size());
+			for(size_t i = 0; i != in_sample.size(); ++i)
+			{
+				std::vector<TIndex> temp(in_sample[i].size());
+				for(size_t j = 0; j != in_sample[i].size(); ++j)
+				{
+					temp[j] = get_the_closest_grid_node_to_the_value(lb[j], ub[j], current_grid[j], in_sample[i][j]);
+				}
+				if(!sample->search(temp))
+					sample->insert(temp);
+				else
+				{
+					unique = false;
+					break;
+				}
+			}
+			if(unique)
+			{
+				grid_number = current_grid;
+
+				std::cout << "new grid" << std::endl;
+				for(size_t i = 0; i != grid_number.size(); i++)
+				{
+					std::cout << grid_number[i] << ' ';
+				}
+				std::cout << std::endl;
+				break;
 			}
 		}
+		for(size_t i = 0; i != grid_number.size(); i++)
+		{
+			std::cout << grid_number[i] << ' ';
+		}
+		std::cout << std::endl;
 
 		dx.resize(grid_number.size());
 		grid_ranges.resize(grid_number.size());
@@ -139,7 +358,7 @@ namespace mveqf
 
 
 	template <typename TIndex, typename TFloat>
-	size_t Quantile<TIndex, TFloat>::get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value)
+	size_t Quantile<TIndex, TFloat>::get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value) const
 	{
 		size_t it, first = 0;
 		int count = gridn + 1, step;
@@ -161,7 +380,7 @@ namespace mveqf
 		return first;
 	}
 	template <typename TIndex, typename TFloat>
-	size_t Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value)
+	size_t Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value) const
 	{
 		TFloat range_normalized = (ub - lb)/TFloat(gridn);
 		size_t it = get_lb(lb, ub, gridn, value);
