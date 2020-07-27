@@ -22,7 +22,7 @@
 #include <trie_based.h>
 #include <trie_node.h>
 
-#include <iostream>
+//#include <iostream>
 
 #include <numeric>
 
@@ -120,11 +120,12 @@ namespace mveqf
 		explicit Quantile();
 		explicit Quantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
 		void set_grid_and_gridn(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
-		void set_grid_from_sample(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, const std::vector<std::vector<TFloat>> &in_sample, const TFloat delta);
+		void set_grid_from_sample(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, const std::vector<std::vector<TFloat>> &in_sample);
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const = 0;
 		virtual void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const = 0;
 		virtual void set_sample(const std::vector<std::vector<TIndex>> &in_sample) = 0;
 		virtual void set_sample(const std::vector<std::vector<TFloat>> &in_sample) = 0;
+		virtual void set_sample(const std::vector<std::vector<TFloat>> &in_sample, const std::vector<size_t> &weights) = 0;
 		inline TFloat get_grid_value(size_t current_dimension, size_t index) const;
 		std::vector<size_t> get_grid_number() const;
 		std::vector<std::vector<TFloat>> get_real_node_values(const std::vector<std::vector<TFloat>> &in_sample) const;
@@ -136,7 +137,7 @@ namespace mveqf
 	Quantile<TIndex, TFloat>::Quantile()
 	{
 	}
-	
+
 	template <typename TIndex, typename TFloat>
 	Quantile<TIndex, TFloat>::~Quantile()
 	{
@@ -198,28 +199,36 @@ namespace mveqf
 
 
 	template <typename TIndex, typename TFloat>
-	void Quantile<TIndex, TFloat>::set_grid_from_sample(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, const std::vector<std::vector<TFloat>> &in_sample, const TFloat delta)
+	void Quantile<TIndex, TFloat>::set_grid_from_sample(const std::vector<TFloat> in_lb, const std::vector<TFloat> in_ub, const std::vector<std::vector<TFloat>> &in_sample)
 	{
 		lb = in_lb;
 		ub = in_ub;
 		grid_number.resize(lb.size(), 1);
 
+//		TFloat min_range = std::numeric_limits<TFloat>::max();
+//		for(size_t i = 0; i != lb.size(); i++)
+//		{
+//			TFloat range = ub[i] - lb[i];
+//			if(min_range < range)
+//				min_range = range;
+//		}
+//		TFloat init_delta = min_range/10;
 //		for(size_t i = 0; i != in_sample.size(); i++)
 //		{
 //			for(size_t j = 0; j != in_sample[i].size(); j++)
 //			{
-//				size_t current_grid = get_optimal_gridn_linear(lb[j], ub[j], in_sample[i][j], delta);
+//				size_t current_grid = get_optimal_gridn_linear(lb[j], ub[j], in_sample[i][j], init_delta);
 //				if(current_grid > grid_number[j])
 //					grid_number[j] = current_grid;
 //			}
 //		}
 
-		std::cout << "init grid" << std::endl;
-		for(size_t i = 0; i != grid_number.size(); i++)
-		{
-			std::cout << grid_number[i] << ' ';
-		}
-		std::cout << std::endl;
+//		std::cout << "init grid" << std::endl;
+//		for(size_t i = 0; i != grid_number.size(); i++)
+//		{
+//			std::cout << grid_number[i] << ' ';
+//		}
+//		std::cout << std::endl;
 
 
 //		std::vector<size_t> init_grid_number(grid_number.size());
@@ -286,20 +295,20 @@ namespace mveqf
 		std::vector<size_t> init_grid_number(grid_number.size());
 		for(size_t i = 0; i != init_grid_number.size(); i++)
 			init_grid_number[i] = std::numeric_limits<TIndex>::max() > 256 ? 1024 : 256;
-		for(size_t i = 1; i != 1e7; i++)
+		size_t search_range = std::numeric_limits<TIndex>::max() > 256 ? 1024 : 256;
+		bool all_unique = false;
+		for(size_t count = 1; !all_unique; count++)
 		{
-			auto val = return_permutation<TIndex>(256, init_grid_number.size(), i);
+			auto val = return_permutation<TIndex>(search_range, init_grid_number.size(), count);
 			auto current_grid = grid_number;
 			for(size_t i = 0; i != current_grid.size(); i++)
 			{
 				current_grid[i] += val[i];
-				std::cout << current_grid[i] << ' ';
 			}
-			std::cout << std::endl;
 //			std::cin.get();
 
-			bool unique = true;
-			auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
+			all_unique = true;
+			auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<TIndex>,TIndex>>();
 			sample->set_dimension(current_grid.size());
 			for(size_t i = 0; i != in_sample.size(); ++i)
 			{
@@ -312,28 +321,19 @@ namespace mveqf
 					sample->insert(temp);
 				else
 				{
-					unique = false;
+					all_unique = false;
 					break;
 				}
 			}
-			if(unique)
-			{
+			if(all_unique)
 				grid_number = current_grid;
-
-				std::cout << "new grid" << std::endl;
-				for(size_t i = 0; i != grid_number.size(); i++)
-				{
-					std::cout << grid_number[i] << ' ';
-				}
-				std::cout << std::endl;
-				break;
-			}
 		}
-		for(size_t i = 0; i != grid_number.size(); i++)
-		{
-			std::cout << grid_number[i] << ' ';
-		}
-		std::cout << std::endl;
+//		std::cout << "new grid" << std::endl;
+//		for(size_t i = 0; i != grid_number.size(); i++)
+//		{
+//			std::cout << grid_number[i] << ' ';
+//		}
+//		std::cout << std::endl;
 
 		dx.resize(grid_number.size());
 		grid_ranges.resize(grid_number.size());

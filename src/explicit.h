@@ -34,7 +34,6 @@ namespace mveqf
 		using Quantile<TIndex, TFloat>::dx;
 
 		using Quantile<TIndex, TFloat>::get_grid_value;
-		using Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
 
 		typedef std::vector<std::vector<TFloat>> sample_type;
 		std::shared_ptr<sample_type> sample;
@@ -51,9 +50,11 @@ namespace mveqf
 		using Quantile<TIndex, TFloat>::set_grid_and_gridn;
 		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
+		void set_sample(const std::vector<std::vector<TFloat>> &in_sample, const std::vector<size_t> &weights) override;
 		void set_sample_shared(std::shared_ptr<sample_type> in_sample);
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TIndex>& out) const override;
+		using Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value;
 		~ExplicitQuantile();
 	};
 
@@ -63,7 +64,7 @@ namespace mveqf
 	    std::vector<size_t> in_gridn): Quantile<TIndex, TFloat>(in_lb, in_ub, in_gridn)
 	{
 	}
-	
+
 	template <typename TIndex, typename TFloat>
 	ExplicitQuantile<TIndex, TFloat>::~ExplicitQuantile()
 	{
@@ -98,6 +99,23 @@ namespace mveqf
 				temp.push_back(get_grid_value(j, index) + dx[j]);
 			}
 			sample->push_back(temp);
+		}
+	}
+
+	template <typename TIndex, typename TFloat>
+	void ExplicitQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TFloat>> &in_sample, const std::vector<size_t> &weights)
+	{
+		sample = std::make_shared< std::vector<std::vector<TFloat>> >();
+		for(size_t i = 0; i != in_sample.size(); ++i)
+		{
+			std::vector<TFloat> temp;
+			for(size_t j = 0; j != in_sample[i].size(); ++j)
+			{
+				TIndex index = get_the_closest_grid_node_to_the_value(lb[j], ub[j], grid_number[j], in_sample[i][j]);
+				temp.push_back(get_grid_value(j, index) + dx[j]);
+			}
+			for(size_t j = 0; j != weights[i]; j++)
+				sample->push_back(temp);
 		}
 	}
 

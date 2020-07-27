@@ -970,7 +970,7 @@ void test_2d_random_area_trie()
 	double lb = -3.0, ub = 3.0;
 
 	mveqf::ImplicitQuantile<int, double> quant;
-	quant.set_grid_from_sample(std::vector<double>(dim, lb), std::vector<double>(dim, ub), real_sample, 0.1);
+	quant.set_grid_from_sample(std::vector<double>(dim, lb), std::vector<double>(dim, ub), real_sample);
 	quant.set_sample(real_sample);
 	real_sample = quant.get_real_node_values(real_sample);
 

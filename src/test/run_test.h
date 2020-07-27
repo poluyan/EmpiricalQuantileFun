@@ -32,7 +32,9 @@
 #include <test/test_kde.h>
 #include <kquantile.h>
 #include <mveqf.h>
+
 #include <random>
+#include <vector>
 
 void test_mveqf()
 {
@@ -530,7 +532,9 @@ void run_test()
 //    test_2d_uniform_vs_nonuniform();
 
 //	test_2d_uniform_vs_nonuniform_trie();
-	test_2d_random_area_trie();
+	//test_2d_random_area_trie();
+	
+	ot_1d<double>();
 
 //    test_grid_10d();
 

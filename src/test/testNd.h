@@ -124,8 +124,7 @@ namespace testNd
 		quant.set_grid_from_sample(
 		  std::vector<TFloat>(sample.front().size(), lb),
 		  std::vector<TFloat>(sample.front().size(), ub),
-		  sample,
-		  1.0e-6);
+		  sample);
 		quant.set_sample(sample);
 		
 		auto gridn = quant.get_grid_number();
