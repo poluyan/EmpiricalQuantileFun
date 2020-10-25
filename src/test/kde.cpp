@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #include <kde.h>
 #include <utility/data_io.h>
 #include <random>

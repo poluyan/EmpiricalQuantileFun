@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #ifndef KDE_H
 #define KDE_H
 

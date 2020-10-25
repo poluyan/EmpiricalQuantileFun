@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #include <test/test.h>
 #include <utility/timer.h>
 #include <utility/data_io.h>

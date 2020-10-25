@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #ifndef MVFF_H
 #define MVFF_H
 

@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #ifndef TRIE_H
 #define TRIE_H
 

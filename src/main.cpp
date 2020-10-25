@@ -15,7 +15,6 @@
    limitations under the License.
 
 **************************************************************************/
-
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -24,7 +23,24 @@
 #include <algorithm>
 #include <test/run_test.h>
 
+size_t total_allocatated = 0;
+
+void* operator new(size_t n)
+{
+//	std::cout << n << " bytes allocated" << std::endl;
+	//return std::malloc(n); // аллокатор
+
+	total_allocatated += n;
+
+	void *ptr = std::malloc(n);
+	if(ptr)
+		return ptr;
+	else
+		throw std::bad_alloc{};
+}
+
 int main()
 {
 	run_test();
+	std::cout << "total_allocatated = " << total_allocatated << std::endl;
 }

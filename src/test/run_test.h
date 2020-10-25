@@ -513,7 +513,7 @@ void run_test()
 //    test_1d5();
 
 
-//	test_2d1();
+	test_2d1();
 //	test_2d2();
 //    test_3d1();
 //	test_3d2();
@@ -534,7 +534,7 @@ void run_test()
 //	test_2d_uniform_vs_nonuniform_trie();
 	//test_2d_random_area_trie();
 	
-	ot_1d<double>();
+//	ot_1d<double>();
 
 //    test_grid_10d();
 

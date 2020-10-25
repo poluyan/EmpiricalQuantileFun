@@ -15,12 +15,12 @@
    limitations under the License.
 
 **************************************************************************/
-
 #ifndef TRIE_NODE_H
 #define TRIE_NODE_H
 
 #include <vector>
 #include <memory>
+#include <cstvect.h>
 
 namespace mveqf
 {
@@ -31,6 +31,7 @@ namespace mveqf
 		{
 			TIndex index;
 			std::vector<std::shared_ptr<T<TIndex>>> children;
+//			cst::vector<std::shared_ptr<T<TIndex>>> children;
 			TrieNode() : index(0) { }
 			TrieNode(TIndex ind) : index(ind) { }
 		};
