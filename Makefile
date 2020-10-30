@@ -3,6 +3,7 @@ CPP = clang++
 CPPFLAGS = -c -std=c++17 -stdlib=libstdc++ -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Woverloaded-virtual -Wno-unused-parameter -O3 -MD
 
 SRCPATH = ./src
+MVEQFPATH = ./mveqf
 OBJDIR_RELEASE = obj/Release
 OBJ_RELEASE = \
 	$(OBJDIR_RELEASE)/main.o \
@@ -15,20 +16,27 @@ OBJ_RELEASE = \
 	$(OBJDIR_RELEASE)/kde.o 
 
 HEADERS = \
-	$(SRCPATH)/trie_based.h \
-	$(SRCPATH)/trie.h \
+	$(MVEQFPATH)/trie_based.h \
+	$(MVEQFPATH)/trie_node.h \
+	$(MVEQFPATH)/trie.h \
+	$(MVEQFPATH)/kde.h \
+	$(MVEQFPATH)/mvff.h \
+	$(MVEQFPATH)/mfsa.h \
+	$(MVEQFPATH)/mveqf.h \
+	$(MVEQFPATH)/quantile.h \
+	$(MVEQFPATH)/explicit.h \
+	$(MVEQFPATH)/implicit.h \
+	$(MVEQFPATH)/kquantile.h \
+	$(MVEQFPATH)/experimental.h \
+	$(MVEQFPATH)/sdot.h \
+	$(MVEQFPATH)/cstvect.h \
 	$(SRCPATH)/utility/timer.h \
 	$(SRCPATH)/utility/data_io.h \
-	$(SRCPATH)/quantile.h \
 	$(SRCPATH)/test/test.h \
 	$(SRCPATH)/test/test1d.h \
 	$(SRCPATH)/test/test2d.h \
 	$(SRCPATH)/test/test3d.h \
 	$(SRCPATH)/test/testNd.h \
-	$(SRCPATH)/kquantile.h \
-	$(SRCPATH)/kde.h \
-	$(SRCPATH)/mvff.h \
-	$(SRCPATH)/mveqf.h \
 	$(SRCPATH)/test/test_kde.h 
 
 all: release
@@ -44,21 +52,21 @@ out_release: $(OBJ_RELEASE) $(HEADERS)
 	$(CPP) -o $(TARGET) $(OBJDIR_RELEASE)/*.o -pthread
 
 $(OBJDIR_RELEASE)/main.o: $(SRCPATH)/main.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/main.cpp -o $(OBJDIR_RELEASE)/main.o
 $(OBJDIR_RELEASE)/timer.o: $(SRCPATH)/utility/timer.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/utility/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/utility/timer.cpp -o $(OBJDIR_RELEASE)/timer.o
 $(OBJDIR_RELEASE)/test.o: $(SRCPATH)/test/test.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test.cpp -o $(OBJDIR_RELEASE)/test.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/test/test.cpp -o $(OBJDIR_RELEASE)/test.o
 $(OBJDIR_RELEASE)/test1d.o: $(SRCPATH)/test/test.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test1d.cpp -o $(OBJDIR_RELEASE)/test1d.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/test/test1d.cpp -o $(OBJDIR_RELEASE)/test1d.o
 $(OBJDIR_RELEASE)/test2d.o: $(SRCPATH)/test/test2d.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test2d.cpp -o $(OBJDIR_RELEASE)/test2d.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/test/test2d.cpp -o $(OBJDIR_RELEASE)/test2d.o
 $(OBJDIR_RELEASE)/test3d.o: $(SRCPATH)/test/test3d.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/test3d.cpp -o $(OBJDIR_RELEASE)/test3d.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/test/test3d.cpp -o $(OBJDIR_RELEASE)/test3d.o
 $(OBJDIR_RELEASE)/testNd.o: $(SRCPATH)/test/testNd.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/testNd.cpp -o $(OBJDIR_RELEASE)/testNd.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/test/testNd.cpp -o $(OBJDIR_RELEASE)/testNd.o
 $(OBJDIR_RELEASE)/kde.o: $(SRCPATH)/test/kde.cpp
-	$(CPP) $(CPPFLAGS) -I$(SRCPATH) $(SRCPATH)/test/kde.cpp -o $(OBJDIR_RELEASE)/kde.o
+	$(CPP) $(CPPFLAGS) -I$(MVEQFPATH) -I$(SRCPATH) $(SRCPATH)/test/kde.cpp -o $(OBJDIR_RELEASE)/kde.o
 
 clean_release:
 	rm $(OBJDIR_RELEASE)/*.o
