@@ -18,9 +18,9 @@
 #ifndef TRIE_NODE_H
 #define TRIE_NODE_H
 
-#include <vector>
 #include <memory>
 #include <cstvect.h>
+//#include <vector>
 
 namespace mveqf
 {
@@ -30,8 +30,8 @@ namespace mveqf
 		struct TrieNode
 		{
 			TIndex index;
-			std::vector<std::shared_ptr<T<TIndex>>> children;
-//			cst::vector<std::shared_ptr<T<TIndex>>> children;
+//			std::vector<std::shared_ptr<T<TIndex>>> children;
+			cst::vector<std::shared_ptr<T<TIndex>>> children;
 			TrieNode() : index(0) { }
 			TrieNode(TIndex ind) : index(ind) { }
 		};
@@ -49,6 +49,15 @@ namespace mveqf
 			size_t count;
 			NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
 			NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
+		};
+
+		template <typename TIndex>
+		struct NodeCountInverse: public TrieNode<NodeCountInverse, TIndex>
+		{
+			size_t count;
+			std::weak_ptr<NodeCountInverse> parent;
+			NodeCountInverse() : TrieNode<NodeCountInverse, TIndex>(), count(0) {}
+			NodeCountInverse(TIndex ind) : TrieNode<NodeCountInverse, TIndex>(ind), count(0) {}
 		};
 	}
 }

@@ -20,7 +20,7 @@
 
 #include <vector>
 #include <map>
-#include <unordered_map>
+//#include <unordered_map>
 #include <algorithm>
 #include <memory>
 
@@ -31,13 +31,13 @@ namespace mveqf
 		template <typename TNode, typename TIndex>
 		class TrieBased
 		{
-		protected:
-			size_t dimension;
 		public:
 			std::shared_ptr<TNode> root;
 			std::vector<std::shared_ptr<TNode>> last_layer;
-			TrieBased();
-			TrieBased(size_t dim);
+			explicit TrieBased();
+			explicit TrieBased(size_t dim);
+			TrieBased(const TrieBased&) = delete;
+			TrieBased& operator=(const TrieBased&) = delete;
 			~TrieBased();
 			void set_dimension(size_t dim);
 			size_t get_dimension() const;
@@ -60,16 +60,17 @@ namespace mveqf
 			void get_number(TNode *p, size_t &count) const;
 			void is_all_empty(TNode *p) const;
 			void delete_last(int dim);
+			size_t dimension;
 		};
 		template <typename TNode, typename TIndex>
-		TrieBased<TNode,TIndex>::TrieBased()
+		TrieBased<TNode,TIndex>::TrieBased() : root(std::make_shared<TNode>())
 		{
-			root = std::make_shared<TNode>();
+			//root = std::make_shared<TNode>();
 		}
 		template <typename TNode, typename TIndex>
-		TrieBased<TNode,TIndex>::TrieBased(size_t dim) : dimension(dim)
+		TrieBased<TNode,TIndex>::TrieBased(size_t dim) : root(std::make_shared<TNode>()), dimension(dim)
 		{
-			root = std::make_shared<TNode>();
+//			root = std::make_shared<TNode>();
 		}
 		template <typename TNode, typename TIndex>
 		TrieBased<TNode,TIndex>::~TrieBased() {}
@@ -173,11 +174,11 @@ namespace mveqf
 				dist = std::distance(last_layer.begin(), it);
 			}
 
-			it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
+			auto iter = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 			{
 				return obj->index == value;
 			});
-			if(it == p->children.end())
+			if(iter == p->children.end())
 			{
 				std::shared_ptr<TNode> ptr(last_layer[dist]);
 				p->children.emplace_back(ptr);
@@ -228,11 +229,11 @@ namespace mveqf
 //        last_layer[dist]->count += count;
 			}
 			p->count += count;
-			it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
+			auto iter = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
 			{
 				return obj->index == value;
 			});
-			if(it == p->children.end())
+			if(iter == p->children.end())
 			{
 				std::shared_ptr<TNode> ptr(last_layer[dist]);
 				p->children.emplace_back(ptr);
@@ -384,6 +385,142 @@ namespace mveqf
 			layer_count(cur_layer, root.get(), layers);
 			layers.erase(std::prev(layers.end()));
 			return layers;
+		}
+
+		template <typename TNode, typename TIndex>
+		class TrieBasedInverse : public TrieBased<TNode, TIndex>
+		{
+		public:
+			using TrieBased<TNode, TIndex>::root;
+			using TrieBased<TNode, TIndex>::last_layer;
+
+			TrieBasedInverse();
+			TrieBasedInverse(size_t dim);
+			void insert(const std::vector<TIndex> &key);
+			void insert(const std::vector<TIndex> &key, size_t number);
+		};
+
+		template <typename TNode, typename TIndex>
+		TrieBasedInverse<TNode,TIndex>::TrieBasedInverse() : TrieBased<TNode, TIndex>() { }
+
+		template <typename TNode, typename TIndex>
+		TrieBasedInverse<TNode,TIndex>::TrieBasedInverse(size_t dim) : TrieBased<TNode, TIndex>(dim) {	}
+
+		template <typename TNode, typename TIndex>
+		void TrieBasedInverse<TNode,TIndex>::insert(const std::vector<TIndex> &key)
+		{
+			auto p = root.get();
+			auto shrd = root;
+			for(size_t i = 0; i != key.size() - 1; i++)
+			{
+				auto value = key[i];
+				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
+				{
+					return obj->index == value;
+				});
+				if(it == p->children.end())
+				{
+					p->children.emplace_back(std::make_shared<TNode>(value));
+					p->children.shrink_to_fit();
+					p->children.back()->parent = shrd;
+					shrd = p->children.back();
+					p = p->children.back().get();
+				}
+				else
+				{
+					shrd = p->children[std::distance(p->children.begin(), it)];
+					p = p->children[std::distance(p->children.begin(), it)].get();
+				}
+			}
+			auto value = key.back();
+			auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<TNode> &obj)
+			{
+				return obj->index == value;
+			});
+			size_t dist = 0;
+			if(it == last_layer.end())
+			{
+				last_layer.emplace_back(std::make_shared<TNode>(value));
+				last_layer.shrink_to_fit();
+				dist = last_layer.size() - 1;
+			}
+			else
+			{
+				dist = std::distance(last_layer.begin(), it);
+			}
+
+			auto iter = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
+			{
+				return obj->index == value;
+			});
+			if(iter == p->children.end())
+			{
+				std::shared_ptr<TNode> ptr(last_layer[dist]);
+				p->children.emplace_back(ptr);
+				p->children.shrink_to_fit();
+				p->children.back()->parent = shrd;
+			}
+		}
+
+		template <typename TNode, typename TIndex>
+		void TrieBasedInverse<TNode,TIndex>::insert(const std::vector<TIndex> &key, size_t count)
+		{
+			auto p = root.get();
+			auto shrd = root;
+			for(size_t i = 0; i != key.size() - 1; i++)
+			{
+				p->count += count;
+				auto value = key[i];
+				auto it = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
+				{
+					return obj->index == value;
+				});
+				if(it == p->children.end())
+				{
+					p->children.emplace_back(std::make_shared<TNode>(value));
+					p->children.shrink_to_fit();
+					p->children.back()->parent = shrd;
+					shrd = p->children.back();
+					p = p->children.back().get();
+				}
+				else
+				{
+					shrd = p->children[std::distance(p->children.begin(), it)];
+					p = p->children[std::distance(p->children.begin(), it)].get();
+				}
+			}
+			auto value = key.back();
+			auto it = std::find_if(last_layer.begin(), last_layer.end(), [&value](const std::shared_ptr<TNode> &obj)
+			{
+				return obj->index == value;
+			});
+			size_t dist = 0;
+			if(it == last_layer.end())
+			{
+				last_layer.emplace_back(std::make_shared<TNode>(value));
+//        last_layer.back()->count += count;
+				last_layer.back()->count = 1;
+				last_layer.shrink_to_fit();
+				dist = last_layer.size() - 1;
+			}
+			else
+			{
+				dist = std::distance(last_layer.begin(), it);
+				last_layer[dist]->count = 1;
+//        last_layer[dist]->count += count;
+			}
+			p->count += count;
+			auto iter = std::find_if(p->children.begin(), p->children.end(), [&value](const std::shared_ptr<TNode> &obj)
+			{
+				return obj->index == value;
+			});
+			if(iter == p->children.end())
+			{
+				std::shared_ptr<TNode> ptr(last_layer[dist]);
+				p->children.emplace_back(ptr);
+				p->children.shrink_to_fit();
+				p->children.back()->parent = shrd;
+			}
 		}
 	}
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
 
-   Copyright © 2018 Sergey Poluyan <svpoluyan@gmail.com>
+   Copyright © 2020 Sergey Poluyan <svpoluyan@gmail.com>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,15 +15,8 @@
    limitations under the License.
 
 **************************************************************************/
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <string>
-#include <random>
-#include <algorithm>
-#include <test/run_test.h>
+#ifndef MFSA_H
+#define MFSA_H
 
-int main()
-{
-	run_test();
-}
+
+#endif

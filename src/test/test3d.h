@@ -173,7 +173,7 @@ void test_3d_kquantile()
 
 	std::function<T(const std::vector<T> &)> pdffunc = std::bind(&mveqf::kde::KDE<T>::pdf, std::ref(obj), std::placeholders::_1, 1.0);
 
-	auto triess = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto triess = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
 	triess->set_dimension(gridn.size());
 
 	size_t counter = 0, fe_count = 0;
@@ -444,7 +444,7 @@ void test_3d_kquantile2()
 
 	std::function<T(const std::vector<T> &)> pdffunc = std::bind(&mveqf::kde::KDE<T>::pdf, std::ref(obj), std::placeholders::_1, 1.0);
 
-	auto triess = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto triess = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
 	triess->set_dimension(gridn.size());
 
 	size_t counter = 0, fe_count = 0;

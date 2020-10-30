@@ -47,7 +47,7 @@ namespace mveqf
 		template <typename T>
 		void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &grids,
 		    std::vector<std::vector<int>> &pp,
-		    std::shared_ptr<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>> samples,
+		    std::shared_ptr<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>> samples,
 		    const std::vector<T> &dx,
 		    size_t &counter,
 		    size_t &fe_count,

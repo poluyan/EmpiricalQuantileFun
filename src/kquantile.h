@@ -353,7 +353,7 @@ namespace mveqf
 		using mveqf::ImplicitQuantile<T, U>::lb;
 		using mveqf::ImplicitQuantile<T, U>::ub;
 
-		typedef trie_based::Trie<trie_based::NodeCount<T>,T> trie_type;
+		typedef trie::Trie<trie_based::NodeCount<T>,T> trie_type;
 		std::shared_ptr<trie_type> sample;
 
 		using mveqf::ImplicitQuantile<T, U>::count_less;

@@ -144,7 +144,7 @@ namespace mveqf
 	protected:
 		size_t kernel_type;
 		U lambda;
-		std::shared_ptr<trie_based::Trie<trie_based::NodeCount<T>,T>> sample;
+		std::shared_ptr<trie::Trie<trie_based::NodeCount<T>,T>> sample;
 		std::shared_ptr<ImplicitTrieKQuantile<T, U>> qf;
 	public:
 		MVEQF(): kernel_type(0), lambda(1.0) {}
@@ -254,7 +254,7 @@ namespace mveqf
 
 			///
 
-			sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<T>,T>>();
+			sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<T>,T>>();
 			sample->set_dimension(dimension);
 
 //

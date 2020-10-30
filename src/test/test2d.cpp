@@ -305,7 +305,7 @@ void test_2d_func()
 	std::vector<size_t> gridn = {100, 100};
 //    std::vector<size_t> gridn = {50, 50};
 
-	auto sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
 //    auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
 	sample->set_dimension(gridn.size());
 //    std::vector<std::vector<int>> sample;
@@ -503,7 +503,7 @@ void test_2d_uniform_vs_nonuniform()
 
 
 
-	auto sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
 	sample->set_dimension(gridn.size());
 	sample->insert(std::vector<int> {5,5}, 1);
 	sample->insert(std::vector<int> {4,5}, 1);
@@ -719,7 +719,7 @@ void test_2d_uniform_vs_nonuniform_trie()
 //  sample->insert(std::vector<int> {6,3}, 1);
 //  sample->insert(std::vector<int> {6,4}, 1);
 
-	auto sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
 	sample->set_dimension(gridn.size());
 	sample->insert(std::vector<int> {2,6}, 342);
 

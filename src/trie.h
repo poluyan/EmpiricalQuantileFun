@@ -24,7 +24,7 @@
 
 namespace mveqf
 {
-	namespace trie_based
+	namespace trie
 	{
 		template <typename TNode, typename TIndex>
 		class Trie

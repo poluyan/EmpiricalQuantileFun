@@ -153,7 +153,7 @@ void test_2d_kquantile()
 
 
 
-	auto sample = std::make_shared<mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
 	sample->set_dimension(gridn.size());
 	// 10x10
 	/*sample->insert(std::vector<int>{3,2}, 1);

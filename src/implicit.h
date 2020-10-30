@@ -403,13 +403,13 @@ namespace mveqf
 
 		}
 		//if(p->children != sample->last_layer) // bad comparison here
-		if(std::addressof(p->children) != std::addressof(sample->last_layer)) // bad comparison here
+//		if(std::addressof(p->children) != std::addressof(sample->last_layer)) // bad comparison here
+//		{
+		for(auto &i : p->children)
 		{
-			for(auto &i : p->children)
-			{
-				sort_layer(i.get());
-			}
+			sort_layer(i.get());
 		}
+//		}
 	}
 
 
@@ -750,7 +750,7 @@ namespace mveqf
 		using ImplicitQuantile<TIndex, TFloat>::lb;
 		using ImplicitQuantile<TIndex, TFloat>::ub;
 
-		typedef trie_based::Trie<trie_based::NodeCount<TIndex>,TIndex> trie_type;
+		typedef trie::Trie<trie_based::NodeCount<TIndex>,TIndex> trie_type;
 		std::shared_ptr<trie_type> sample;
 
 //		using ImplicitQuantile<TIndex, TFloat>::count_less;

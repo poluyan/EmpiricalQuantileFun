@@ -358,7 +358,7 @@ void test_1d_uniform_vs_nonuniform()
 	sample.push_back(std::vector<int> {9});
 	sample.push_back(std::vector<int> {10});
 
-	typedef mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int> trie_type;
+	typedef mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int> trie_type;
 	std::shared_ptr<trie_type> trie_sample = std::make_shared<trie_type>();
 	trie_sample->insert(std::vector<int> {1},3);
 	trie_sample->insert(std::vector<int> {2},1);
@@ -502,7 +502,7 @@ void test_1d_kquantile()
 {
 	std::vector<size_t> gridn = {12};
 
-	typedef mveqf::trie_based::Trie<mveqf::trie_based::NodeCount<int>,int> trie_type;
+	typedef mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int> trie_type;
 	std::shared_ptr<trie_type> trie_sample = std::make_shared<trie_type>();
 //    trie_sample->insert(std::vector<int> {2},1);
 //    trie_sample->insert(std::vector<int> {3},2);

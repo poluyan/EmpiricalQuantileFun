@@ -533,7 +533,7 @@ void run_test()
 
 //	test_2d_uniform_vs_nonuniform_trie();
 	//test_2d_random_area_trie();
-	
+
 //	ot_1d<double>();
 
 //    test_grid_10d();
@@ -578,7 +578,7 @@ void run_test()
 
 	/// grid and dim test
 //    grid_test_Nd();
-//    dim_test_Nd();
+//	testNd::dim_test_Nd();
 
 
 //    size_t N = 1;
