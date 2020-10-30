@@ -18,8 +18,8 @@
 #ifndef IMPLICIT_H
 #define IMPLICIT_H
 
-#include <trie_node.h>
-#include <quantile.h>
+#include <mveqf/trie_node.h>
+#include <mveqf/quantile.h>
 
 namespace mveqf
 {
@@ -198,11 +198,11 @@ namespace mveqf
 			//m = std::distance(grids[ind].begin(), it);
 
 			std::tie(a, b) = count_less(layer, m);
-			x = a/p;
+			x = static_cast<TFloat>(a)/p;
 
 			if(x < val01)
 			{
-				y = b/p;
+				y = static_cast<TFloat>(b)/p;
 				if(val01 < y)
 					break;
 
@@ -214,7 +214,7 @@ namespace mveqf
 		}
 		if(count == 0)
 		{
-			y = b/p;
+			y = static_cast<TFloat>(b)/p;
 		}
 		if(a == b)
 		{
@@ -268,7 +268,7 @@ namespace mveqf
 			return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 		}
 		size_t index = 0;
-		TIndex target = m;
+		TIndex target = static_cast<TIndex>(m);
 		for(size_t j = 1; j < layer->children.size(); j++)
 		{
 			if(layer->children[j]->index == target)
@@ -526,7 +526,7 @@ namespace mveqf
 				return std::make_pair(layer->children.size() - 1, get_grid_value(ind, layer->children.back()->index) + 2.0*val01*dx[ind]);
 			}
 
-			TIndex target = m;
+			TIndex target = static_cast<TIndex>(m);
 			auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
 			                            [](const std::shared_ptr<trie_based::NodeCount<TIndex>> &l,
 			                               const TIndex &r)
@@ -559,7 +559,7 @@ namespace mveqf
 			}
 			return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 		}
-		TIndex target = m;
+		TIndex target = static_cast<TIndex>(m);
 		auto pos = std::lower_bound(layer->children.begin(), layer->children.end(), target,
 		                            [](const std::shared_ptr<trie_based::NodeCount<TIndex>> &l,
 		                               const TIndex &r)
@@ -660,11 +660,11 @@ namespace mveqf
 			//m = std::distance(grids[ind].begin(), it);
 
 			std::tie(a, b) = count_less(layer, m);
-			f1 = a/sample_size_u;
+			f1 = static_cast<TFloat>(a)/sample_size_u;
 
 			if(f1 < val01)
 			{
-				f2 = b/sample_size_u;
+				f2 = static_cast<TFloat>(b)/sample_size_u;
 
 				if(val01 < f2)
 					break;
@@ -677,7 +677,7 @@ namespace mveqf
 		}
 		if(count == 0)
 		{
-			f2 = b/sample_size_u;
+			f2 = static_cast<TFloat>(b)/sample_size_u;
 		}
 		if(a == b)
 		{
@@ -728,7 +728,7 @@ namespace mveqf
 			return std::make_pair(index, get_grid_value(ind, layer->children[index]->index) + 2.0*val01*dx[ind]);
 		}
 		size_t index = 0;
-		TIndex target = m;
+		TIndex target = static_cast<TIndex>(m);
 		for(size_t j = 1; j < layer->children.size(); j++)
 		{
 			if(layer->children[j]->index == target)

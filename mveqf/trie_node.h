@@ -19,7 +19,7 @@
 #define TRIE_NODE_H
 
 #include <memory>
-#include <cstvect.h>
+#include <mveqf/cstvect.h>
 //#include <vector>
 
 namespace mveqf

@@ -18,8 +18,8 @@
 #ifndef EXPERIMENTAL_H
 #define EXPERIMENTAL_H
 
-#include <trie_node.h>
-#include <quantile.h>
+#include <mveqf/trie_node.h>
+#include <mveqf/quantile.h>
 
 namespace mveqf
 {

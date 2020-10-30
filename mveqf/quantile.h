@@ -18,9 +18,9 @@
 #ifndef QUANTILE_H
 #define QUANTILE_H
 
-#include <trie.h>
-#include <trie_based.h>
-#include <trie_node.h>
+#include <mveqf/trie.h>
+#include <mveqf/trie_based.h>
+#include <mveqf/trie_node.h>
 
 //#include <iostream>
 
@@ -358,18 +358,18 @@ namespace mveqf
 
 
 	template <typename TIndex, typename TFloat>
-	size_t Quantile<TIndex, TFloat>::get_lb(TFloat lb, TFloat ub, size_t gridn, const TFloat &value) const
+	size_t Quantile<TIndex, TFloat>::get_lb(TFloat lower_bound, TFloat upper_bound, size_t gridn, const TFloat &value) const
 	{
 		size_t it, first = 0;
-		int count = gridn + 1, step;
-		TFloat range_normalized = (ub - lb)/TFloat(gridn);
+		int count = static_cast<int>(gridn + 1), step;
+		TFloat range_normalized = (upper_bound - lower_bound)/TFloat(gridn);
 		while(count > 0)
 		{
 			it = first;
 			step = count / 2;
 			it += step;
 
-			if(lb + range_normalized*(it + 0.5) < value)
+			if(lower_bound + range_normalized*(it + 0.5) < value)
 			{
 				first = ++it;
 				count -= step + 1;
@@ -380,32 +380,32 @@ namespace mveqf
 		return first;
 	}
 	template <typename TIndex, typename TFloat>
-	size_t Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value(TFloat lb, TFloat ub, size_t gridn, TFloat value) const
+	size_t Quantile<TIndex, TFloat>::get_the_closest_grid_node_to_the_value(TFloat lower_bound, TFloat upper_bound, size_t gridn, TFloat value) const
 	{
-		TFloat range_normalized = (ub - lb)/TFloat(gridn);
-		size_t it = get_lb(lb, ub, gridn, value);
+		TFloat range_normalized = (upper_bound - lower_bound)/TFloat(gridn);
+		size_t it = get_lb(lower_bound, upper_bound, gridn, value);
 		if(it >= gridn)
 			return gridn - 1;
 		else if(it == 0)
 			return 0;
 		else
-			return std::abs(lb + range_normalized*(it - 0.5) - value) < std::abs(lb + range_normalized*(it + 0.5) - value) ? it - 1 : it;
+			return std::abs(lower_bound + range_normalized*(it - 0.5) - value) < std::abs(lower_bound + range_normalized*(it + 0.5) - value) ? it - 1 : it;
 	}
 
 	template <typename TIndex, typename TFloat>
-	TFloat Quantile<TIndex, TFloat>::get_min_delta_from_grid_node(TFloat lb, TFloat ub, size_t gridn, TFloat value)
+	TFloat Quantile<TIndex, TFloat>::get_min_delta_from_grid_node(TFloat lower_bound, TFloat upper_bound, size_t gridn, TFloat value)
 	{
-		size_t ind = get_the_closest_grid_node_to_the_value(lb, ub, gridn, value);
-		TFloat range_normalized = (ub - lb)/TFloat(gridn);
-		TFloat node_value = lb + range_normalized*(ind + 0.5);
+		size_t ind = get_the_closest_grid_node_to_the_value(lower_bound, upper_bound, gridn, value);
+		TFloat range_normalized = (upper_bound - lower_bound)/TFloat(gridn);
+		TFloat node_value = lower_bound + range_normalized*(ind + 0.5);
 		return std::abs(node_value - value);
 	}
 
 	template <typename TIndex, typename TFloat>
-	size_t Quantile<TIndex, TFloat>::get_optimal_gridn_linear(const TFloat lb, const TFloat ub, const TFloat value, const TFloat delta)
+	size_t Quantile<TIndex, TFloat>::get_optimal_gridn_linear(const TFloat lower_bound, const TFloat upper_bound, const TFloat value, const TFloat delta)
 	{
 		TIndex max_gridn = std::numeric_limits<TIndex>::max(), grid_size = 1;
-		while(get_min_delta_from_grid_node(lb, ub, grid_size, value) > delta)
+		while(get_min_delta_from_grid_node(lower_bound, upper_bound, grid_size, value) > delta)
 		{
 			++grid_size;
 		}

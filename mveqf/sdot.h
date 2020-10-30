@@ -18,9 +18,9 @@
 #ifndef SMOT_H
 #define SMOT_H
 
-#include <trie_based.h>
-#include <explicit.h>
-#include <implicit.h>
+#include <mveqf/trie_based.h>
+#include <mveqf/explicit.h>
+#include <mveqf/implicit.h>
 
 #include <iostream>
 #include <string>

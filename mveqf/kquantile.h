@@ -18,9 +18,9 @@
 #ifndef KQUANTILE_H
 #define KQUANTILE_H
 
-#include <implicit.h>
-#include <kde.h>
-#include <mvff.h>
+#include <mveqf/implicit.h>
+#include <mveqf/kde.h>
+#include <mveqf/mvff.h>
 //#include <utility/timer.h>
 //#include <utility/data_io.h>
 #include <random>

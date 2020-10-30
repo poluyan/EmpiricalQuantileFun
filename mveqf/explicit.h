@@ -18,7 +18,7 @@
 #ifndef EXPLICIT_H
 #define EXPLICIT_H
 
-#include <quantile.h>
+#include <mveqf/quantile.h>
 
 namespace mveqf
 {
@@ -245,12 +245,12 @@ namespace mveqf
 			//m = std::distance(grids[ind].begin(), it);
 
 			c1 = count_less(layer, get_grid_value(ind, m));
-			f1 = c1/n;
+			f1 = static_cast<TFloat>(c1)/n;
 
 			if(f1 < val01)
 			{
 				c2 = count_less(layer, get_grid_value(ind, m + 1));
-				f2 = c2/n;
+				f2 = static_cast<TFloat>(c2)/n;
 
 				if(val01 < f2)
 					break;

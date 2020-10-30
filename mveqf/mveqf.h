@@ -18,8 +18,8 @@
 #ifndef MVEQF_H
 #define MVEQF_H
 
-#include <kquantile.h>
-#include <mvff.h>
+#include <mveqf/kquantile.h>
+#include <mveqf/mvff.h>
 
 //#include <utility/data_io.h>
 //template<class InputIt, class T>
