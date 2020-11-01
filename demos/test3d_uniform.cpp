@@ -5,22 +5,22 @@
 
 int main()
 {
-	size_t dimension = 2;
+	size_t dimension = 3;
 
-	std::vector<size_t> grid = {9, 10}; // grid
+	std::vector<size_t> grid = {5, 5, 5}; // grid
 
 	// sample grid points
-	std::vector<std::vector<int>> sample_implicit =
+	std::vector<std::vector<int>> sample =
 	{
-		{2,6}, {3,2}, {3,3}, {3,5}, {3,6}, {3,7}, {4,5}, {4,6},
-		{4,7}, {5,3}, {5,4}, {5,5}, {5,6}, {5,7},	{6,3}, {6,4}
+		{1,0,0}, {2,0,0},	{4,0,0}, {0,2,0},	{4,4,0}, {4,3,0},	{3,3,0},
+		{0,0,1}, {3,0,2}, {0,3,2}, {0,3,3}, {2,0,4}, {2,1,4}, {2,2,4}
 	};
 
 	std::vector<float> lb(dimension, -3.0f); // lower bound
 	std::vector<float> ub(dimension, 3.0f);  // upper bound
 
 	mveqf::ImplicitQuantile<int, float> mveqfunc(lb, ub, grid);
-	mveqfunc.set_sample(sample_implicit);
+	mveqfunc.set_sample(sample);
 
 	std::mt19937_64 generator;
 	generator.seed(1);
@@ -33,9 +33,9 @@ int main()
 	{
 		for(auto & j : values01)
 			j = ureal01(generator);
-		
+
 		mveqfunc.transform(values01, sampled);
-		
+
 		for(const auto & j : sampled)
 			std::cout << std::fixed << j << '\t';
 		std::cout << std::endl;

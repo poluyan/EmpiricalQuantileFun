@@ -759,7 +759,10 @@ namespace mveqf
 	public:
 		ImplicitTrieQuantile() = default;
 		ImplicitTrieQuantile(std::vector<TFloat> in_lb, std::vector<TFloat> in_ub, std::vector<size_t> in_gridn);
+		ImplicitTrieQuantile(const ImplicitTrieQuantile&) = delete;
+		ImplicitTrieQuantile& operator=(const ImplicitTrieQuantile&) = delete;
 		void set_sample_shared(std::shared_ptr<trie_type> in_sample);
+		void set_sample(const std::vector<std::vector<TIndex>> &in_sample) override;
 		void set_sample(const std::vector<std::vector<TFloat>> &in_sample) override;
 		void set_sample(const std::vector<std::vector<TFloat>> &in_sample, const std::vector<size_t> &weights) override;
 		void transform(const std::vector<TFloat>& in01, std::vector<TFloat>& out) const override;
@@ -801,6 +804,12 @@ namespace mveqf
 			out[i] = p->children[k]->index;
 			p = p->children[k].get();
 		}
+	}
+	
+	template <typename TIndex, typename TFloat>
+	void ImplicitTrieQuantile<TIndex, TFloat>::set_sample(const std::vector<std::vector<TIndex>> &in_sample)
+	{
+		ImplicitQuantile<TIndex, TFloat>::set_sample(in_sample);
 	}
 
 	template <typename TIndex, typename TFloat>
