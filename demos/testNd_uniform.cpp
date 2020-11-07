@@ -7,8 +7,8 @@ int main()
 {
 	std::mt19937_64 generator;
 	generator.seed(1);
-	std::uniform_int_distribution<int> dim_distr(4, 100);
-	std::uniform_int_distribution<int> grid_distr(1, 20);
+	std::uniform_int_distribution<std::uint8_t> dim_distr(10, 20);
+	std::uniform_int_distribution<std::uint8_t> grid_distr(1, 20);
 	std::uniform_real_distribution<float> bounds(-100.0f, 100.0f);
 
 	size_t dimension = dim_distr(generator);
@@ -33,22 +33,26 @@ int main()
 		ub[i] = upper;
 	}
 	
-	auto sample = std::make_shared<mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int>>();
+//	auto sample = std::make_shared<mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t>>();
+	auto sample = std::make_shared<mveqf::mfsa::MFSA<std::uint8_t>>();
+
 	sample->set_dimension(dimension);
 	
-	size_t nsamples = 1000000;
+	size_t nsamples = 20000;
 	for(size_t i = 0; i != nsamples; i++)
 	{
-		std::vector<int> point(dimension);
+		std::vector<std::uint8_t> point(dimension);
 		for(size_t j = 0; j != point.size(); j++)
 		{
-			std::uniform_int_distribution<int> grid_distr(0, grid[j] - 1);
+			std::uniform_int_distribution<std::uint8_t> grid_distr(0, grid[j] - 1);
 			point[j] = grid_distr(generator);
 		}
 		sample->insert(point);
 	}
 
-	mveqf::ImplicitQuantile<int, float> mveqfunc(lb, ub, grid);
+//	mveqf::ImplicitQuantile<std::uint8_t, float> mveqfunc(lb, ub, grid);
+	mveqf::ImplicitQuantileMFSA<std::uint8_t, float> mveqfunc(lb, ub, grid);
+
 	mveqfunc.set_sample_shared_and_fill_count(sample);
 
 	std::uniform_real_distribution<float> ureal01(0.0f, 1.0f);

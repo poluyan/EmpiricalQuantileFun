@@ -146,6 +146,7 @@ namespace mveqf
 
 		public:
 			vector();
+			vector(const vector &cp);
 			~vector();
 
 			reference operator[](size_type idx);
@@ -262,10 +263,14 @@ namespace mveqf
 		}
 
 		template <typename T>
-		vector<T>::vector()
+		vector<T>::vector() : data(nullptr), vec_sz(0) {}
+
+		template <typename T>
+		vector<T>::vector(const vector<T> &cp)
 		{
-			vec_sz = 0;
-			data = nullptr;//new value_type[vec_sz];
+			vec_sz = cp.vec_sz;
+			data = new value_type [vec_sz];
+			std::copy(cp.data, cp.data + vec_sz, data);
 		}
 
 		template <typename T>
