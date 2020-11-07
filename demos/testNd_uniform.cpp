@@ -7,8 +7,8 @@ int main()
 {
 	std::mt19937_64 generator;
 	generator.seed(1);
-	std::uniform_int_distribution<std::uint8_t> dim_distr(10, 20);
-	std::uniform_int_distribution<std::uint8_t> grid_distr(1, 20);
+	std::uniform_int_distribution<int> dim_distr(10, 20);
+	std::uniform_int_distribution<int> grid_distr(1, 20);
 	std::uniform_real_distribution<float> bounds(-100.0f, 100.0f);
 
 	size_t dimension = dim_distr(generator);
@@ -44,7 +44,7 @@ int main()
 		std::vector<std::uint8_t> point(dimension);
 		for(size_t j = 0; j != point.size(); j++)
 		{
-			std::uniform_int_distribution<std::uint8_t> grid_distr(0, grid[j] - 1);
+			std::uniform_int_distribution<int> grid_distr(0, grid[j] - 1);
 			point[j] = grid_distr(generator);
 		}
 		sample->insert(point);

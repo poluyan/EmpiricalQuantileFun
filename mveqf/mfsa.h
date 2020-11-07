@@ -356,7 +356,7 @@ namespace mveqf
 		{
 			Node<TIndex> *last_target = pivot->transition(key);
 			std::shared_ptr<Node<TIndex>> last = nullptr;
-			for(size_t i = key.size(); i >= 0; i--)
+			for(int i = key.size(); i >= 0; i--)
 			{
 				std::vector<TIndex> current_key;
 				if(i > 0)
@@ -413,8 +413,6 @@ namespace mveqf
 					last_target = target;
 				}
 				last = cloned;
-				if(i == 0)
-					break;
 			}
 		}
 
