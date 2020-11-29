@@ -259,7 +259,7 @@ namespace mveqf
 ////			std::cin.get();
 //
 //			bool unique = true;
-//			auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<int>,int>>();
+//			auto sample = std::make_shared<trie_based::TrieBased<shptr::NodeCount<int>,int>>();
 //			sample->set_dimension(current_grid.size());
 //			for(size_t i = 0; i != in_sample.size(); ++i)
 //			{
@@ -308,7 +308,7 @@ namespace mveqf
 //			std::cin.get();
 
 			all_unique = true;
-			auto sample = std::make_shared<trie_based::TrieBased<trie_based::NodeCount<TIndex>,TIndex>>();
+			auto sample = std::make_shared<trie_based::TrieBased<shptr::NodeCount<TIndex>,TIndex>>();
 			sample->set_dimension(current_grid.size());
 			for(size_t i = 0; i != in_sample.size(); ++i)
 			{

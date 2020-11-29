@@ -24,7 +24,7 @@
 
 namespace mveqf
 {
-	namespace trie_based
+	namespace shptr
 	{
 		template <template <typename> class T, typename TIndex>
 		struct TrieNode
@@ -58,6 +58,44 @@ namespace mveqf
 			std::weak_ptr<NodeCountInverse> parent;
 			NodeCountInverse() : TrieNode<NodeCountInverse, TIndex>(), count(0) {}
 			NodeCountInverse(TIndex ind) : TrieNode<NodeCountInverse, TIndex>(ind), count(0) {}
+		};
+	}
+
+	namespace ptr
+	{
+//		template <template <typename> class T, typename TIndex>
+//		struct TrieNode
+//		{
+//			TIndex index;
+////			std::vector<std::shared_ptr<T<TIndex>>> children;
+//			cst::vector<T<TIndex>*> children;
+//			TrieNode() : index(0) { }
+//			TrieNode(TIndex ind) : index(ind) { }
+//		};
+//
+//		template <typename TIndex>
+//		struct Node: public TrieNode<Node, TIndex>
+//		{
+//			Node() : TrieNode<Node, TIndex>() {}
+//			Node(TIndex ind) : TrieNode<Node, TIndex>(ind) {}
+//		};
+//
+//		template <typename TIndex>
+//		struct NodeCount: public TrieNode<NodeCount, TIndex>
+//		{
+//			size_t count;
+//			NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
+//			NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
+//		};
+		
+		template <typename TIndex>
+		struct NodeCount
+		{
+			TIndex index;
+			size_t count;
+			cst::vector<NodeCount<TIndex>*> children;
+			NodeCount() : index(0), count(0) {}
+			NodeCount(TIndex ind) : index(ind), count(0) {}
 		};
 	}
 }

@@ -46,7 +46,7 @@ namespace mveqf
 
 			size_t kernel_type; // 0 - gauss, 1 - epanechnikov, 2 - uniform, 3 - biweight, 4 - triweight
 
-			void calculate_bandwidth(trie_based::NodeCount<T> *layer)
+			void calculate_bandwidth(shptr::NodeCount<T> *layer)
 			{
 				U x = sum/count;
 				U y = ssum/count;
@@ -182,7 +182,7 @@ namespace mveqf
 //        else
 //            throw std::logic_error("kernel type");
 			}
-			void set_sample(trie_based::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, U in_bandwidth, U lambda)
+			void set_sample(shptr::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, U in_bandwidth, U lambda)
 			{
 				count = 0;
 				size_t min_c = layer->count + 1, cc = 0;
@@ -353,7 +353,7 @@ namespace mveqf
 		using mveqf::ImplicitQuantile<T, U>::lb;
 		using mveqf::ImplicitQuantile<T, U>::ub;
 
-		typedef trie::Trie<trie_based::NodeCount<T>,T> trie_type;
+		typedef trie::Trie<shptr::NodeCount<T>,T> trie_type;
 		std::shared_ptr<trie_type> sample;
 
 		using mveqf::ImplicitQuantile<T, U>::count_less;
@@ -362,7 +362,7 @@ namespace mveqf
 		size_t kernel_type;
 		std::vector<U> bandwidth;
 
-		U kquantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const;
+		U kquantile_transform(shptr::NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const;
 	public:
 		ImplicitTrieKQuantile();
 		ImplicitTrieKQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn, size_t kt);
@@ -461,7 +461,7 @@ namespace mveqf
 //	}
 
 	template <typename T, typename U>
-	U ImplicitTrieKQuantile<T, U>::kquantile_transform(trie_based::NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const
+	U ImplicitTrieKQuantile<T, U>::kquantile_transform(shptr::NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const
 	{
 
 //    timer::Timer time;
