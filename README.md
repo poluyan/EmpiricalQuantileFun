@@ -25,6 +25,14 @@ $ make
 
 Clone the entire repository and build it locally. 
 
+### Cite
+
+S. V. Poluyan, N. M. Ershov, Quantile transform in structural bioinformatics problems // Computational nanotechnology, 2019, Vol. 6, no. 4, P. 29–43 DOI: [10.33693/2313-223X-2019-6-4-29-43](http://www.mathnet.ru/php/archive.phtml?wshow=paper&jrnid=cn&paperid=274&option_lang=eng)
+
+```
+
+```
+
 ### License
 
 The `mveqf` library is distributed under Apache License 2.0 and it is open-source software. Feel free to make a copy and modify the source code, but keep the copyright notice and license intact.
