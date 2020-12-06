@@ -196,11 +196,9 @@ namespace mveqf
 		template <typename T>
 		vector<T>::vector(const vector& cp)
 		{
-			pointer tarr = new value_type [cp.vec_sz];
-			for(size_type i = 0; i < cp.vec_sz; ++i)
-				::new(static_cast<void*>(&tarr[i])) value_type(std::move(cp.data[i]));
-			delete [] data;
-			data = tarr;
+			vec_sz = cp.vec_sz;
+			data = new value_type [vec_sz];
+			std::copy(cp.data, cp.data + vec_sz, data);
 		}
 
 		template <typename T>
