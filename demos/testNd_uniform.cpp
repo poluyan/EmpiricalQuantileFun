@@ -33,7 +33,7 @@ int main()
 		ub[i] = upper;
 	}
 	
-//	auto sample = std::make_shared<mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<std::uint8_t>,std::uint8_t>>();
+//	auto sample = std::make_shared<mveqf::TrieBased<mveqf::NodeCount<std::uint8_t>,std::uint8_t>>();
 	auto sample = std::make_shared<mveqf::mfsa::MFSA<std::uint8_t>>();
 
 	sample->set_dimension(dimension);

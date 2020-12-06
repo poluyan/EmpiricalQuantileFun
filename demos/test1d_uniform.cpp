@@ -10,7 +10,7 @@ int main()
 	std::vector<size_t> grid = {12}; // grid
 
 	// sample grid points, non-uniform distribution
-	typedef mveqf::trie_based::TrieBased<mveqf::trie_based::NodeCount<int>,int> trie_type;
+	typedef mveqf::TrieBased<mveqf::NodeCount<int>,int> trie_type;
 	std::shared_ptr<trie_type> sample = std::make_shared<trie_type>();
 	sample->set_dimension(dimension);
 	sample->insert(std::vector<int> {1});

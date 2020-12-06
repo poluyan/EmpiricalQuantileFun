@@ -23,68 +23,33 @@
 
 namespace mveqf
 {
-	namespace shptr
+	template <template <typename> class T, typename TIndex>
+	struct TrieNode
 	{
-		template <template <typename> class T, typename TIndex>
-		struct TrieNode
-		{
-			TIndex index;
-			cst::vector<std::shared_ptr<T<TIndex>>> children;
-			TrieNode() : index(0) { }
-			TrieNode(TIndex ind) : index(ind) { }
-		};
+		TIndex index;
+		cst::vector<T<TIndex>*> children;
+		TrieNode() : index(0) { }
+		TrieNode(TIndex ind) : index(ind) { }
+	};
 
-		template <typename TIndex>
-		struct Node: public TrieNode<Node, TIndex>
-		{
-			Node() : TrieNode<Node, TIndex>() {}
-			Node(TIndex ind) : TrieNode<Node, TIndex>(ind) {}
-		};
-
-		template <typename TIndex>
-		struct NodeCount: public TrieNode<NodeCount, TIndex>
-		{
-			size_t count;
-			NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
-			NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
-		};
-
-		template <typename TIndex>
-		struct NodeCountInverse: public TrieNode<NodeCountInverse, TIndex>
-		{
-			size_t count;
-			std::weak_ptr<NodeCountInverse> parent;
-			NodeCountInverse() : TrieNode<NodeCountInverse, TIndex>(), count(0) {}
-			NodeCountInverse(TIndex ind) : TrieNode<NodeCountInverse, TIndex>(ind), count(0) {}
-		};
-	}
-
-	namespace ptr
+	template <typename TIndex>
+	struct Node: public TrieNode<Node, TIndex>
 	{
-		template <template <typename> class T, typename TIndex>
-		struct TrieNode
-		{
-			TIndex index;
-			cst::vector<T<TIndex>*> children;
-			TrieNode() : index(0) { }
-			TrieNode(TIndex ind) : index(ind) { }
-		};
+		Node() : TrieNode<Node, TIndex>() {}
+		Node(TIndex ind) : TrieNode<Node, TIndex>(ind) {}
+		Node(const Node&) = delete;
+		Node& operator=(const Node&) = delete;
+	};
 
-		template <typename TIndex>
-		struct Node: public TrieNode<Node, TIndex>
-		{
-			Node() : TrieNode<Node, TIndex>() {}
-			Node(TIndex ind) : TrieNode<Node, TIndex>(ind) {}
-		};
-
-		template <typename TIndex>
-		struct NodeCount: public TrieNode<NodeCount, TIndex>
-		{
-			size_t count;
-			NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
-			NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
-		};
-	}
+	template <typename TIndex>
+	struct NodeCount: public TrieNode<NodeCount, TIndex>
+	{
+		size_t count;
+		NodeCount() : TrieNode<NodeCount, TIndex>(), count(0) {}
+		NodeCount(TIndex ind) : TrieNode<NodeCount, TIndex>(ind), count(0) {}
+		NodeCount(const NodeCount&) = delete;
+		NodeCount& operator=(const NodeCount&) = delete;
+	};
 }
 
 #endif

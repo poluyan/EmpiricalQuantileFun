@@ -46,7 +46,7 @@ namespace mveqf
 
 			size_t kernel_type; // 0 - gauss, 1 - epanechnikov, 2 - uniform, 3 - biweight, 4 - triweight
 
-			void calculate_bandwidth(shptr::NodeCount<T> *layer)
+			void calculate_bandwidth(NodeCount<T> *layer)
 			{
 				U x = sum/count;
 				U y = ssum/count;
@@ -182,7 +182,7 @@ namespace mveqf
 //        else
 //            throw std::logic_error("kernel type");
 			}
-			void set_sample(shptr::NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, U in_bandwidth, U lambda)
+			void set_sample(NodeCount<T> *layer, size_t ind, const std::vector<std::vector<U>> &grids, const std::vector<U> &dx, U in_bandwidth, U lambda)
 			{
 				count = 0;
 				size_t min_c = layer->count + 1, cc = 0;
@@ -353,7 +353,7 @@ namespace mveqf
 		using mveqf::ImplicitQuantile<T, U>::lb;
 		using mveqf::ImplicitQuantile<T, U>::ub;
 
-		typedef trie::Trie<shptr::NodeCount<T>,T> trie_type;
+		typedef Trie<NodeCount<T>,T> trie_type;
 		std::shared_ptr<trie_type> sample;
 
 		using mveqf::ImplicitQuantile<T, U>::count_less;
@@ -362,7 +362,7 @@ namespace mveqf
 		size_t kernel_type;
 		std::vector<U> bandwidth;
 
-		U kquantile_transform(shptr::NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const;
+		U kquantile_transform(NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const;
 	public:
 		ImplicitTrieKQuantile();
 		ImplicitTrieKQuantile(std::vector<U> in_lb, std::vector<U> in_ub, std::vector<size_t> in_gridn, size_t kt);
@@ -430,7 +430,7 @@ namespace mveqf
 	template <typename T, typename U>
 	void ImplicitTrieKQuantile<T, U>::transform(const std::vector<U>& in01, std::vector<U>& out/*, const U lambda*/) const
 	{
-		auto p = sample->root.get();
+		auto p = sample->root;
 		for(size_t i = 0, k; i != in01.size(); i++)
 		{
 //        out[i] = kquantile_transform(p, i, in01[i], bandwidth[i], lambda);
@@ -448,7 +448,7 @@ namespace mveqf
 //                min_distance = temp;
 //            }
 //        }
-			p = p->children[k].get();
+			p = p->children[k];
 		}
 	}
 
@@ -461,7 +461,7 @@ namespace mveqf
 //	}
 
 	template <typename T, typename U>
-	U ImplicitTrieKQuantile<T, U>::kquantile_transform(shptr::NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const
+	U ImplicitTrieKQuantile<T, U>::kquantile_transform(NodeCount<T> *layer, size_t ind, U val01, U in_bandwidth, const U lambda) const
 	{
 
 //    timer::Timer time;

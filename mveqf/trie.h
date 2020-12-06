@@ -21,99 +21,148 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <mveqf/trie_node.h>
 
 namespace mveqf
 {
-	namespace trie
+	template <typename TNode, typename TIndex>
+	struct BaseSample
 	{
-		template <typename TNode, typename TIndex>
-		class Trie
+		virtual void set_dimension(size_t dim) = 0;
+		virtual size_t get_dimension() const = 0;
+		virtual void insert(const std::vector<TIndex> &key) = 0;
+		virtual void insert(const std::vector<TIndex> &key, size_t number) = 0;
+		virtual bool search(const std::vector<TIndex> &key) const = 0;
+		virtual void fill_tree_count() = 0;
+		virtual size_t get_link_count() const = 0;
+		virtual size_t get_node_count() const = 0;
+		virtual ~BaseSample() = default;
+	};
+
+	template <typename TNode, typename TIndex>
+	class Trie : public BaseSample<TNode, TIndex>
+	{
+	protected:
+		size_t dimension;
+	public:
+		TNode *root;
+		Trie();
+		Trie(size_t dim);
+		void destroy(TNode *p);
+		~Trie();
+		void set_dimension(size_t dim) override;
+		size_t get_dimension() const override;
+		bool empty() const;
+		void insert(const std::vector<TIndex> &key, size_t number) override;
+		void insert(const std::vector<TIndex> &key) override;
+		bool search(const std::vector<TIndex> &key) const override;
+		void fill_tree_count() override;
+
+		size_t get_link_count() const override;
+		size_t get_node_count() const override;
+	};
+	template <typename TNode, typename TIndex>
+	Trie<TNode,TIndex>::Trie() : dimension(0), root(new TNode())
+	{
+	}
+	template <typename TNode, typename TIndex>
+	Trie<TNode,TIndex>::Trie(size_t dim) : dimension(dim), root(new TNode())
+	{
+	}
+
+	template <typename TNode, typename TIndex>
+	void Trie<TNode,TIndex>::destroy(TNode *p)
+	{
+		for(auto &i : p->children)
+			destroy(i);
+		delete p;
+	}
+
+	template <typename TNode, typename TIndex>
+	Trie<TNode,TIndex>::~Trie()
+	{
+		for(TNode *i : root->children)
+			destroy(i);
+		delete root;
+	}
+	template <typename TNode, typename TIndex>
+	void Trie<TNode,TIndex>::set_dimension(size_t dim)
+	{
+		dimension = dim;
+	}
+	template <typename TNode, typename TIndex>
+	size_t Trie<TNode,TIndex>::get_dimension() const
+	{
+		return dimension;
+	}
+	template <typename TNode, typename TIndex>
+	bool Trie<TNode,TIndex>::empty() const
+	{
+		return root->children.empty();
+	}
+	template <typename TNode, typename TIndex>
+	void Trie<TNode,TIndex>::insert(const std::vector<TIndex> &key, size_t count)
+	{
+		auto p = root;
+		for(const auto &i : key)
 		{
-		protected:
-			size_t dimension;
-		public:
-			std::shared_ptr<TNode> root;
-			Trie();
-			Trie(size_t dim);
-			~Trie();
-			void set_dimension(size_t dim);
-			size_t get_dimension() const;
-			bool empty() const;
-			void insert(const std::vector<TIndex> &key, size_t number);
-			bool search(const std::vector<TIndex> &key) const;
-		};
-		template <typename TNode, typename TIndex>
-		Trie<TNode,TIndex>::Trie()
-		{
-			root = std::make_shared<TNode>();
-		}
-		template <typename TNode, typename TIndex>
-		Trie<TNode,TIndex>::Trie(size_t dim) : dimension(dim)
-		{
-			root = std::make_shared<TNode>();
-		}
-		template <typename TNode, typename TIndex>
-		Trie<TNode,TIndex>::~Trie() {}
-		template <typename TNode, typename TIndex>
-		void Trie<TNode,TIndex>::set_dimension(size_t dim)
-		{
-			dimension = dim;
-		}
-		template <typename TNode, typename TIndex>
-		size_t Trie<TNode,TIndex>::get_dimension() const
-		{
-			return dimension;
-		}
-		template <typename TNode, typename TIndex>
-		bool Trie<TNode,TIndex>::empty() const
-		{
-			return root->children.empty();
-		}
-		template <typename TNode, typename TIndex>
-		void Trie<TNode,TIndex>::insert(const std::vector<TIndex> &key, size_t count)
-		{
-			auto p = root.get();
-			for(const auto &i : key)
-			{
-				p->count += count;
-				auto it = std::find_if(p->children.begin(), p->children.end(), [&i](const std::shared_ptr<TNode> &obj)
-				{
-					return obj->index == i;
-				});
-				if(it == p->children.end())
-				{
-					p->children.emplace_back(std::make_shared<TNode>(i));
-					p->children.shrink_to_fit();
-					p = p->children.back().get();
-				}
-				else
-				{
-					p = p->children[std::distance(p->children.begin(), it)].get();
-				}
-			}
 			p->count += count;
-		}
-		template <typename TNode, typename TIndex>
-		bool Trie<TNode,TIndex>::search(const std::vector<TIndex> &key) const
-		{
-			auto p = root.get();
-			for(const auto &i : key)
+			auto it = std::find_if(p->children.begin(), p->children.end(), [&i](const auto &obj)
 			{
-				auto it = std::find_if(p->children.begin(), p->children.end(), [&i](const std::shared_ptr<TNode> &obj)
-				{
-					return obj->index == i;
-				});
-				if(it == p->children.end())
-				{
-					return false;
-				}
-				else
-				{
-					p = p->children[std::distance(p->children.begin(), it)].get();
-				}
+				return obj->index == i;
+			});
+			if(it == p->children.end())
+			{
+				p->children.push_back(new TNode(i));
+				p->children.shrink_to_fit();
+				p = p->children.back();
 			}
-			return true;
+			else
+			{
+				p = p->children[std::distance(p->children.begin(), it)];
+			}
 		}
+		p->count += count;
+	}
+	template <typename TNode, typename TIndex>
+	void Trie<TNode,TIndex>::insert(const std::vector<TIndex> &key)
+	{
+		insert(key, 1);
+	}
+	template <typename TNode, typename TIndex>
+	bool Trie<TNode,TIndex>::search(const std::vector<TIndex> &key) const
+	{
+		auto p = root;
+		for(const auto &i : key)
+		{
+			auto it = std::find_if(p->children.begin(), p->children.end(), [&i](const auto &obj)
+			{
+				return obj->index == i;
+			});
+			if(it == p->children.end())
+			{
+				return false;
+			}
+			else
+			{
+				p = p->children[std::distance(p->children.begin(), it)];
+			}
+		}
+		return true;
+	}
+	template <typename TNode, typename TIndex>
+	void Trie<TNode,TIndex>::fill_tree_count()
+	{
+	}
+	template <typename TNode, typename TIndex>
+	size_t Trie<TNode,TIndex>::get_link_count() const
+	{
+		return 0;
+	}
+	template <typename TNode, typename TIndex>
+	size_t Trie<TNode,TIndex>::get_node_count() const
+	{
+		return 0;
 	}
 }
 

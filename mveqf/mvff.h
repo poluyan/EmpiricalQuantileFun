@@ -47,7 +47,7 @@ namespace mveqf
 		template <typename T>
 		void FloodFill_MultipleGrids_VonNeumann_trie(const std::vector<std::vector<T>> &grids,
 		    std::vector<std::vector<int>> &pp,
-		    std::shared_ptr<mveqf::trie::Trie<mveqf::shptr::NodeCount<int>,int>> samples,
+		    std::shared_ptr<mveqf::Trie<mveqf::NodeCount<int>,int>> samples,
 		    const std::vector<T> &dx,
 		    size_t &counter,
 		    size_t &fe_count,
@@ -65,10 +65,10 @@ namespace mveqf
 			std::vector<T> dot(grids.size());
 			std::map<std::vector<int>, T> fmap;
 
-			mveqf::trie_based::TrieBased<mveqf::shptr::NodeCount<int>,int> visited;
-			mveqf::trie_based::TrieBased<mveqf::shptr::NodeCount<int>,int> points;
-			mveqf::trie_based::TrieBased<mveqf::shptr::NodeCount<int>,int> not_coumputed;
-			mveqf::trie_based::TrieBased<mveqf::shptr::NodeCount<int>,int> ss;
+			mveqf::TrieBased<mveqf::NodeCount<int>,int> visited;
+			mveqf::TrieBased<mveqf::NodeCount<int>,int> points;
+			mveqf::TrieBased<mveqf::NodeCount<int>,int> not_coumputed;
+			mveqf::TrieBased<mveqf::NodeCount<int>,int> ss;
 
 			visited.set_dimension(grids.size());
 			points.set_dimension(grids.size());

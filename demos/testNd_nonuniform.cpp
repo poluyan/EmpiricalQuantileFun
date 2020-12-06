@@ -34,7 +34,7 @@ int main()
 		ub[i] = upper;
 	}
 	
-	auto sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto sample = std::make_shared<mveqf::Trie<mveqf::NodeCount<int>,int>>();
 	sample->set_dimension(dimension);
 	
 	size_t nsamples = 1000000;

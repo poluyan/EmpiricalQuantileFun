@@ -146,7 +146,9 @@ namespace mveqf
 
 		public:
 			vector();
-			vector(const vector &cp);
+			vector(const vector&) = delete;
+			vector& operator=(const vector&) = delete;
+
 			~vector();
 
 			reference operator[](size_type idx);
@@ -178,15 +180,15 @@ namespace mveqf
 			pointer	data;
 			size_type	vec_sz;
 
-			inline void reallocate();
+			inline void reallocate_up();
 		};
 
 		template <typename T>
-		inline void vector<T>::reallocate()
+		inline void vector<T>::reallocate_up()
 		{
-			pointer tarr = new value_type[vec_sz];
-			//std::memcpy(tarr, data, (vec_sz - 1) * sizeof(value_type));
-			std::copy(data, data + vec_sz - 1, tarr);
+			pointer tarr = new value_type [vec_sz];
+			for(size_type i = 0; i < vec_sz - 1; ++i)
+				::new(static_cast<void*>(&tarr[i])) value_type(std::move(data[i]));
 			delete [] data;
 			data = tarr;
 		}
@@ -212,14 +214,6 @@ namespace mveqf
 		template <typename T>
 		void vector<T>::clear()
 		{
-//		for(size_type i = 0; i < vec_sz; ++i)
-//			data[i].~T();
-
-//		vec_sz = 0;
-//		pointer tarr = new value_type[vec_sz];
-//		delete [] data;
-//		data = tarr;
-
 			vec_sz = 0;
 			delete [] data;
 			data = nullptr;
@@ -228,7 +222,6 @@ namespace mveqf
 		template <typename T>
 		typename vector<T>::reference vector<T>::operator[](vector<T>::size_type idx)
 		{
-			//return data[idx];
 			return *(this->data + idx);
 		}
 
@@ -266,29 +259,20 @@ namespace mveqf
 		vector<T>::vector() : data(nullptr), vec_sz(0) {}
 
 		template <typename T>
-		vector<T>::vector(const vector<T> &cp)
-		{
-			vec_sz = cp.vec_sz;
-			data = new value_type [vec_sz];
-			std::copy(cp.data, cp.data + vec_sz, data);
-		}
-
-		template <typename T>
 		void vector<T>::pop_back()
 		{
 			if(vec_sz > 1)
 			{
 				--vec_sz;
-				data[vec_sz].~T();
-				reallocate();
+				pointer tarr = new value_type [vec_sz];
+				for(size_type i = 0; i < vec_sz; ++i)
+					::new(static_cast<void*>(&tarr[i])) value_type(std::move(data[i]));
+				delete [] data;
+				data = tarr;
 			}
 			else if(vec_sz == 1)
 			{
 				--vec_sz;
-				data[vec_sz].~T();
-//			T *tarr = new T[vec_sz];
-//			delete [] data;
-//			data = tarr;
 				delete [] data;
 				data = nullptr;
 			}
@@ -315,26 +299,12 @@ namespace mveqf
 		template <typename T>
 		void vector<T>::push_back(const vector<T>::value_type &val)
 		{
-//			if(vec_sz < std::numeric_limits<size_type>::max())
-//			{
-//				++vec_sz;
-//				reallocate();
-//				data[vec_sz - 1] = val;
-//			}
-
 			emplace_back(val);
 		}
 
 		template <typename T>
 		void vector<T>::push_back(vector<T>::value_type &&val)
 		{
-//			if(vec_sz < std::numeric_limits<size_type>::max())
-//			{
-//				++vec_sz;
-//				reallocate();
-//				data[vec_sz - 1] = std::move(val);
-//			}
-
 			emplace_back(std::move(val));
 		}
 
@@ -345,7 +315,7 @@ namespace mveqf
 			if(vec_sz < std::numeric_limits<size_type>::max())
 			{
 				++vec_sz;
-				reallocate();
+				reallocate_up();
 				data[vec_sz - 1] = std::move(value_type(std::forward<Args>(args) ...));
 			}
 		}

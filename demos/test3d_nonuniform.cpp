@@ -20,7 +20,7 @@ int main()
 	std::vector<size_t> grid = {50, 50, 50}; // grid
 
 	// sample grid points
-	auto sample = std::make_shared<mveqf::trie::Trie<mveqf::trie_based::NodeCount<int>,int>>();
+	auto sample = std::make_shared<mveqf::Trie<mveqf::NodeCount<int>,int>>();
 	sample->set_dimension(dimension);
 
 	std::vector<float> dx(dimension);
