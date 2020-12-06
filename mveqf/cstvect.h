@@ -146,7 +146,7 @@ namespace mveqf
 
 		public:
 			vector();
-			vector(const vector&) = delete;
+			vector(const vector& cp);
 			vector& operator=(const vector&) = delete;
 
 			~vector();
@@ -189,6 +189,16 @@ namespace mveqf
 			pointer tarr = new value_type [vec_sz];
 			for(size_type i = 0; i < vec_sz - 1; ++i)
 				::new(static_cast<void*>(&tarr[i])) value_type(std::move(data[i]));
+			delete [] data;
+			data = tarr;
+		}
+
+		template <typename T>
+		vector<T>::vector(const vector& cp)
+		{
+			pointer tarr = new value_type [vec_sz];
+			for(size_type i = 0; i < vec_sz; ++i)
+				::new(static_cast<void*>(&tarr[i])) value_type(std::move(cp.data[i]));
 			delete [] data;
 			data = tarr;
 		}
