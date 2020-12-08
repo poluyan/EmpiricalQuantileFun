@@ -20,7 +20,7 @@ int main()
 
 	std::vector<float> lb(dimension); // lower bound
 	std::vector<float> ub(dimension); // upper bound
-	
+
 	for(size_t i = 0; i != dimension; i++)
 	{
 		auto lower = bounds(generator);
@@ -33,11 +33,11 @@ int main()
 		lb[i] = lower;
 		ub[i] = upper;
 	}
-	
+
 	auto sample = std::make_shared<mveqf::Trie<mveqf::NodeCount<int>,int>>();
 	sample->set_dimension(dimension);
-	
-	size_t nsamples = 1000000;
+
+	size_t nsamples = 10000;
 	for(size_t i = 0; i != nsamples; i++)
 	{
 		std::vector<int> point(dimension);
@@ -46,7 +46,8 @@ int main()
 			std::uniform_int_distribution<int> grid_distr(0, grid[j] - 1);
 			point[j] = grid_distr(generator);
 		}
-		sample->insert(point, 1/*count_distr(generator)*/);
+		if(!sample->search(point))
+			sample->insert(point, count_distr(generator)); // 1 for uniform
 	}
 
 	mveqf::ImplicitTrieQuantile<int, float> mveqfunc(lb, ub, grid);

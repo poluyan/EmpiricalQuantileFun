@@ -92,8 +92,8 @@ namespace mveqf
 
 				if(weights_flag)
 				{
-					//std::make_shared<mveqf::ImplicitTrieQuantile<size_t, TFloat>>()
-					qf = std::make_shared<mveqf::ExplicitQuantile<size_t, TFloat>>();
+					qf = std::make_shared<mveqf::ImplicitTrieQuantile<size_t, TFloat>>();
+					//qf = std::make_shared<mveqf::ExplicitQuantile<size_t, TFloat>>();
 				}
 				else
 				{

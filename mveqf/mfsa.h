@@ -163,7 +163,7 @@ namespace mveqf
 			MFSA();
 			void set_dimension(size_t dim);
 			void insert(const std::vector<TIndex> &key);
-			bool contains(const std::vector<TIndex> &key) const;
+			bool search(const std::vector<TIndex> &key) const;
 
 			void fill_tree_count(Node<TIndex> *p);
 			void fill_tree_count();
@@ -458,7 +458,7 @@ namespace mveqf
 		}
 
 		template <typename TIndex>
-		bool MFSA<TIndex>::contains(const std::vector<TIndex> &key) const
+		bool MFSA<TIndex>::search(const std::vector<TIndex> &key) const
 		{
 			Node<TIndex> *p = root->transition(key);
 			return p != nullptr && p->accepting_state;

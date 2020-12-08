@@ -33,7 +33,7 @@ int main()
 		ub[i] = upper;
 	}
 
-	auto sample = std::make_shared<mveqf::TrieBased<mveqf::NodeCount<std::uint8_t>,std::uint8_t>>();
+	auto sample = std::make_shared<mveqf::mfsa::MFSA<std::uint8_t>>();
 	sample->set_dimension(dimension);
 
 	size_t nsamples = 2000;
@@ -49,8 +49,7 @@ int main()
 			sample->insert(point);
 	}
 
-	mveqf::ImplicitQuantile<std::uint8_t, float> mveqfunc(lb, ub, grid);
-	
+	mveqf::ImplicitQuantileMFSA<std::uint8_t, float> mveqfunc(lb, ub, grid);
 	mveqfunc.set_sample_shared_and_fill_count(sample);
 
 	std::uniform_real_distribution<float> ureal01(0.0f, 1.0f);
