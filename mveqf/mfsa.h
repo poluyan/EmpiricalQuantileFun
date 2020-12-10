@@ -23,6 +23,7 @@
 #include <vector>
 #include <algorithm>
 #include <mveqf/cstvect.h>
+#include <mveqf/sample.h>
 
 namespace mveqf
 {
@@ -153,32 +154,40 @@ namespace mveqf
 			return equal;
 		}
 
+		// virtual void insert(const std::vector<TIndex> &key) = 0;
+		// virtual void insert(const std::vector<TIndex> &key, size_t number) = 0;
+		// virtual bool search(const std::vector<TIndex> &key) const = 0;
+		// virtual void fill_tree_count() = 0;
+		// virtual size_t get_link_count() const = 0;
+		// virtual size_t get_node_count() const = 0;
+
 		template <typename TIndex>
-		class MFSA
+		class MFSA : public BaseSample<TIndex>
 		{
 		public:
 			std::shared_ptr<Node<TIndex>> root;
 			std::shared_ptr<Node<TIndex>> final_state;
 
 			MFSA();
-			void set_dimension(size_t dim);
-			void insert(const std::vector<TIndex> &key);
-			bool search(const std::vector<TIndex> &key) const;
+			void set_dimension(size_t dim) override;
+			size_t get_dimension() const override;
+			void insert(const std::vector<TIndex> &key) override;
+			void insert(const std::vector<TIndex> &key, size_t number) override;
+			bool search(const std::vector<TIndex> &key) const override;
+			void fill_tree_count() override;
 
-			void fill_tree_count(Node<TIndex> *p);
-			void fill_tree_count();
-
-			void get_number(Node<TIndex> *p, size_t &count) const;
-			void get_link(Node<TIndex>* p, size_t &count) const;
-			size_t count_nodes(Node<TIndex> *current, std::set<std::shared_ptr<Node<TIndex>>> &data) const;
 			std::pair<size_t, size_t> get_node_link_count() const;
 
-			size_t get_node_count() const;
-			size_t get_link_count() const;
+			size_t get_node_count() const override;
+			size_t get_link_count() const override;
 		protected:
 			size_t dimension;
 			std::vector<std::pair<std::shared_ptr<Node<TIndex>>, std::shared_ptr<Node<TIndex>>>> eq;
-			
+
+			size_t count_nodes(Node<TIndex> *current, std::set<std::shared_ptr<Node<TIndex>>> &data) const;
+			void fill_tree_count(Node<TIndex> *p);
+			void get_number(Node<TIndex> *p, size_t &count) const;
+			void get_link(Node<TIndex>* p, size_t &count) const;
 			std::vector<TIndex> longest_prefix(const std::vector<TIndex> &key) const;
 			void replace_or_register(const std::shared_ptr<Node<TIndex>> &p, const std::vector<TIndex> &key);
 			void add_path(Node<TIndex> *p, const std::vector<TIndex> &key);
@@ -191,6 +200,12 @@ namespace mveqf
 		void MFSA<TIndex>::set_dimension(size_t dim)
 		{
 			dimension = dim;
+		}
+
+		template <typename TIndex>
+		size_t MFSA<TIndex>::get_dimension() const
+		{
+			return dimension;
 		}
 
 		template <typename TIndex>
@@ -234,6 +249,12 @@ namespace mveqf
 		{
 			add(key);
 			replace_or_register(root, key);
+		}
+
+		template <typename TIndex>
+		void MFSA<TIndex>::insert(const std::vector<TIndex> &key, size_t number)
+		{
+			insert(key);
 		}
 
 		template <typename TIndex>

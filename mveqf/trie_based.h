@@ -23,12 +23,12 @@
 #include <algorithm>
 #include <memory>
 #include <mveqf/cstvect.h>
-#include <mveqf/trie.h>
+#include <mveqf/sample.h>
 
 namespace mveqf
 {
 	template <typename TNode, typename TIndex>
-	class TrieBased : public BaseSample<TNode, TIndex>
+	class TrieBased : public BaseSample<TIndex>
 	{
 	public:
 		TNode *root;

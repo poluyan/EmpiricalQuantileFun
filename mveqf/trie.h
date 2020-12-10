@@ -21,26 +21,12 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
-#include <mveqf/trie_node.h>
+#include <mveqf/sample.h>
 
 namespace mveqf
 {
 	template <typename TNode, typename TIndex>
-	struct BaseSample
-	{
-		virtual void set_dimension(size_t dim) = 0;
-		virtual size_t get_dimension() const = 0;
-		virtual void insert(const std::vector<TIndex> &key) = 0;
-		virtual void insert(const std::vector<TIndex> &key, size_t number) = 0;
-		virtual bool search(const std::vector<TIndex> &key) const = 0;
-		virtual void fill_tree_count() = 0;
-		virtual size_t get_link_count() const = 0;
-		virtual size_t get_node_count() const = 0;
-		virtual ~BaseSample() = default;
-	};
-
-	template <typename TNode, typename TIndex>
-	class Trie : public BaseSample<TNode, TIndex>
+	class Trie : public BaseSample<TIndex>
 	{
 	protected:
 		size_t dimension;
