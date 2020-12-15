@@ -29,31 +29,31 @@ Some examples of using `mveqf` to perform quantile transform presented in `demos
 #include <mveqf/implicit.h>
 int main()
 {
-	using gt = std::uint8_t; // integer type to store grid node components: char, unsigned char, int, ...
+  using gt = std::uint8_t; // integer type to store grid node components: char, unsigned char, int, ...
 
-	std::size_t d = 2; // dimension
-	std::vector<std::size_t> grid = {9, 10}; // regular grid sizes
+  std::size_t d = 2; // dimension
+  std::vector<std::size_t> grid = {9, 10}; // regular grid sizes
 
-	// data structure for sample storage - modified Trie with NodeCount nodes
-	using sample_type = mveqf::TrieBased<mveqf::NodeCount<gt>, gt>;
+  // data structure for sample storage - modified Trie with NodeCount nodes
+  using sample_type = mveqf::TrieBased<mveqf::NodeCount<gt>, gt>;
 
-	// pointer to the sample which will be moved to quantile object
-	std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
-	sample->set_dimension(d); // setting dimension
+  // pointer to the sample which will be moved to quantile object
+  std::shared_ptr<sample_type> sample = std::make_shared<sample_type>();
+  sample->set_dimension(d); // setting dimension
 
-	sample->insert(std::vector<gt>{2, 6}); // adding grid node to sample
-	sample->insert(std::vector<gt>{5, 7}); // first component from [0;8] range, second from [0;9]
+  sample->insert(std::vector<gt>{2, 6}); // adding grid node to sample
+  sample->insert(std::vector<gt>{5, 7}); // first component from [0;8] range, second from [0;9]
 
-	std::vector<float> lb(d, -3.0f); // lower bound for each component
-	std::vector<float> ub(d, 3.0f); // upper bound for each component
+  std::vector<float> lb(d, -3.0f); // lower bound for each component
+  std::vector<float> ub(d, 3.0f); // upper bound for each component
 
-	mveqf::ImplicitQuantile<gt, float> mveqfunc(lb, ub, grid); // object to perform quantile transofrm
-	mveqfunc.set_sample_shared_and_fill_count(sample); // moving sample to quantile object
+  mveqf::ImplicitQuantile<gt, float> mveqfunc(lb, ub, grid); // object to perform quantile transofrm
+  mveqfunc.set_sample_shared_and_fill_count(sample); // moving sample to quantile object
 
-	std::vector<float> values01 = {0.427f, 0.791f}; // values to transform
-	std::vector<float> sampled(d); // vector to store values after transform
+  std::vector<float> values01 = {0.427f, 0.791f}; // values to transform
+  std::vector<float> sampled(d); // vector to store values after transform
 
-	mveqfunc.transform(values01, sampled); // performing transform and saving values to sampled
+  mveqfunc.transform(values01, sampled); // performing transform and saving values to sampled
 }
 ```
 
