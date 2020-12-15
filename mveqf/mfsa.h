@@ -162,7 +162,7 @@ namespace mveqf
 		// virtual size_t get_node_count() const = 0;
 
 		template <typename TIndex>
-		class MFSA : public BaseSample<TIndex>
+		class MFSA : public Sample<TIndex>
 		{
 		public:
 			std::shared_ptr<Node<TIndex>> root;

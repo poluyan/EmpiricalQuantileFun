@@ -28,7 +28,7 @@
 namespace mveqf
 {
 	template <typename TNode, typename TIndex>
-	class TrieBased : public BaseSample<TIndex>
+	class TrieBased : public Sample<TIndex>
 	{
 	public:
 		TNode *root;

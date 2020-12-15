@@ -26,7 +26,7 @@
 namespace mveqf
 {
 	template <typename TNode, typename TIndex>
-	class Trie : public BaseSample<TIndex>
+	class Trie : public Sample<TIndex>
 	{
 	protected:
 		size_t dimension;

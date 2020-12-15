@@ -21,7 +21,7 @@
 namespace mveqf
 {
 	template <typename TIndex>
-	struct BaseSample
+	struct Sample
 	{
 		virtual void set_dimension(size_t dim) = 0;
 		virtual size_t get_dimension() const = 0;
@@ -35,7 +35,7 @@ namespace mveqf
 		virtual size_t get_link_count() const = 0;
 		virtual size_t get_node_count() const = 0;
 
-		virtual ~BaseSample() = default;
+		virtual ~Sample() = default;
 	};
 }
 
