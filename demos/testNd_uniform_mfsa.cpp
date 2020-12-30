@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
-#include <mveqf/implicit.h>
+#include <mveqf/implicit_mfsa.h>
 
 int main()
 {

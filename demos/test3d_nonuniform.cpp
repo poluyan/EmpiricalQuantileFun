@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
-#include <mveqf/implicit.h>
+#include <mveqf/implicit_trie.h>
 
 float threeExp(float x, float y, float z)
 {
