@@ -21,6 +21,7 @@
 #include <mveqf/trie_based.h>
 #include <mveqf/explicit.h>
 #include <mveqf/implicit.h>
+#include <mveqf/implicit_trie.h>
 
 #include <iostream>
 #include <string>
